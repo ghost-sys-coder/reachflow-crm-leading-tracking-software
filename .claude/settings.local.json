@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy npm run build)",
+      "Bash(npx shadcn@latest add form --yes)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(npm install *)",
+      "Skill(claude-api)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git commit *)"
+    ]
+  }
+}
