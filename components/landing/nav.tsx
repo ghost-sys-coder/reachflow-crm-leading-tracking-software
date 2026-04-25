@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { BrandMark } from "@/components/shared/brand-mark"
 import { ThemeSwitcher } from "@/components/shared/theme-switcher"
+import { createClient } from "@/lib/supabase/server"
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -11,7 +12,11 @@ const NAV_LINKS = [
   { label: "Changelog", href: "#changelog" },
 ]
 
-export function LandingNav() {
+export async function LandingNav() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isLoggedIn = Boolean(user)
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
@@ -33,14 +38,22 @@ export function LandingNav() {
         </div>
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
-          <Link href="/sign-in" className="hidden sm:inline-flex">
-            <Button variant="ghost" size="sm">
-              Sign in
-            </Button>
-          </Link>
-          <Link href="/sign-up">
-            <Button size="sm">Get started</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/pipeline">
+              <Button size="sm">Go to dashboard</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button size="sm">Get started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

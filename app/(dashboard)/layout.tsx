@@ -5,13 +5,6 @@ import { DesktopSidebar } from "@/components/shared/sidebar"
 import { Topbar } from "@/components/shared/topbar"
 import { createClient } from "@/lib/supabase/server"
 
-async function signOut() {
-  "use server"
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  redirect("/sign-in")
-}
-
 export default async function DashboardLayout({
   children,
 }: {
@@ -38,7 +31,6 @@ export default async function DashboardLayout({
         <Topbar
           userEmail={userEmail}
           userName={userName}
-          signOutAction={signOut}
         />
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>

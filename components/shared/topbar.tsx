@@ -29,11 +29,9 @@ function resolveTitle(pathname: string) {
 export function Topbar({
   userEmail,
   userName,
-  signOutAction,
 }: {
   userEmail: string
   userName: string | null
-  signOutAction: () => void
 }) {
   const pathname = usePathname()
   const title = resolveTitle(pathname)
@@ -64,7 +62,6 @@ export function Topbar({
         <UserMenu
           userEmail={userEmail}
           userName={userName}
-          signOutAction={signOutAction}
         />
       </div>
     </header>

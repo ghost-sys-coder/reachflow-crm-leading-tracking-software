@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { LogOut, Settings, User } from "lucide-react"
 import Link from "next/link"
 
@@ -12,17 +13,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { signOut } from "@/app/actions/auth"
 
 export function UserMenu({
   userEmail,
   userName,
-  signOutAction,
 }: {
   userEmail: string
   userName: string | null
-  signOutAction: () => void
 }) {
+  const [isPending, startTransition] = React.useTransition()
   const initials = (userName ?? userEmail).slice(0, 2).toUpperCase()
+
+  function handleSignOut() {
+    startTransition(() => signOut())
+  }
 
   return (
     <DropdownMenu>
@@ -57,14 +62,14 @@ export function UserMenu({
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <form action={signOutAction}>
-          <DropdownMenuItem asChild>
-            <button type="submit" className="w-full">
-              <LogOut />
-              Sign out
-            </button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem
+          onSelect={handleSignOut}
+          disabled={isPending}
+          className="text-destructive focus:text-destructive"
+        >
+          <LogOut />
+          {isPending ? "Signing out..." : "Sign out"}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
