@@ -24,10 +24,10 @@ const FEATURES = [
 
 export function AuthBrandPanel() {
   return (
-    <div className="relative hidden min-h-[100dvh] flex-col overflow-hidden bg-card p-10 lg:flex">
+    <div className="relative hidden min-h-dvh flex-col overflow-hidden bg-card p-10 lg:flex">
       <div className="pointer-events-none absolute inset-0 opacity-70">
-        <div className="absolute -top-40 -right-24 size-[32rem] rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-accent-foreground/10 blur-3xl" />
+        <div className="absolute -top-40 -right-24 size-128 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 size-112 rounded-full bg-accent-foreground/10 blur-3xl" />
       </div>
 
       <div className="relative flex h-full flex-col justify-between gap-10">

@@ -24,13 +24,13 @@ export async function saveMessage(
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx) return fail(error)
 
-  const { data, error } = await ctx.supabase
+  const { data, error: insertError } = await ctx.supabase
     .from("messages")
     .insert({ ...parsed.data, user_id: ctx.userId, org_id: ctx.orgId })
     .select()
     .single()
 
-  if (error) return fail(error.message)
+  if (insertError) return fail(insertError.message)
   revalidatePath("/prospects", "layout")
   return ok(data as Message)
 }
@@ -39,14 +39,14 @@ export async function markMessageAsSent(id: string): Promise<ActionResult<Messag
   const { supabase, user } = await getAuthedClient()
   if (!user) return fail("Not authenticated")
 
-  const { data, error } = await supabase
+  const { data, error: updateError } = await supabase
     .from("messages")
     .update({ was_sent: true, sent_at: new Date().toISOString() })
     .eq("id", id)
     .select()
     .single()
 
-  if (error) return fail(error.message)
+  if (updateError) return fail(updateError.message)
 
   //also bump the parent prospect's last_contacted_at
   if (data) {

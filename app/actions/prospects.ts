@@ -32,17 +32,17 @@ export async function createProspect(
   const parsed = prospectCreateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { ctx, error } = await getAuthedOrgClient()
-  if (!ctx) return fail(error)
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
 
-  const { data, error } = await ctx.supabase
+  const { data, error: insertError } = await ctx.supabase
     .from("prospects")
     .insert({ ...parsed.data, org_id: ctx.orgId })
     .select()
     .single()
 
-  if (error) return fail(error.message)
+  if (insertError) return fail(insertError.message)
   revalidateProspectViews()
   return ok(data as Prospect)
 }
