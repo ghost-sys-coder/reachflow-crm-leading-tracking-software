@@ -8,9 +8,9 @@ import { fail, ok } from "@/lib/validation/result"
 import type { ActionResult, MemberRole, OrganizationInvite } from "@/types/database"
 
 export async function getInvites(): Promise<ActionResult<OrganizationInvite[]>> {
-  const ctx = await getAuthedOrgClient()
-  if (!ctx) return fail("Not authenticated")
-  if (ctx.role !== "admin") return fail("Only admins can view invites")
+  const { ctx } = await getAuthedOrgClient();
+  if (!ctx) return fail("Not authenticated");
+  if (ctx?.role !== "admin") return fail("Only admins can view invites")
 
   const { data, error } = await ctx.supabase
     .from("organization_invites")
@@ -26,9 +26,9 @@ export async function createInvite(
   email: string,
   role: MemberRole,
 ): Promise<ActionResult<OrganizationInvite>> {
-  const ctx = await getAuthedOrgClient()
+  const { ctx } = await getAuthedOrgClient();
   if (!ctx) return fail("Not authenticated")
-  if (ctx.role !== "admin") return fail("Only admins can invite members")
+  if (ctx?.role !== "admin") return fail("Only admins can invite members")
 
   const token = randomBytes(32).toString("hex")
   const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -54,7 +54,7 @@ export async function createInvite(
 export async function revokeInvite(
   inviteId: string,
 ): Promise<ActionResult<{ id: string }>> {
-  const ctx = await getAuthedOrgClient()
+  const { ctx } = await getAuthedOrgClient();
   if (!ctx) return fail("Not authenticated")
   if (ctx.role !== "admin") return fail("Only admins can revoke invites")
 
