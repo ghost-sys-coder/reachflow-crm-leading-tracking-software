@@ -88,8 +88,8 @@ function TypewriterText({
   return (
     <pre
       className={cn(
-        "whitespace-pre-wrap break-words font-sans text-sm text-foreground",
-        !done && "after:inline-block after:h-4 after:w-[2px] after:animate-pulse after:bg-primary after:align-middle after:ml-px",
+        "whitespace-pre-wrap wrap-break-word font-sans text-sm text-foreground",
+        !done && "after:inline-block after:h-4 after:w-0.5 after:animate-pulse after:bg-primary after:align-middle after:ml-px",
         className,
       )}
     >
@@ -242,7 +242,7 @@ export function GeneratorPanel({
                 key={t}
                 type="button"
                 role="radio"
-                aria-checked={isActive}
+                aria-checked={isActive ? "true" : "false"}
                 onClick={() => setMessageType(t)}
                 className={cn(
                   "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors",
@@ -322,7 +322,7 @@ export function GeneratorPanel({
             </span>
           </div>
 
-          <div className="mt-3 max-h-[400px] overflow-y-auto">
+          <div className="mt-3 max-h-100 overflow-y-auto">
             <TypewriterText
               key={current.message.id}
               text={outputText}
@@ -453,7 +453,7 @@ function HistoryEntry({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-start justify-between gap-3 text-left"
-        aria-expanded={expanded}
+        aria-expanded={expanded ? "true" : "false"}
       >
         <span className="flex flex-1 items-start gap-2">
           <TypeIcon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />

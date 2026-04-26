@@ -15,15 +15,14 @@ export function LandingSocialProof() {
         <p className="text-center text-xs font-medium tracking-wider text-muted-foreground uppercase">
           Trusted by boutique agencies and in-house growth teams
         </p>
-        <dl className="mt-8 grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-8 md:grid-cols-4">
           {STATS.map((stat) => (
             <div key={stat.label} className="space-y-1 text-center">
-              <dt className="sr-only">{stat.label}</dt>
-              <dd className="text-3xl font-semibold tracking-tight">{stat.value}</dd>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <div className="text-3xl font-semibold tracking-tight">{stat.value}</div>
+              <div className="text-xs text-muted-foreground">{stat.label}</div>
             </div>
           ))}
-        </dl>
+        </div>
       </div>
     </section>
   )

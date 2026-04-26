@@ -8,7 +8,7 @@ import { orgUpdateSchema, type OrgUpdateInput } from "@/lib/validation/schemas"
 import type { ActionResult, Organization, OrganizationMember } from "@/types/database"
 
 export async function getOrgMembers(): Promise<ActionResult<OrganizationMember[]>> {
-  const ctx = await getAuthedOrgClient()
+  const {ctx} = await getAuthedOrgClient()
   if (!ctx) return fail("Not authenticated")
 
   const { data, error } = await ctx.supabase
@@ -27,7 +27,7 @@ export async function updateOrg(
   const parsed = orgUpdateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const ctx = await getAuthedOrgClient()
+  const { ctx } = await getAuthedOrgClient()
   if (!ctx) return fail("Not authenticated")
   if (ctx.role !== "admin") return fail("Only admins can update org settings")
 

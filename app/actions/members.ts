@@ -10,7 +10,7 @@ export async function updateMemberRole(
   userId: string,
   role: MemberRole,
 ): Promise<ActionResult<OrganizationMember>> {
-  const ctx = await getAuthedOrgClient()
+  const {ctx }= await getAuthedOrgClient()
   if (!ctx) return fail("Not authenticated")
   if (ctx.role !== "admin") return fail("Only admins can change roles")
 
@@ -30,7 +30,7 @@ export async function updateMemberRole(
 export async function removeMember(
   userId: string,
 ): Promise<ActionResult<{ user_id: string }>> {
-  const ctx = await getAuthedOrgClient()
+  const { ctx } = await getAuthedOrgClient()
   if (!ctx) return fail("Not authenticated")
 
   const isSelf = ctx.userId === userId

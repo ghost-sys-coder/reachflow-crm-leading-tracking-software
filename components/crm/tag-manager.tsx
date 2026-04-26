@@ -97,6 +97,8 @@ export function TagManager({
                 <button
                   key={tag.id}
                   type="button"
+                  aria-pressed={applied}
+                  aria-label={`${applied ? "Remove" : "Add"} tag ${tag.name}`}
                   onClick={() => toggleApplied(tag)}
                   disabled={isPending}
                   className={cn(

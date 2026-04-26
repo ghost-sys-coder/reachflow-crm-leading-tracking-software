@@ -329,12 +329,12 @@ function InfoRow({
   )
 
   return (
-    <div className="grid grid-cols-[5rem_1fr] items-start gap-2">
+    <dl className="grid grid-cols-[5rem_1fr] items-start gap-2">
       <dt className="flex items-center gap-1.5 pt-0.5 text-[11px] tracking-wider text-muted-foreground uppercase">
         {icon}
         {label}
       </dt>
-      <dd className="min-w-0 break-words">{valueEl}</dd>
-    </div>
+      <dd className="min-w-0 wrap-break-word">{valueEl}</dd>
+    </dl>
   )
 }

@@ -9,8 +9,8 @@ export function LandingHero() {
   return (
     <section className="relative overflow-hidden border-b border-border bg-background">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute -bottom-20 -right-20 size-[28rem] rounded-full bg-accent-foreground/10 blur-3xl" />
+        <div className="absolute -top-40 left-1/2 size-144 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 size-112 rounded-full bg-accent-foreground/10 blur-3xl" />
       </div>
 
       <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">

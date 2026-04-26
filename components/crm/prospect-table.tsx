@@ -84,7 +84,7 @@ function ProspectTableRow({
 
   return (
     <tr className="group/row bg-card transition-colors hover:bg-muted/30">
-      <td className="max-w-[200px] px-4 py-3">
+      <td className="max-w-50 px-4 py-3">
         <Link
           href={`/prospects/${prospect.id}`}
           className="flex items-center gap-2.5 focus-visible:outline-none"
@@ -107,7 +107,7 @@ function ProspectTableRow({
         <StatusBadge status={prospect.status as Parameters<typeof StatusBadge>[0]["status"]} />
       </td>
 
-      <td className="hidden max-w-[180px] px-4 py-3 text-muted-foreground md:table-cell">
+      <td className="hidden max-w-45 px-4 py-3 text-muted-foreground md:table-cell">
         <p className="truncate text-xs">
           {[prospect.industry, prospect.location].filter(Boolean).join(" · ") ||
             prospect.handle ||
