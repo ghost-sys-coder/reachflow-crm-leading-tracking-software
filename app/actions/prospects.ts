@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
   prospectCreateSchema,
@@ -31,12 +32,13 @@ export async function createProspect(
   const parsed = prospectCreateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  if (ctx.role === "viewer") return fail("Insufficient permissions")
 
-  const { data, error } = await supabase
+  const { data, error } = await ctx.supabase
     .from("prospects")
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({ ...parsed.data, org_id: ctx.orgId })
     .select()
     .single()
 

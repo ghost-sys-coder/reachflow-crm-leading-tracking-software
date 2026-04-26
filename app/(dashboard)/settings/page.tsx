@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getCurrentProfile } from "@/app/actions/profile"
+import { getCurrentOrg, getCurrentProfile } from "@/app/actions/profile"
 import { getUserTags } from "@/app/actions/tags"
 import type { Theme } from "@/components/shared/theme-provider"
 
@@ -24,12 +24,14 @@ const NAV_ITEMS = [
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, tagsResult] = await Promise.all([
+  const [profileResult, orgResult, tagsResult] = await Promise.all([
     getCurrentProfile(),
+    getCurrentOrg(),
     getUserTags(),
   ])
 
   const profile = profileResult.data ?? null
+  const org = orgResult.data ?? null
   const tags = tagsResult.data ?? []
   const savedTheme = (profile?.theme_preference ?? "default") as Theme
 
@@ -103,7 +105,7 @@ export default async function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-5">
-                <AgencyForm profile={profile} />
+                <AgencyForm org={org} />
               </CardContent>
             </Card>
           </TabsContent>

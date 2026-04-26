@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
   agencyProfileUpdateSchema,
@@ -12,7 +13,7 @@ import {
   type ProfileUpdateInput,
   type ThemeUpdateInput,
 } from "@/lib/validation/schemas"
-import type { ActionResult, Profile } from "@/types/database"
+import type { ActionResult, Organization, Profile } from "@/types/database"
 
 export async function getCurrentProfile(): Promise<ActionResult<Profile | null>> {
   const { supabase, user } = await getAuthedClient()
@@ -26,6 +27,20 @@ export async function getCurrentProfile(): Promise<ActionResult<Profile | null>>
 
   if (error) return fail(error.message)
   return ok((data ?? null) as Profile | null)
+}
+
+export async function getCurrentOrg(): Promise<ActionResult<Organization | null>> {
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+
+  const { data, error } = await ctx.supabase
+    .from("organizations")
+    .select("*")
+    .eq("id", ctx.orgId)
+    .maybeSingle()
+
+  if (error) return fail(error.message)
+  return ok((data ?? null) as Organization | null)
 }
 
 export async function updateProfile(
@@ -51,12 +66,13 @@ export async function updateProfile(
 
 export async function updateAgencyProfile(
   input: AgencyProfileUpdateInput,
-): Promise<ActionResult<Profile>> {
+): Promise<ActionResult<Organization>> {
   const parsed = agencyProfileUpdateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+  if (ctx.role !== "admin") return fail("Only org admins can update agency settings")
 
   //null-out undefined keys so Supabase clears optional fields the user emptied
   const payload: Record<string, unknown> = {
@@ -67,10 +83,10 @@ export async function updateAgencyProfile(
     agency_services: parsed.data.agency_services ?? null,
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
+  const { data, error } = await ctx.supabase
+    .from("organizations")
     .update(payload)
-    .eq("id", user.id)
+    .eq("id", ctx.orgId)
     .select()
     .single()
 
@@ -78,7 +94,7 @@ export async function updateAgencyProfile(
   revalidatePath("/settings")
   revalidatePath("/settings/agency")
   revalidatePath("/prospects", "layout")
-  return ok(data as Profile)
+  return ok(data as Organization)
 }
 
 export async function updateThemePreference(

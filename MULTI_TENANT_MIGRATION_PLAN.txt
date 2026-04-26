@@ -1,0 +1,194 @@
+// File: MULTI_TENANT_MIGRATION_PLAN.txt
+
+REACHFLOW — MULTI-TENANT SAAS MIGRATION PLAN
+=============================================
+
+
+OVERVIEW
+--------
+Migrate from a single-user data model to a proper multi-tenant SaaS architecture
+where each agency/business is an organization, users belong to organizations,
+and all data is scoped and isolated per organization with role-based access control.
+
+
+ROLES
+-----
+  viewer  — read-only access to all org data
+  editor  — viewer + create, edit, delete prospects and messages
+  admin   — editor + manage members, invites, and organization settings
+
+
+=============================================
+PHASE 1 — DATABASE SCHEMA MIGRATION
+=============================================
+
+Step 1.1 — Create new tables
+  - organizations        (id, name, slug, plan, created_at)
+  - organization_members (id, org_id, user_id, role, invited_by, created_at)
+  - organization_invites (id, org_id, email, role, token, expires_at, created_by)
+
+Step 1.2 — Modify existing tables
+  - Add org_id to: prospects, messages, tags, generation_logs
+  - Keep user_id on messages only (authorship tracking)
+  - Remove user_id from: prospects, tags, generation_logs
+  - Move agency_name, agency_services, agency_website,
+    agency_value_props, sender_name from profiles → organizations
+
+Step 1.3 — Migrate existing data
+  - For each existing user: auto-create one organization row
+  - Add that user as org admin in organization_members
+  - Copy their agency_* profile fields into the new org row
+  - Backfill org_id on all their existing data rows
+
+Step 1.4 — Write and apply Supabase migration file
+  - Present migration SQL for approval before applying
+
+
+=============================================
+PHASE 2 — ROW LEVEL SECURITY REWRITE
+=============================================
+
+Step 2.1 — Drop all existing RLS policies
+
+Step 2.2 — Create Supabase helper functions
+  - get_my_org_ids()        returns all org IDs the current user belongs to
+  - my_role_in_org(org_id)  returns the user's role for a given org
+  - is_org_member(org_id)   boolean membership check
+
+Step 2.3 — Write new RLS policies
+
+  Table                  SELECT              INSERT / UPDATE / DELETE
+  --------------------   -----------------   ------------------------
+  prospects              any org member      editor or admin
+  messages               any org member      editor or admin
+  tags                   any org member      editor or admin
+  organizations          own members only    admin only
+  organization_members   own org             admin only
+  organization_invites   own org             admin only
+
+Step 2.4 — Present all policies for approval before applying
+
+
+=============================================
+PHASE 3 — AUTH AND ONBOARDING FLOW
+=============================================
+
+Step 3.1 — Post-signup routing logic
+  - After email confirmation check if user belongs to any org
+  - If yes: redirect to dashboard
+  - If no:  redirect to /onboarding
+
+Step 3.2 — Onboarding page (/onboarding)
+  - Path A: Create a new organization (org name → creates org + admin member row)
+  - Path B: Enter an invite token to join an existing org
+
+Step 3.3 — Invite system
+  - Admin generates invite link with a secure token (7-day expiry)
+  - Recipient clicks link → signs up or signs in
+  - On acceptance: organization_invites row consumed, member row created
+  - Invite can be revoked by admin before acceptance
+
+
+=============================================
+PHASE 4 — SERVER ACTIONS REFACTOR
+=============================================
+
+Step 4.1 — New shared auth utility
+  - lib/auth/org.ts
+  - getAuthedOrgClient() resolves org_id and role for the current user
+  - Returns: { supabase, user, orgId, role }
+  - All actions use this instead of getAuthedClient()
+
+Step 4.2 — Update existing actions
+  - prospects.ts       filter all queries by org_id
+  - messages.ts        filter by org_id, keep user_id for authorship
+  - tags.ts            filter by org_id
+  - profile.ts         agency fields now read/write from organizations table
+
+Step 4.3 — New actions
+  - app/actions/organizations.ts   get org, update org settings
+  - app/actions/members.ts         list members, change role, remove member
+  - app/actions/invites.ts         create invite, accept invite, revoke invite
+
+Step 4.4 — Role enforcement in actions
+  - Write actions check role is editor or admin before proceeding
+  - Admin actions check role is admin before proceeding
+  - Return a clear permission error if role check fails
+
+
+=============================================
+PHASE 5 — UI UPDATES
+=============================================
+
+Step 5.1 — Role-gated components
+  - Resolve userRole once in the dashboard layout
+  - Pass role down to components that need it
+  - Viewers: hide delete, add, edit, and generate buttons
+  - Editors: full access except org/member management
+  - Admins: full access to everything
+
+Step 5.2 — Organization settings page (/settings/organization)
+  - Edit org name and agency details (moved from user profile)
+  - View current plan
+  - Admin only
+
+Step 5.3 — Member management page (/settings/members)
+  - List all active members with their roles
+  - Admin can change a member's role
+  - Admin can remove a member
+  - Invite form: enter email + select role → generate invite link
+  - List pending invites with revoke option
+
+Step 5.4 — Onboarding pages (/onboarding)
+  - Create organization form
+  - Accept invite flow (token in URL)
+
+Step 5.5 — Layout and topbar updates
+  - Display current organization name in topbar or sidebar
+  - If user belongs to multiple orgs: org switcher dropdown
+
+
+=============================================
+PHASE 6 — CLEANUP AND VALIDATION
+=============================================
+
+Step 6.1 — Remove deprecated columns
+  - Drop agency_* columns from profiles table
+  - Drop user_id from prospects, tags, generation_logs
+
+Step 6.2 — Security audit
+  - Test all three roles with separate accounts
+  - Confirm Org A users cannot read or write Org B data
+  - Confirm viewers cannot trigger write operations
+
+Step 6.3 — Type safety pass
+  - Update all TypeScript types to reflect new schema
+  - Remove any type usage introduced during refactor
+  - Type all new actions, hooks, and components
+
+Step 6.4 — Final validation checklist
+  - One component per file
+  - No mixed responsibilities
+  - No duplicated logic
+  - All async operations handle errors
+  - Frontend data matches database schema exactly
+
+
+=============================================
+EXECUTION ORDER
+=============================================
+
+  Phase 1  →  Phase 2  →  Phase 3  →  Phase 4  →  Phase 5  →  Phase 6
+
+  Phases 1 and 2 must complete together before any app code changes.
+  Phases 3, 4, and 5 proceed in parallel once Phase 4 utility is ready.
+  Phase 6 runs last as a cleanup and sign-off pass.
+
+
+=============================================
+APPROVAL GATES
+=============================================
+
+  Before Phase 1 is applied   — migration SQL presented for review
+  Before Phase 2 is applied   — RLS policies presented for review
+  Before any new API route     — route design presented for review

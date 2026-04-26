@@ -3,6 +3,7 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getPostAuthRedirect } from "@/lib/auth/redirect"
 
 async function getOrigin() {
   return (await headers()).get("origin") ?? ""
@@ -11,6 +12,7 @@ async function getOrigin() {
 export async function signInWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
+  const next = String(formData.get("next") ?? "").trim() || null
 
   if (!email || !password) {
     redirect(`/sign-in?error=${encodeURIComponent("Enter your email and password")}`)
@@ -23,11 +25,12 @@ export async function signInWithPassword(formData: FormData) {
     redirect(`/sign-in?error=${encodeURIComponent(error.message)}`)
   }
 
-  redirect("/pipeline")
+  redirect(next ?? (await getPostAuthRedirect(supabase)))
 }
 
 export async function signInWithMagicLink(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim()
+  const next = String(formData.get("next") ?? "").trim() || null
 
   if (!email) {
     redirect(`/sign-in?error=${encodeURIComponent("Enter your email to receive a magic link")}`)
@@ -35,10 +38,13 @@ export async function signInWithMagicLink(formData: FormData) {
 
   const supabase = await createClient()
   const origin = await getOrigin()
+  const callbackUrl = next
+    ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+    : `${origin}/auth/callback`
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    options: { emailRedirectTo: callbackUrl },
   })
 
   if (error) {
@@ -48,13 +54,17 @@ export async function signInWithMagicLink(formData: FormData) {
   redirect(`/sign-in?sent=${encodeURIComponent(email)}`)
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData?: FormData) {
   const supabase = await createClient()
   const origin = await getOrigin()
+  const next = formData ? String(formData.get("next") ?? "").trim() || null : null
+  const callbackUrl = next
+    ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+    : `${origin}/auth/callback`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${origin}/auth/callback` },
+    options: { redirectTo: callbackUrl },
   })
 
   if (error || !data.url) {
@@ -82,7 +92,7 @@ export async function signUpWithPassword(formData: FormData) {
   const supabase = await createClient()
   const origin = await getOrigin()
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -93,6 +103,12 @@ export async function signUpWithPassword(formData: FormData) {
 
   if (error) {
     redirect(`/sign-up?error=${encodeURIComponent(error.message)}`)
+  }
+
+  // When email confirmations are disabled, Supabase auto-confirms and returns
+  // a session immediately. Skip the "check your email" screen in that case.
+  if (signUpData.session) {
+    redirect(await getPostAuthRedirect(supabase))
   }
 
   redirect(

@@ -19,6 +19,11 @@ export default async function DashboardLayout({
     redirect("/sign-in")
   }
 
+  // Gate: onboarding_complete lives in the JWT — no extra DB round-trip needed
+  if (!user.user_metadata?.onboarding_complete) {
+    redirect("/onboarding")
+  }
+
   const profileResult = await getCurrentProfile()
   const profile = profileResult.data
   const userEmail = user.email ?? ""

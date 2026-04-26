@@ -14,6 +14,7 @@ type SignInSearchParams = {
   error?: string
   message?: string
   sent?: string
+  next?: string
 }
 
 export default async function SignInPage({
@@ -51,6 +52,7 @@ export default async function SignInPage({
       )}
 
       <form action={signInWithGoogle}>
+        {params.next && <input type="hidden" name="next" value={params.next} />}
         <Button type="submit" variant="outline" className="w-full">
           <GoogleIcon />
           Continue with Google
@@ -60,6 +62,7 @@ export default async function SignInPage({
       <Divider label="or continue with email" />
 
       <form className="space-y-4">
+        {params.next && <input type="hidden" name="next" value={params.next} />}
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
           <Input

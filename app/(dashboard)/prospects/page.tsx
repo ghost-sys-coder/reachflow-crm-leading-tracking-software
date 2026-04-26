@@ -7,7 +7,7 @@ import { FilterBar, type FilterCounts } from "@/components/crm/filter-bar"
 import { ProspectListSkeleton } from "@/components/crm/prospect-list-skeleton"
 import { ProspectTable } from "@/components/crm/prospect-table"
 import { StatsRow } from "@/components/crm/stats-row"
-import { getCurrentProfile } from "@/app/actions/profile"
+import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspects } from "@/app/actions/prospects"
 import { getUserTags } from "@/app/actions/tags"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
@@ -95,15 +95,15 @@ export default async function ProspectsPage({
   const platform = parsePlatform(params.platform)
   const search = params.q ?? ""
 
-  const [allResult, tagsResult, profileResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
-    getCurrentProfile(),
+    getCurrentOrg(),
   ])
 
   const all = allResult.data ?? []
   const allTags = tagsResult.data ?? []
-  const agencyReady = Boolean(profileResult.data?.agency_name)
+  const agencyReady = Boolean(orgResult.data?.agency_name)
   const industrySuggestions = buildIndustrySuggestions(all)
   const stats = computeStats(all)
   const counts = computeCounts(all)

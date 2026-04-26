@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { updateAgencyProfile } from "@/app/actions/profile"
-import type { Profile } from "@/types/database"
+import type { Organization } from "@/types/database"
 
 type FormValues = {
   agency_name: string
@@ -32,7 +32,7 @@ function servicesTextToArray(text: string): string[] {
     .slice(0, 12)
 }
 
-export function AgencyForm({ profile }: { profile: Profile | null }) {
+export function AgencyForm({ org }: { org: Organization | null }) {
   const router = useRouter()
   const {
     register,
@@ -41,11 +41,11 @@ export function AgencyForm({ profile }: { profile: Profile | null }) {
     reset,
   } = useForm<FormValues>({
     defaultValues: {
-      agency_name: profile?.agency_name ?? "",
-      sender_name: profile?.sender_name ?? "",
-      agency_website: profile?.agency_website ?? "",
-      agency_value_props: profile?.agency_value_props ?? "",
-      agency_services_text: servicesArrayToText(profile?.agency_services),
+      agency_name: org?.agency_name ?? "",
+      sender_name: org?.sender_name ?? "",
+      agency_website: org?.agency_website ?? "",
+      agency_value_props: org?.agency_value_props ?? "",
+      agency_services_text: servicesArrayToText(org?.agency_services),
     },
   })
 

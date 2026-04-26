@@ -60,7 +60,6 @@ export const tagCreateSchema = z.object({
 
 export const profileUpdateSchema = z.object({
   full_name: optionalTrimmedString(120),
-  agency_name: optionalTrimmedString(120),
   theme_preference: themeSchema.optional(),
 })
 
@@ -91,7 +90,10 @@ export type ProspectUpdateInput = z.infer<typeof prospectUpdateSchema>
 export type ProspectStatusUpdateInput = z.infer<typeof prospectStatusUpdateSchema>
 export type MessageCreateInput = z.infer<typeof messageCreateSchema>
 export type TagCreateInput = z.infer<typeof tagCreateSchema>
+export const orgUpdateSchema = agencyProfileUpdateSchema
+
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 export type ThemeUpdateInput = z.infer<typeof themeUpdateSchema>
 export type AgencyProfileUpdateInput = z.infer<typeof agencyProfileUpdateSchema>
+export type OrgUpdateInput = z.infer<typeof orgUpdateSchema>
 export type GenerateMessageInput = z.infer<typeof generateMessageSchema>

@@ -9,11 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getCurrentProfile } from "@/app/actions/profile"
+import { getCurrentOrg } from "@/app/actions/profile"
 
 export default async function AgencySettingsPage() {
-  const profileResult = await getCurrentProfile()
-  const profile = profileResult.data ?? null
+  const orgResult = await getCurrentOrg()
+  const org = orgResult.data ?? null
 
   return (
     <div className="space-y-6">
@@ -46,7 +46,7 @@ export default async function AgencySettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-5">
-          <AgencyForm profile={profile} />
+          <AgencyForm org={org} />
         </CardContent>
       </Card>
     </div>

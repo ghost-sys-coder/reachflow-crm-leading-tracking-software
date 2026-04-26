@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
   messageCreateSchema,
@@ -20,12 +21,12 @@ export async function saveMessage(
   const parsed = messageCreateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
 
-  const { data, error } = await supabase
+  const { data, error } = await ctx.supabase
     .from("messages")
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({ ...parsed.data, user_id: ctx.userId, org_id: ctx.orgId })
     .select()
     .single()
 

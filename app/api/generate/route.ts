@@ -11,23 +11,22 @@ import {
   type AgencyProfile,
   type PromptTarget,
 } from "@/lib/gemini/prompts"
-import { getAuthedClient } from "@/lib/auth/session"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { generateMessageSchema } from "@/lib/validation/schemas"
 import type { Message, Prospect } from "@/types/database"
 
 const DAILY_GENERATION_LIMIT = 50
 
-function agencyProfileComplete(profile: {
+function agencyProfileComplete(org: {
   agency_name?: string | null
-  sender_name?: string | null
-} | null): profile is {
+} | null): org is {
   agency_name: string
   sender_name: string | null
   agency_services: string[] | null
   agency_website: string | null
   agency_value_props: string | null
 } {
-  return Boolean(profile?.agency_name)
+  return Boolean(org?.agency_name)
 }
 
 export async function POST(request: NextRequest) {
@@ -37,16 +36,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) {
+    return NextResponse.json({ error: orgError }, { status: 401 })
   }
 
+  const { supabase, userId, orgId } = ctx
   const { prospectId, messageType, customInstructions } = parsed.data
 
-  const [prospectResult, profileResult, usageResult] = await Promise.all([
+  const [prospectResult, orgResult, usageResult] = await Promise.all([
     supabase.from("prospects").select("*").eq("id", prospectId).maybeSingle(),
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    supabase.from("organizations").select("*").eq("id", orgId).maybeSingle(),
     supabase
       .from("generation_logs")
       .select("id", { count: "exact", head: true })
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Prospect not found" }, { status: 404 })
   }
 
-  const profile = profileResult.data
-  if (!agencyProfileComplete(profile)) {
+  const org = orgResult.data
+  if (!agencyProfileComplete(org)) {
     return NextResponse.json(
       { error: "Set up your agency profile first", code: "agency_incomplete" },
       { status: 400 },
@@ -83,11 +83,11 @@ export async function POST(request: NextRequest) {
 
   const prospect = prospectResult.data as Prospect
   const agency: AgencyProfile = {
-    agency_name: profile.agency_name,
-    sender_name: profile.sender_name,
-    agency_services: profile.agency_services,
-    agency_website: profile.agency_website,
-    agency_value_props: profile.agency_value_props,
+    agency_name: org.agency_name,
+    sender_name: org.sender_name,
+    agency_services: org.agency_services,
+    agency_website: org.agency_website,
+    agency_value_props: org.agency_value_props,
   }
 
   let prompt: PromptTarget
@@ -180,7 +180,8 @@ export async function POST(request: NextRequest) {
     .from("messages")
     .insert({
       prospect_id: prospectId,
-      user_id: user.id,
+      org_id: orgId,
+      user_id: userId,
       message_type: messageType,
       content,
       subject: subject ?? null,
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
   await supabase
     .from("generation_logs")
     .insert({
-      user_id: user.id,
+      org_id: orgId,
       prospect_id: prospectId,
       message_type: messageType,
       input_tokens: inputTokens,

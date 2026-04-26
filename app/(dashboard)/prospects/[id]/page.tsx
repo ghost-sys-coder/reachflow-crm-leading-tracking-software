@@ -17,7 +17,7 @@ import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { StatusBadge } from "@/components/crm/status-badge"
 import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
-import { getCurrentProfile } from "@/app/actions/profile"
+import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspectById } from "@/app/actions/prospects"
 import { getUserTags } from "@/app/actions/tags"
 import { getProspects } from "@/app/actions/prospects"
@@ -43,12 +43,12 @@ export default async function ProspectDetailPage({
 }) {
   const { id } = await params
 
-  const [prospectResult, tagsResult, allProspectsResult, profileResult] =
+  const [prospectResult, tagsResult, allProspectsResult, orgResult] =
     await Promise.all([
       getProspectById(id),
       getUserTags(),
       getProspects({}),
-      getCurrentProfile(),
+      getCurrentOrg(),
     ])
 
   if (prospectResult.error || !prospectResult.data) notFound()
@@ -56,7 +56,7 @@ export default async function ProspectDetailPage({
   const prospect = prospectResult.data
   const allTags = tagsResult.data ?? []
   const industrySuggestions = buildIndustrySuggestions(allProspectsResult.data ?? [])
-  const agencyReady = Boolean(profileResult.data?.agency_name)
+  const agencyReady = Boolean(orgResult.data?.agency_name)
 
   //newest-first to match the generator panel's history ordering
   const sortedMessages = [...prospect.messages].sort(

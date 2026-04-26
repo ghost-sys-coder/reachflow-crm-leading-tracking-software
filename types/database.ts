@@ -1,5 +1,8 @@
 import type {
   messages,
+  organizationInvites,
+  organizationMembers,
+  organizations,
   profiles,
   prospectTags,
   prospects,
@@ -9,6 +12,17 @@ import type {
 //base row types inferred from Drizzle schema
 export type Profile = typeof profiles.$inferSelect
 export type NewProfile = typeof profiles.$inferInsert
+
+export type Organization = typeof organizations.$inferSelect
+export type NewOrganization = typeof organizations.$inferInsert
+
+export type OrganizationMember = typeof organizationMembers.$inferSelect
+export type NewOrganizationMember = typeof organizationMembers.$inferInsert
+
+export type OrganizationInvite = typeof organizationInvites.$inferSelect
+export type NewOrganizationInvite = typeof organizationInvites.$inferInsert
+
+export type MemberRole = "admin" | "editor" | "viewer"
 
 export type Prospect = typeof prospects.$inferSelect
 export type NewProspect = typeof prospects.$inferInsert
