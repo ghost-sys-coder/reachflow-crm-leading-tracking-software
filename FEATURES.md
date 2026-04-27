@@ -9,7 +9,7 @@ Pick one feature at a time. Mark it **In Progress** when you start, **Done** whe
 | # | Feature | Status |
 |---|---------|--------|
 | 1 | [CSV bulk import of prospects](#1-csv-bulk-import) | Done |
-| 2 | [Export prospects to CSV](#2-export-prospects-to-csv) | Not started |
+| 2 | [Export prospects to CSV](#2-export-prospects-to-csv) | Done |
 | 3 | [Analytics dashboard](#3-analytics-dashboard) | Not started |
 | 4 | [Follow-up reminders via email](#4-follow-up-reminders) | Not started |
 | 5 | [Message templates library](#5-message-templates-library) | Not started |
