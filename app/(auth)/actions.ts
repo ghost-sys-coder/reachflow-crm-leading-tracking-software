@@ -58,8 +58,10 @@ export async function signInWithGoogle(formData?: FormData) {
   const supabase = await createClient()
   const origin = await getOrigin()
   const next = formData ? String(formData.get("next") ?? "").trim() || null : null
-  const callbackUrl = next
-    ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+  const invite = formData ? String(formData.get("invite") ?? "").trim() || null : null
+  const resolvedNext = next ?? (invite ? `/invite/${invite}` : null)
+  const callbackUrl = resolvedNext
+    ? `${origin}/auth/callback?next=${encodeURIComponent(resolvedNext)}`
     : `${origin}/auth/callback`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
