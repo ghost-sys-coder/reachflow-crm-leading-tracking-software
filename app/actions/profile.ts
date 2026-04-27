@@ -134,6 +134,24 @@ export async function updateOrgLogo(
   return ok(data as Organization)
 }
 
+export async function updateDigestPreference(
+  enabled: boolean,
+): Promise<ActionResult<Profile>> {
+  const { supabase, user } = await getAuthedClient()
+  if (!user) return fail("Not authenticated")
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ follow_up_digest: enabled })
+    .eq("id", user.id)
+    .select()
+    .single()
+
+  if (error) return fail(error.message)
+  revalidatePath("/settings")
+  return ok(data as Profile)
+}
+
 export async function updateThemePreference(
   input: ThemeUpdateInput,
 ): Promise<ActionResult<Profile>> {

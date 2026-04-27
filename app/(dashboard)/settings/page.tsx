@@ -1,7 +1,8 @@
-import { Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
+import { Bell, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { AppearanceSection } from "@/components/settings/appearance-section"
+import { NotificationsSection } from "@/components/settings/notifications-section"
 import { ProfileForm } from "@/components/settings/profile-form"
 import { TagsSection } from "@/components/settings/tags-section"
 import { TeamSection } from "@/components/settings/team-section"
@@ -69,11 +70,12 @@ function RoleBadge({ role }: { role: MemberRole }) {
 }
 
 const NAV_ITEMS = [
-  { value: "profile", label: "Profile", icon: User },
-  { value: "agency", label: "Agency", icon: Sparkles },
-  { value: "appearance", label: "Appearance", icon: Palette },
-  { value: "tags", label: "Tags", icon: Tag },
-  { value: "team", label: "Team", icon: Users },
+  { value: "profile",       label: "Profile",       icon: User      },
+  { value: "agency",        label: "Agency",        icon: Sparkles  },
+  { value: "appearance",    label: "Appearance",    icon: Palette   },
+  { value: "notifications", label: "Notifications", icon: Bell      },
+  { value: "tags",          label: "Tags",          icon: Tag       },
+  { value: "team",          label: "Team",          icon: Users     },
 ] as const
 
 export default async function SettingsPage() {
@@ -182,6 +184,20 @@ export default async function SettingsPage() {
               </CardHeader>
               <CardContent className="pt-5">
                 <AppearanceSection savedTheme={savedTheme} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Notifications</CardTitle>
+                <CardDescription>
+                  Control which email reminders ReachFlow sends you.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <NotificationsSection profile={profile} />
               </CardContent>
             </Card>
           </TabsContent>
