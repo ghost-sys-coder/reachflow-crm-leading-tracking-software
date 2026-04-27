@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-const DASHBOARD_PREFIXES = ["/pipeline", "/prospects", "/settings", "/design-system", "/onboarding", "/invite"]
+// /invite is intentionally excluded — invite pages are public so that
+// unauthenticated users can see the invite details and sign up / sign in
+const DASHBOARD_PREFIXES = ["/pipeline", "/prospects", "/settings", "/design-system", "/onboarding"]
 const AUTH_PATHS = new Set(["/sign-in", "/sign-up", "/forgot-password"])
 
 export async function updateSession(request: NextRequest) {
@@ -38,7 +40,9 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isDashboardRoute) {
     const url = request.nextUrl.clone()
+    const destination = request.nextUrl.pathname + request.nextUrl.search
     url.pathname = "/sign-in"
+    url.search = `?next=${encodeURIComponent(destination)}`
     return NextResponse.redirect(url)
   }
 

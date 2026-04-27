@@ -80,35 +80,54 @@ export async function signUpWithPassword(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim()
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
+  const invite = String(formData.get("invite") ?? "").trim() || null
 
   if (!email || !password) {
-    redirect(`/sign-up?error=${encodeURIComponent("Email and password are required")}`)
+    const base = invite ? `/sign-up?invite=${invite}` : "/sign-up"
+    redirect(`${base}&error=${encodeURIComponent("Email and password are required")}`)
   }
 
   if (password.length < 8) {
-    redirect(`/sign-up?error=${encodeURIComponent("Password must be at least 8 characters")}`)
+    const base = invite ? `/sign-up?invite=${invite}` : "/sign-up"
+    redirect(`${base}&error=${encodeURIComponent("Password must be at least 8 characters")}`)
   }
 
   const supabase = await createClient()
   const origin = await getOrigin()
 
+  // When signing up via invite, wire the callback so that after email
+  // confirmation the user lands on the invite acceptance page, not onboarding
+  const callbackUrl = invite
+    ? `${origin}/auth/callback?next=${encodeURIComponent(`/invite/${invite}`)}`
+    : `${origin}/auth/callback`
+
   const { data: signUpData, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: callbackUrl,
       data: name ? { full_name: name } : undefined,
     },
   })
 
   if (error) {
-    redirect(`/sign-up?error=${encodeURIComponent(error.message)}`)
+    const base = invite ? `/sign-up?invite=${invite}` : "/sign-up"
+    redirect(`${base}&error=${encodeURIComponent(error.message)}`)
   }
 
-  // When email confirmations are disabled, Supabase auto-confirms and returns
-  // a session immediately. Skip the "check your email" screen in that case.
+  // Email confirmations disabled — session is live immediately.
+  // Invited users go straight to the invite acceptance page; others follow
+  // the normal post-auth redirect (onboarding or pipeline).
   if (signUpData.session) {
-    redirect(await getPostAuthRedirect(supabase))
+    redirect(invite ? `/invite/${invite}` : await getPostAuthRedirect(supabase))
+  }
+
+  // Email confirmation required — direct the user to sign in.
+  // Include ?next so after confirming + signing in they land on the invite page.
+  if (invite) {
+    redirect(
+      `/sign-in?next=${encodeURIComponent(`/invite/${invite}`)}&message=${encodeURIComponent("Check your email to confirm your account, then accept your invitation")}`,
+    )
   }
 
   redirect(

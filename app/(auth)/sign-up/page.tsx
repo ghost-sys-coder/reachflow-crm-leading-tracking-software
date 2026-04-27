@@ -8,16 +8,21 @@ import { signInWithGoogle, signUpWithPassword } from "@/app/(auth)/actions"
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; invite?: string }>
 }) {
   const params = await searchParams
+  const invite = params.invite ?? null
 
   return (
     <div className="space-y-6">
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Create your workspace</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {invite ? "Join your team" : "Create your workspace"}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Start running outreach with a 14-day free trial. No card required.
+          {invite
+            ? "Create a free account to accept your invitation."
+            : "Start running outreach with a 14-day free trial. No card required."}
         </p>
       </div>
 
@@ -31,6 +36,7 @@ export default async function SignUpPage({
       )}
 
       <form action={signInWithGoogle}>
+        {invite && <input type="hidden" name="invite" value={invite} />}
         <Button type="submit" variant="outline" className="w-full">
           <GoogleIcon />
           Sign up with Google
@@ -40,6 +46,7 @@ export default async function SignUpPage({
       <Divider label="or sign up with email" />
 
       <form action={signUpWithPassword} className="space-y-4">
+        {invite && <input type="hidden" name="invite" value={invite} />}
         <div className="grid gap-2">
           <Label htmlFor="name">Your name</Label>
           <Input
@@ -95,7 +102,10 @@ export default async function SignUpPage({
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-medium text-foreground hover:underline">
+        <Link
+          href={invite ? `/sign-in?next=${encodeURIComponent(`/invite/${invite}`)}` : "/sign-in"}
+          className="font-medium text-foreground hover:underline"
+        >
           Sign in
         </Link>
       </p>

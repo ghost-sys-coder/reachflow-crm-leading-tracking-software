@@ -16,6 +16,11 @@ export async function acceptInvite(token: string): Promise<ActionResult<{ done: 
   const { error } = await supabase.rpc("accept_org_invite", { p_token: token })
 
   if (error) return fail(error.message)
+
+  // Mark onboarding complete so the user skips the personal agency setup
+  // and lands directly in the invited workspace
+  await supabase.auth.updateUser({ data: { onboarding_complete: true } })
+
   return ok({ done: true })
 }
 

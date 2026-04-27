@@ -32,6 +32,9 @@ $$;--> statement-breakpoint
 
 -- accept_org_invite: lets an authenticated user join an org via invite token
 -- must be SECURITY DEFINER because the joining user is not yet an admin
+--
+-- also removes any empty personal org auto-created by handle_new_user so that
+-- the invited org becomes the user's primary workspace in getAuthedOrgClient
 CREATE OR REPLACE FUNCTION public.accept_org_invite(p_token text)
 RETURNS void
 LANGUAGE plpgsql
@@ -58,9 +61,43 @@ BEGIN
     RAISE EXCEPTION 'You are already a member of this organisation';
   END IF;
 
+  -- Ensure a profile row exists for this user.
+  -- The handle_new_user trigger normally creates it, but this guards against
+  -- the window between auth.users INSERT and the trigger committing, and any
+  -- other edge case where the profile row was not yet written.
+  INSERT INTO public.profiles (id, full_name)
+  SELECT auth.uid(), u.email::text
+  FROM auth.users u
+  WHERE u.id = auth.uid()
+  ON CONFLICT (id) DO NOTHING;
+
+  -- Delete any empty personal org auto-created by the sign-up trigger so the
+  -- invited org becomes this user's primary workspace.
+  -- Only removes orgs where: this user is the sole admin, no agency_name has
+  -- been set, and no prospects exist.
+  DELETE FROM public.organizations
+  WHERE id IN (
+    SELECT om.org_id
+    FROM public.organization_members om
+    WHERE om.user_id = auth.uid()
+      AND om.role = 'admin'
+      AND om.org_id != v_invite.org_id
+  )
+  AND agency_name IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM public.prospects WHERE prospects.org_id = organizations.id
+  )
+  AND 1 = (
+    SELECT COUNT(*)
+    FROM public.organization_members
+    WHERE organization_members.org_id = organizations.id
+  );
+
+  -- Add the user as a member of the invited org
   INSERT INTO public.organization_members (org_id, user_id, role)
   VALUES (v_invite.org_id, auth.uid(), v_invite.role);
 
+  -- Consume the invite
   DELETE FROM public.organization_invites WHERE id = v_invite.id;
 END;
 $$;--> statement-breakpoint
