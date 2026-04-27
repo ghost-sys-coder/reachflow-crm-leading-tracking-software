@@ -43,6 +43,27 @@
       "when": 1745798400000,
       "tag": "0005_team_rpcs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1745884800000,
+      "tag": "0006_prospect_assignments",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1745971200000,
+      "tag": "0007_profile_job_title",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746057600000,
+      "tag": "0008_avatar_logo_urls",
+      "breakpoints": true
     }
   ]
 }

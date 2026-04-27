@@ -15,6 +15,7 @@ export type FilterCounts = {
   all: number
   status: Record<ProspectStatus, number>
   platform: Record<Platform, number>
+  mine?: number
 }
 
 export function FilterBar({
@@ -22,11 +23,13 @@ export function FilterBar({
   initialSearch,
   activeStatus,
   activePlatform,
+  activeAssignedToMe = false,
 }: {
   counts: FilterCounts
   initialSearch: string
   activeStatus: ProspectStatus | null
   activePlatform: Platform | null
+  activeAssignedToMe?: boolean
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -103,6 +106,18 @@ export function FilterBar({
         active={activePlatform}
         onPick={(v) => updateParam("platform", v)}
       />
+
+      {typeof counts.mine === "number" && (
+        <PillRow
+          label="Assigned"
+          items={[
+            { value: null, label: "All" },
+            { value: "me", label: "Mine", count: counts.mine },
+          ]}
+          active={activeAssignedToMe ? "me" : null}
+          onPick={(v) => updateParam("assigned", v)}
+        />
+      )}
     </div>
   )
 }

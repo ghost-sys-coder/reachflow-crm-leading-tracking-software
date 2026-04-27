@@ -97,6 +97,43 @@ export async function updateAgencyProfile(
   return ok(data as Organization)
 }
 
+export async function updateProfileAvatar(
+  avatarUrl: string | null,
+): Promise<ActionResult<Profile>> {
+  const { supabase, user } = await getAuthedClient()
+  if (!user) return fail("Not authenticated")
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: avatarUrl })
+    .eq("id", user.id)
+    .select()
+    .single()
+
+  if (error) return fail(error.message)
+  revalidatePath("/settings")
+  return ok(data as Profile)
+}
+
+export async function updateOrgLogo(
+  logoUrl: string | null,
+): Promise<ActionResult<Organization>> {
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+  if (ctx.role !== "admin") return fail("Only admins can update the agency logo")
+
+  const { data, error } = await ctx.supabase
+    .from("organizations")
+    .update({ logo_url: logoUrl })
+    .eq("id", ctx.orgId)
+    .select()
+    .single()
+
+  if (error) return fail(error.message)
+  revalidatePath("/settings")
+  return ok(data as Organization)
+}
+
 export async function updateThemePreference(
   input: ThemeUpdateInput,
 ): Promise<ActionResult<Profile>> {

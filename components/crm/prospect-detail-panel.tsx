@@ -23,9 +23,10 @@ import { PROSPECT_STATUS_LABELS, StatusBadge } from "@/components/crm/status-bad
 import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
 import { updateProspectStatus } from "@/app/actions/prospects"
+import { AssigneePicker } from "@/components/crm/assignee-picker"
 import { cn } from "@/lib/utils"
 import type { Platform, ProspectStatus } from "@/db/schema"
-import type { ProspectWithDetail, Tag } from "@/types/database"
+import type { ProspectWithDetail, Tag, TeamMember } from "@/types/database"
 
 const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
 
@@ -43,11 +44,15 @@ export function ProspectDetailPanel({
   allTags,
   industrySuggestions,
   agencyReady,
+  teamMembers,
+  isAdmin,
 }: {
   prospect: ProspectWithDetail | null
   allTags: Tag[]
   industrySuggestions: string[]
   agencyReady: boolean
+  teamMembers: TeamMember[]
+  isAdmin: boolean
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -90,6 +95,8 @@ export function ProspectDetailPanel({
               isPending={isPending}
               onDeleted={() => handleOpenChange(false)}
               agencyReady={agencyReady}
+              teamMembers={teamMembers}
+              isAdmin={isAdmin}
             />
           ) : (
             <SheetHeader className="p-6">
@@ -120,6 +127,8 @@ function DetailBody({
   isPending,
   onDeleted,
   agencyReady,
+  teamMembers,
+  isAdmin,
 }: {
   prospect: ProspectWithDetail
   allTags: Tag[]
@@ -128,6 +137,8 @@ function DetailBody({
   isPending: boolean
   onDeleted: () => void
   agencyReady: boolean
+  teamMembers: TeamMember[]
+  isAdmin: boolean
 }) {
   const platform = prospect.platform as Platform
   const status = prospect.status as ProspectStatus
@@ -183,6 +194,27 @@ function DetailBody({
               onDeleted={onDeleted}
             />
           </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Assigned to
+          </h3>
+          {isAdmin ? (
+            <AssigneePicker
+              prospectId={prospect.id}
+              currentAssigneeId={prospect.assigned_to ?? null}
+              teamMembers={teamMembers}
+            />
+          ) : (
+            <p className="text-sm text-foreground">
+              {teamMembers.find((m) => m.user_id === prospect.assigned_to)?.full_name
+                ?? teamMembers.find((m) => m.user_id === prospect.assigned_to)?.email
+                ?? <span className="text-muted-foreground">Unassigned</span>}
+            </p>
+          )}
         </section>
 
         <Separator />

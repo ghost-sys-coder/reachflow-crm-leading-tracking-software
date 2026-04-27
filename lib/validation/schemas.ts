@@ -63,6 +63,7 @@ export const tagCreateSchema = z.object({
 
 export const profileUpdateSchema = z.object({
   full_name: optionalTrimmedString(120),
+  job_title: optionalTrimmedString(120),
   theme_preference: themeSchema.optional(),
 })
 

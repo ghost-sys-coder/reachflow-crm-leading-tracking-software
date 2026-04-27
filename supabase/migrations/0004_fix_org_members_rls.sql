@@ -1,17 +1,42 @@
--- Fix: infinite recursion in organization_members SELECT policy
+-- Fix RLS on organization_members
 --
--- The original policy called is_org_member(org_id), which itself queries
--- organization_members. PostgreSQL's recursion guard fires before the
--- SECURITY DEFINER role-switch takes effect, causing the error:
---   "infinite recursion detected in policy for relation organization_members"
+-- SELECT: simple column check avoids the infinite recursion that fired when
+--         the previous policy called is_org_member(), which itself queried
+--         this table. Each user sees only their own row; SECURITY DEFINER
+--         RPCs (get_org_members_with_profiles, is_org_member, etc.) run as
+--         postgres and bypass RLS to read all rows.
 --
--- Fix: replace the SELECT policy with a direct column check.
--- Users can select any row where they are the member.
--- The helper functions (is_org_member, is_org_admin, can_write_in_org) already
--- filter by user_id = auth.uid(), so they continue to work correctly under
--- this policy without any additional recursion risk.
+-- UPDATE/DELETE: subquery reads the current user's OWN row (allowed by the
+--         SELECT policy) to verify admin status — no recursion.
+--
+-- INSERT: deliberately omitted. Inserts happen only through SECURITY DEFINER
+--         functions (handle_new_user trigger, accept_org_invite) which bypass
+--         RLS, so no client-side INSERT policy is needed or wanted.
 
 DROP POLICY IF EXISTS "org_members_select" ON organization_members;--> statement-breakpoint
+DROP POLICY IF EXISTS "org_members_insert" ON organization_members;--> statement-breakpoint
+DROP POLICY IF EXISTS "org_members_update" ON organization_members;--> statement-breakpoint
+DROP POLICY IF EXISTS "org_members_delete" ON organization_members;--> statement-breakpoint
 
-CREATE POLICY "org_members_select" ON organization_members FOR SELECT
-  USING (user_id = auth.uid());--> statement-breakpoint
+CREATE POLICY "org_members_select" ON organization_members
+  FOR SELECT USING (user_id = auth.uid());--> statement-breakpoint
+
+CREATE POLICY "org_members_update" ON organization_members
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM organization_members self
+      WHERE self.org_id = organization_members.org_id
+        AND self.user_id = auth.uid()
+        AND self.role = 'admin'
+    )
+  );--> statement-breakpoint
+
+CREATE POLICY "org_members_delete" ON organization_members
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM organization_members self
+      WHERE self.org_id = organization_members.org_id
+        AND self.user_id = auth.uid()
+        AND self.role = 'admin'
+    )
+  );--> statement-breakpoint

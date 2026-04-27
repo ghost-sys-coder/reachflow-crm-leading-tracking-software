@@ -1,4 +1,4 @@
-import { Palette, Sparkles, Tag, User, Users } from "lucide-react"
+import { Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { AppearanceSection } from "@/components/settings/appearance-section"
@@ -19,6 +19,54 @@ import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
+
+const ROLE_META: Record<
+  MemberRole,
+  { label: string; description: string; color: string }
+> = {
+  admin: {
+    label: "Admin",
+    description:
+      "Full workspace access. You can invite and remove team members, assign leads, manage agency settings, and configure all workspace preferences.",
+    color: "bg-violet-500/10 text-violet-600 border-violet-500/20",
+  },
+  editor: {
+    label: "Editor",
+    description:
+      "Contributor access. You can add and edit prospects, generate outreach messages, update pipeline statuses, and manage tags — but cannot change workspace settings or manage the team.",
+    color: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  },
+  viewer: {
+    label: "Viewer",
+    description:
+      "Read-only access. You can browse all prospects and message history, but cannot make edits or changes to the workspace.",
+    color: "bg-muted text-muted-foreground border-border",
+  },
+}
+
+function RoleBadge({ role }: { role: MemberRole }) {
+  const meta = ROLE_META[role]
+  return (
+    <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-2.5">
+      <div className="flex items-center gap-2">
+        <Shield className="size-3.5 text-muted-foreground shrink-0" />
+        <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          Your role
+        </span>
+      </div>
+      <div className="flex items-center gap-2.5">
+        <span
+          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${meta.color}`}
+        >
+          {meta.label}
+        </span>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {meta.description}
+      </p>
+    </div>
+  )
+}
 
 const NAV_ITEMS = [
   { value: "profile", label: "Profile", icon: User },
@@ -103,7 +151,8 @@ export default async function SettingsPage() {
                   Your name and agency details shown across the workspace.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-5">
+              <CardContent className="pt-5 space-y-6">
+                <RoleBadge role={currentUserRole} />
                 <ProfileForm profile={profile} />
               </CardContent>
             </Card>

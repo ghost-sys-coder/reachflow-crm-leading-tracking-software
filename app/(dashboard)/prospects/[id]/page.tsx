@@ -17,12 +17,15 @@ import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { StatusBadge } from "@/components/crm/status-badge"
 import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
+import { AssigneePicker } from "@/components/crm/assignee-picker"
 import { getCurrentOrg } from "@/app/actions/profile"
-import { getProspectById } from "@/app/actions/prospects"
+import { getProspectById, getProspects } from "@/app/actions/prospects"
+import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
-import { getProspects } from "@/app/actions/prospects"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { cn } from "@/lib/utils"
 import type { Platform, ProspectStatus } from "@/db/schema"
+import type { TeamMember } from "@/types/database"
 
 function formatDateTime(value: string | Date | null) {
   if (!value) return null
@@ -43,20 +46,25 @@ export default async function ProspectDetailPage({
 }) {
   const { id } = await params
 
-  const [prospectResult, tagsResult, allProspectsResult, orgResult] =
+  const [prospectResult, tagsResult, allProspectsResult, orgResult, membersResult, orgCtxResult] =
     await Promise.all([
       getProspectById(id),
       getUserTags(),
       getProspects({}),
       getCurrentOrg(),
+      getTeamMembers(),
+      getAuthedOrgClient(),
     ])
 
   if (prospectResult.error || !prospectResult.data) notFound()
 
   const prospect = prospectResult.data
   const allTags = tagsResult.data ?? []
+  const teamMembers: TeamMember[] = membersResult.data ?? []
   const industrySuggestions = buildIndustrySuggestions(allProspectsResult.data ?? [])
   const agencyReady = Boolean(orgResult.data?.agency_name)
+  const isAdmin = orgCtxResult.ctx?.role === "admin"
+  const assignee = teamMembers.find((m) => m.user_id === prospect.assigned_to)
 
   //newest-first to match the generator panel's history ordering
   const sortedMessages = [...prospect.messages].sort(
@@ -199,6 +207,28 @@ export default async function ProspectDetailPage({
 
         {/* Right column */}
         <div className="space-y-8">
+          {/* Assignment */}
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Assigned to
+            </h3>
+            {isAdmin ? (
+              <AssigneePicker
+                prospectId={prospect.id}
+                currentAssigneeId={prospect.assigned_to ?? null}
+                teamMembers={teamMembers}
+              />
+            ) : (
+              <p className="text-sm text-foreground">
+                {assignee
+                  ? (assignee.full_name || assignee.email)
+                  : <span className="text-muted-foreground">Unassigned</span>}
+              </p>
+            )}
+          </section>
+
+          <Separator />
+
           {/* Tags */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">

@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { updateAgencyProfile } from "@/app/actions/profile"
+import { ImageUpload } from "@/components/settings/image-upload"
+import { updateAgencyProfile, updateOrgLogo } from "@/app/actions/profile"
+import { createClient } from "@/lib/supabase/client"
 import type { Organization } from "@/types/database"
 
 type FormValues = {
@@ -49,6 +51,25 @@ export function AgencyForm({ org }: { org: Organization | null }) {
     },
   })
 
+  async function handleLogoUpload(file: File) {
+    if (!org?.id) throw new Error("No organisation found")
+
+    const supabase = createClient()
+    const ext = file.type.split("/")[1]
+    const path = `${org.id}/logo.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("logos")
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) throw new Error(uploadError.message)
+
+    const { data: { publicUrl } } = supabase.storage.from("logos").getPublicUrl(path)
+
+    const result = await updateOrgLogo(publicUrl)
+    if (result.error) throw new Error(result.error)
+  }
+
   async function onSubmit(values: FormValues) {
     const result = await updateAgencyProfile({
       agency_name: values.agency_name || undefined,
@@ -75,7 +96,20 @@ export function AgencyForm({ org }: { org: Organization | null }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="space-y-1.5">
+        <Label>Agency logo</Label>
+        <ImageUpload
+          currentUrl={org?.logo_url ?? null}
+          fallbackText={org?.agency_name ?? undefined}
+          shape="square"
+          label="Logo"
+          hint="JPG, PNG or WebP · max 5 MB · optional · shown in your workspace"
+          onUpload={handleLogoUpload}
+          disabled={false}
+        />
+      </div>
+
       <div className="grid gap-2">
         <Label htmlFor="agency_name">
           Agency name <span className="text-destructive">*</span>

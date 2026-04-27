@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/crm/status-badge"
 import { StatusMenu } from "@/components/crm/status-menu"
 import { TagPill } from "@/components/crm/tag-pill"
 import type { Platform } from "@/db/schema"
-import type { ProspectWithTags } from "@/types/database"
+import type { ProspectWithTags, TeamMember } from "@/types/database"
 
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime()
@@ -26,9 +26,13 @@ function formatRelative(date: Date) {
 export function ProspectTable({
   prospects,
   agencyReady,
+  teamMembers,
+  isAdmin,
 }: {
   prospects: ProspectWithTags[]
   agencyReady: boolean
+  teamMembers: TeamMember[]
+  isAdmin: boolean
 }) {
   if (prospects.length === 0) return null
 
@@ -62,7 +66,13 @@ export function ProspectTable({
         </thead>
         <tbody className="divide-y divide-border">
           {prospects.map((p) => (
-            <ProspectTableRow key={p.id} prospect={p} agencyReady={agencyReady} />
+            <ProspectTableRow
+              key={p.id}
+              prospect={p}
+              agencyReady={agencyReady}
+              teamMembers={teamMembers}
+              isAdmin={isAdmin}
+            />
           ))}
         </tbody>
       </table>
@@ -73,9 +83,13 @@ export function ProspectTable({
 function ProspectTableRow({
   prospect,
   agencyReady,
+  teamMembers,
+  isAdmin,
 }: {
   prospect: ProspectWithTags
   agencyReady: boolean
+  teamMembers: TeamMember[]
+  isAdmin: boolean
 }) {
   const platform = prospect.platform as Platform
   const lastContacted = prospect.last_contacted_at

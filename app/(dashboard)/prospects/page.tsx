@@ -9,15 +9,18 @@ import { ProspectTable } from "@/components/crm/prospect-table"
 import { StatsRow } from "@/components/crm/stats-row"
 import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspects } from "@/app/actions/prospects"
+import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
 import type { Platform, ProspectStatus } from "@/db/schema"
-import type { Prospect, ProspectWithTags, Tag } from "@/types/database"
+import type { Prospect, ProspectWithTags, Tag, TeamMember } from "@/types/database"
 
 type ProspectsSearchParams = {
   status?: string
   platform?: string
   q?: string
+  assigned?: string
 }
 
 function parseStatus(value: string | undefined): ProspectStatus | null {
@@ -42,28 +45,36 @@ function computeStats(all: Prospect[]) {
   return { total, replyRate, booked, thisWeek }
 }
 
-function computeCounts(all: Prospect[]): FilterCounts {
+function computeCounts(all: Prospect[], currentUserId: string): FilterCounts {
   const status = Object.fromEntries(
     PROSPECT_STATUSES.map((s) => [s, 0]),
   ) as FilterCounts["status"]
   const platform = Object.fromEntries(
     PLATFORMS.map((p) => [p, 0]),
   ) as FilterCounts["platform"]
+  let mine = 0
   for (const p of all) {
     if (p.status in status) status[p.status as ProspectStatus] += 1
     if (p.platform in platform) platform[p.platform as Platform] += 1
+    if (p.assigned_to === currentUserId) mine += 1
   }
-  return { all: all.length, status, platform }
+  return { all: all.length, status, platform, mine }
 }
 
 function filterProspects(
   all: Prospect[],
-  filters: { status: ProspectStatus | null; platform: Platform | null; search: string },
+  filters: {
+    status: ProspectStatus | null
+    platform: Platform | null
+    search: string
+    assignedToUserId: string | null
+  },
 ): Prospect[] {
   const term = filters.search.trim().toLowerCase()
   return all.filter((p) => {
     if (filters.status && p.status !== filters.status) return false
     if (filters.platform && p.platform !== filters.platform) return false
+    if (filters.assignedToUserId && p.assigned_to !== filters.assignedToUserId) return false
     if (term) {
       const hay = [p.business_name, p.handle, p.industry, p.location, p.notes]
         .filter(Boolean)
@@ -94,25 +105,36 @@ export default async function ProspectsPage({
   const status = parseStatus(params.status)
   const platform = parsePlatform(params.platform)
   const search = params.q ?? ""
+  const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
+    getTeamMembers(),
+    getAuthedOrgClient(),
   ])
 
   const all = allResult.data ?? []
   const allTags = tagsResult.data ?? []
+  const teamMembers: TeamMember[] = membersResult.data ?? []
   const agencyReady = Boolean(orgResult.data?.agency_name)
+  const currentUserId = orgCtxResult.ctx?.userId ?? ""
+  const isAdmin = orgCtxResult.ctx?.role === "admin"
   const industrySuggestions = buildIndustrySuggestions(all)
   const stats = computeStats(all)
-  const counts = computeCounts(all)
+  const counts = computeCounts(all, currentUserId)
 
-  const filtered = filterProspects(all, { status, platform, search })
+  const filtered = filterProspects(all, {
+    status,
+    platform,
+    search,
+    assignedToUserId: assignedToMe ? currentUserId : null,
+  })
   const prospects = attachTags(filtered, allTags)
 
   const hasAnyProspects = all.length > 0
-  const hasFilters = Boolean(status || platform || search)
+  const hasFilters = Boolean(status || platform || search || assignedToMe)
 
   return (
     <div className="space-y-6">
@@ -135,6 +157,7 @@ export default async function ProspectsPage({
             initialSearch={search}
             activeStatus={status}
             activePlatform={platform}
+            activeAssignedToMe={assignedToMe}
           />
 
           <Suspense fallback={<ProspectListSkeleton />}>
@@ -145,7 +168,12 @@ export default async function ProspectsPage({
                 action={<ClearFiltersLink />}
               />
             ) : (
-              <ProspectTable prospects={prospects} agencyReady={agencyReady} />
+              <ProspectTable
+                prospects={prospects}
+                agencyReady={agencyReady}
+                teamMembers={teamMembers}
+                isAdmin={isAdmin}
+              />
             )}
           </Suspense>
 

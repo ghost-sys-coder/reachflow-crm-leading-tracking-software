@@ -37,6 +37,8 @@ export const profiles = pgTable(
       .primaryKey()
       .references(() => authUsers.id, { onDelete: "cascade" }),
     full_name: text(),
+    job_title: text(),
+    avatar_url: text(),
     theme_preference: text().notNull().default("default"),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -59,6 +61,7 @@ export const organizations = pgTable("organizations", {
   agency_website: text(),
   agency_value_props: text(),
   agency_services: text().array(),
+  logo_url: text(),
   created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
 })
@@ -121,6 +124,7 @@ export const prospects = pgTable(
     website_url: text(),
     status: text().notNull().default("sent"),
     notes: text(),
+    assigned_to: uuid().references(() => profiles.id, { onDelete: "set null" }),
     follow_up_at: timestamp({ withTimezone: true }),
     last_contacted_at: timestamp({ withTimezone: true }),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -130,6 +134,7 @@ export const prospects = pgTable(
     index("prospects_org_idx").on(table.org_id),
     index("prospects_org_status_idx").on(table.org_id, table.status),
     index("prospects_org_created_idx").on(table.org_id, table.created_at),
+    index("prospects_assigned_to_idx").on(table.assigned_to),
     check(
       "prospects_platform_valid",
       sql`${table.platform} IN ('instagram', 'email', 'facebook', 'linkedin', 'twitter', 'other')`,

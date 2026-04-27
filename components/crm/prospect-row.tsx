@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
+import { AssigneeAvatar } from "@/components/crm/assignee-avatar"
 import { DeleteProspectButton } from "@/components/crm/delete-prospect-button"
 import { TagPill } from "@/components/crm/tag-pill"
 import { PlatformIcon, PLATFORM_LABELS } from "@/components/crm/platform-icon"
 import { StatusBadge } from "@/components/crm/status-badge"
 import { StatusMenu } from "@/components/crm/status-menu"
 import type { Platform } from "@/db/schema"
-import type { ProspectWithTags } from "@/types/database"
+import type { ProspectWithTags, TeamMember } from "@/types/database"
 
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime()
@@ -22,7 +23,13 @@ function formatRelative(date: Date) {
   return date.toLocaleDateString()
 }
 
-export function ProspectRow({ prospect }: { prospect: ProspectWithTags }) {
+export function ProspectRow({
+  prospect,
+  teamMembers,
+}: {
+  prospect: ProspectWithTags
+  teamMembers: TeamMember[]
+}) {
   const searchParams = useSearchParams()
   const params = new URLSearchParams(searchParams.toString())
   params.set("prospect", prospect.id)
@@ -60,6 +67,8 @@ export function ProspectRow({ prospect }: { prospect: ProspectWithTags }) {
             PLATFORM_LABELS[prospect.platform as Platform]}
         </p>
       </div>
+
+      <AssigneeAvatar assignedTo={prospect.assigned_to ?? null} teamMembers={teamMembers} />
 
       {lastContacted && (
         <span className="hidden text-[11px] text-muted-foreground sm:inline">

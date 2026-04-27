@@ -127,6 +127,25 @@ export async function getProspects(
   return ok((data ?? []) as Prospect[])
 }
 
+export async function assignProspect(
+  prospectId: string,
+  userId: string | null,
+): Promise<ActionResult<{ done: true }>> {
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  if (ctx.role !== "admin") return fail("Only admins can assign leads")
+
+  const { error: dbError } = await ctx.supabase
+    .from("prospects")
+    .update({ assigned_to: userId })
+    .eq("id", prospectId)
+    .eq("org_id", ctx.orgId)
+
+  if (dbError) return fail(dbError.message)
+  revalidateProspectViews()
+  return ok({ done: true })
+}
+
 export async function getProspectById(
   id: string,
 ): Promise<ActionResult<ProspectWithDetail | null>> {
