@@ -114,7 +114,7 @@ export function TeamSection({
       }
       setNewToken(result.data!.token)
       setEmail("")
-      toast.success("Invite link created")
+      toast.success("Invite link created! and sent to your teammate's email.")
     })
   }
 
@@ -342,7 +342,7 @@ export function TeamSection({
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <div className="size-[30px] shrink-0" />
+                  <div className="size-7.5 shrink-0" />
                 )}
               </li>
             )

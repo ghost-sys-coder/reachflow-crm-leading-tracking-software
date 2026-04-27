@@ -11,7 +11,9 @@
       "Bash(npm install *)",
       "Skill(claude-api)",
       "Bash(echo \"exit=$?\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(cat .env.local)",
+      "Bash(cat .env)"
     ]
   }
 }

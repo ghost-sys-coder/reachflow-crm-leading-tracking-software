@@ -1,8 +1,11 @@
 "use server"
 
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { sendMail } from "@/lib/email/mailer"
+import { inviteEmailHtml } from "@/lib/email/templates/invite"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
   inviteCreateSchema,
@@ -65,6 +68,16 @@ export async function createInvite(
 
   if (dbError) return fail(dbError.message)
   revalidatePath("/settings")
+
+  // Fire-and-forget — SMTP failure never blocks invite creation
+  void sendInviteEmail({
+    supabase: ctx.supabase,
+    orgId: ctx.orgId,
+    inviterId: ctx.userId,
+    email: parsed.data.email,
+    token,
+  }).catch(() => {})
+
   return ok({ token })
 }
 
@@ -124,4 +137,41 @@ export async function updateMemberRole(
   if (dbError) return fail(dbError.message)
   revalidatePath("/settings")
   return ok({ done: true })
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+type SupabaseClient = Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>
+
+async function sendInviteEmail({
+  supabase,
+  orgId,
+  inviterId,
+  email,
+  token,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  inviterId: string
+  email: string
+  token: string
+}) {
+  const [orgResult, profileResult, headersList] = await Promise.all([
+    supabase.from("organizations").select("name").eq("id", orgId).single(),
+    supabase.from("profiles").select("full_name").eq("id", inviterId).single(),
+    headers(),
+  ])
+
+  const orgName = orgResult.data?.name ?? "your team"
+  const inviterName = profileResult.data?.full_name ?? "A teammate"
+  const origin = headersList.get("origin") ?? headersList.get("x-forwarded-host") ?? ""
+  const inviteUrl = `${origin}/invite/${token}`
+
+  await sendMail({
+    to: email,
+    subject: `${inviterName} invited you to join ${orgName} on ReachFlow`,
+    html: inviteEmailHtml({ inviterName, orgName, inviteUrl }),
+  })
 }
