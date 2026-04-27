@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  BarChart3,
   LayoutGrid,
   MessagesSquare,
   Palette,
@@ -22,11 +23,12 @@ type NavItem = {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Pipeline", href: "/pipeline", icon: LayoutGrid },
-  { label: "Prospects", href: "/prospects", icon: Users },
-  { label: "Messages", href: "/messages", icon: MessagesSquare },
-  { label: "Design system", href: "/design-system", icon: Palette },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Pipeline",      href: "/pipeline",      icon: LayoutGrid    },
+  { label: "Prospects",     href: "/prospects",     icon: Users         },
+  { label: "Analytics",     href: "/analytics",     icon: BarChart3     },
+  { label: "Messages",      href: "/messages",      icon: MessagesSquare },
+  { label: "Design system", href: "/design-system", icon: Palette       },
+  { label: "Settings",      href: "/settings",      icon: Settings      },
 ]
 
 export function SidebarNav({
