@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { AddProspectDialog } from "@/components/crm/add-prospect-dialog"
+import { ExportProspectsButton } from "@/components/crm/export-prospects-button"
 import { ImportProspectsDialog } from "@/components/crm/import-prospects-dialog"
 import { ClearFiltersLink } from "@/components/crm/clear-filters-link"
 import { EmptyState } from "@/components/crm/empty-state"
@@ -147,6 +148,7 @@ export default async function ProspectsPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
           <ImportProspectsDialog />
           <AddProspectDialog industrySuggestions={industrySuggestions} />
         </div>

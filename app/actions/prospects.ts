@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { toCsv } from "@/lib/csv/generate"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
   PLATFORMS,
@@ -228,6 +229,64 @@ export async function importProspects(
   }
 
   return ok({ imported: valid.length, errors })
+}
+
+export type ExportFilters = {
+  status?: string | null
+  platform?: string | null
+  search?: string
+  assignedToMe?: boolean
+}
+
+export async function exportProspects(filters: ExportFilters): Promise<ActionResult<string>> {
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+
+  const { data, error } = await ctx.supabase
+    .from("prospects")
+    .select("*")
+    .eq("org_id", ctx.orgId)
+    .order("created_at", { ascending: false })
+
+  if (error) return fail(error.message)
+
+  let rows = (data ?? []) as Prospect[]
+
+  if (filters.status) rows = rows.filter((p) => p.status === filters.status)
+  if (filters.platform) rows = rows.filter((p) => p.platform === filters.platform)
+  if (filters.assignedToMe) rows = rows.filter((p) => p.assigned_to === ctx.userId)
+  if (filters.search) {
+    const term = filters.search.trim().toLowerCase()
+    rows = rows.filter((p) => {
+      const hay = [p.business_name, p.handle, p.industry, p.location, p.notes]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+      return hay.includes(term)
+    })
+  }
+
+  const toDate = (v: Date | string | null | undefined) =>
+    v ? new Date(v).toISOString().split("T")[0] : null
+
+  const csv = toCsv(
+    ["Business name", "Platform", "Handle", "Industry", "Location", "Website", "Status", "Notes", "Follow up", "Last contacted", "Added on"],
+    rows.map((p) => [
+      p.business_name,
+      p.platform,
+      p.handle,
+      p.industry,
+      p.location,
+      p.website_url,
+      p.status,
+      p.notes,
+      toDate(p.follow_up_at),
+      toDate(p.last_contacted_at),
+      toDate(p.created_at),
+    ]),
+  )
+
+  return ok(csv)
 }
 
 export async function getProspectById(

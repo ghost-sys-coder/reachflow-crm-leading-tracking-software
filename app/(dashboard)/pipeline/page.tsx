@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { AddProspectDialog } from "@/components/crm/add-prospect-dialog"
+import { ExportProspectsButton } from "@/components/crm/export-prospects-button"
 import { ClearFiltersLink } from "@/components/crm/clear-filters-link"
 import { EmptyState } from "@/components/crm/empty-state"
 import { FilterBar, type FilterCounts } from "@/components/crm/filter-bar"
@@ -183,7 +184,10 @@ export default async function PipelinePage({
             Every prospect, every status, one view.
           </p>
         </div>
-        <AddProspectDialog industrySuggestions={industrySuggestions} />
+        <div className="flex items-center gap-2">
+          <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
+          <AddProspectDialog industrySuggestions={industrySuggestions} />
+        </div>
       </div>
 
       <StatsRow {...stats} />
