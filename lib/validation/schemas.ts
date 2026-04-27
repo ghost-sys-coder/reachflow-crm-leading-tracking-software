@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import {
+  MEMBER_ROLES,
   MESSAGE_TYPES,
   PLATFORMS,
   PROSPECT_STATUSES,
@@ -8,7 +9,9 @@ import {
 } from "@/db/schema"
 
 //re-export enums so callers import one place
-export { MESSAGE_TYPES, PLATFORMS, PROSPECT_STATUSES, THEMES }
+export { MEMBER_ROLES, MESSAGE_TYPES, PLATFORMS, PROSPECT_STATUSES, THEMES }
+
+export const memberRoleSchema = z.enum(MEMBER_ROLES)
 
 export const platformSchema = z.enum(PLATFORMS)
 export const prospectStatusSchema = z.enum(PROSPECT_STATUSES)
@@ -85,6 +88,15 @@ export const themeUpdateSchema = z.object({
   theme_preference: themeSchema,
 })
 
+export const inviteCreateSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Valid email required"),
+  role: memberRoleSchema.default("viewer"),
+})
+
+export const memberRoleUpdateSchema = z.object({
+  role: memberRoleSchema,
+})
+
 export type ProspectCreateInput = z.infer<typeof prospectCreateSchema>
 export type ProspectUpdateInput = z.infer<typeof prospectUpdateSchema>
 export type ProspectStatusUpdateInput = z.infer<typeof prospectStatusUpdateSchema>
@@ -97,3 +109,5 @@ export type ThemeUpdateInput = z.infer<typeof themeUpdateSchema>
 export type AgencyProfileUpdateInput = z.infer<typeof agencyProfileUpdateSchema>
 export type OrgUpdateInput = z.infer<typeof orgUpdateSchema>
 export type GenerateMessageInput = z.infer<typeof generateMessageSchema>
+export type InviteCreateInput = z.infer<typeof inviteCreateSchema>
+export type MemberRoleUpdateInput = z.infer<typeof memberRoleUpdateSchema>

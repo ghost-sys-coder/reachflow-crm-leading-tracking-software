@@ -1,9 +1,10 @@
-import { Palette, Sparkles, Tag, User } from "lucide-react"
+import { Palette, Sparkles, Tag, User, Users } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { AppearanceSection } from "@/components/settings/appearance-section"
 import { ProfileForm } from "@/components/settings/profile-form"
 import { TagsSection } from "@/components/settings/tags-section"
+import { TeamSection } from "@/components/settings/team-section"
 import {
   Card,
   CardContent,
@@ -14,26 +15,38 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getCurrentOrg, getCurrentProfile } from "@/app/actions/profile"
 import { getUserTags } from "@/app/actions/tags"
+import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
+import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
+import type { MemberRole } from "@/types/database"
 
 const NAV_ITEMS = [
   { value: "profile", label: "Profile", icon: User },
   { value: "agency", label: "Agency", icon: Sparkles },
   { value: "appearance", label: "Appearance", icon: Palette },
   { value: "tags", label: "Tags", icon: Tag },
+  { value: "team", label: "Team", icon: Users },
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult] = await Promise.all([
-    getCurrentProfile(),
-    getCurrentOrg(),
-    getUserTags(),
-  ])
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, orgCtx] =
+    await Promise.all([
+      getCurrentProfile(),
+      getCurrentOrg(),
+      getUserTags(),
+      getTeamMembers(),
+      getPendingInvites(),
+      getAuthedOrgClient(),
+    ])
 
   const profile = profileResult.data ?? null
   const org = orgResult.data ?? null
   const tags = tagsResult.data ?? []
+  const members = membersResult.data ?? []
+  const invites = invitesResult.data ?? []
   const savedTheme = (profile?.theme_preference ?? "default") as Theme
+  const currentUserId = orgCtx.ctx?.userId ?? ""
+  const currentUserRole = (orgCtx.ctx?.role ?? "viewer") as MemberRole
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -134,6 +147,25 @@ export default async function SettingsPage() {
               </CardHeader>
               <CardContent className="pt-5">
                 <TagsSection initialTags={tags} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="team">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Team</CardTitle>
+                <CardDescription>
+                  Invite teammates and manage their access to this workspace.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <TeamSection
+                  initialMembers={members}
+                  initialInvites={invites}
+                  currentUserId={currentUserId}
+                  currentUserRole={currentUserRole}
+                />
               </CardContent>
             </Card>
           </TabsContent>

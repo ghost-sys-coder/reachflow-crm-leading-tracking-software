@@ -182,7 +182,7 @@ export default async function MessagesPage({
         <EmptyState
           icon={Sparkles}
           title="No messages yet"
-          description="Open a prospect from the pipeline to draft outreach. The AI generator arrives in Phase 5."
+          description="Open a prospect from the pipeline and use the AI generator to draft outreach."
         />
       )}
     </div>

@@ -24,6 +24,17 @@ export type NewOrganizationInvite = typeof organizationInvites.$inferInsert
 
 export type MemberRole = "admin" | "editor" | "viewer"
 
+export type TeamMember = {
+  id: string
+  org_id: string
+  user_id: string
+  role: MemberRole
+  invited_by: string | null
+  created_at: string
+  full_name: string | null
+  email: string
+}
+
 export type Prospect = typeof prospects.$inferSelect
 export type NewProspect = typeof prospects.$inferInsert
 
