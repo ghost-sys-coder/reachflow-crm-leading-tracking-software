@@ -64,6 +64,13 @@
       "when": 1746057600000,
       "tag": "0008_avatar_logo_urls",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1746144000000,
+      "tag": "0009_follow_up_digest",
+      "breakpoints": true
     }
   ]
 }

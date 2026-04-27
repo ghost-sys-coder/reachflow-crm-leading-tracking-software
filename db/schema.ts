@@ -40,6 +40,7 @@ export const profiles = pgTable(
     job_title: text(),
     avatar_url: text(),
     theme_preference: text().notNull().default("default"),
+    follow_up_digest: boolean().notNull().default(true),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
