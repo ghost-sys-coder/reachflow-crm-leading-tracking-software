@@ -6,6 +6,8 @@ import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import {
+  PLATFORMS,
+  PROSPECT_STATUSES,
   prospectCreateSchema,
   prospectStatusUpdateSchema,
   prospectUpdateSchema,
@@ -144,6 +146,88 @@ export async function assignProspect(
   if (dbError) return fail(dbError.message)
   revalidateProspectViews()
   return ok({ done: true })
+}
+
+export type CsvImportRow = {
+  business_name: string
+  platform: string
+  handle?: string
+  industry?: string
+  location?: string
+  website_url?: string
+  status?: string
+  notes?: string
+}
+
+export type ImportResult = {
+  imported: number
+  errors: { row: number; reason: string }[]
+}
+
+function normalizePlatform(raw: string | undefined): string {
+  if (!raw) return "other"
+  const v = raw.trim().toLowerCase()
+  const aliases: Record<string, string> = {
+    ig: "instagram", instagram: "instagram",
+    fb: "facebook", facebook: "facebook",
+    li: "linkedin", linkedin: "linkedin",
+    tw: "twitter", twitter: "twitter",
+    email: "email", mail: "email",
+    other: "other",
+  }
+  return aliases[v] ?? "other"
+}
+
+function normalizeStatus(raw: string | undefined): string {
+  if (!raw) return "sent"
+  const v = raw.trim().toLowerCase()
+  return (PROSPECT_STATUSES as readonly string[]).includes(v) ? v : "sent"
+}
+
+export async function importProspects(
+  rows: CsvImportRow[],
+): Promise<ActionResult<ImportResult>> {
+  if (rows.length === 0) return fail("No rows to import")
+  if (rows.length > 500) return fail("Maximum 500 rows per import")
+
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+  if (ctx.role === "viewer") return fail("Insufficient permissions")
+
+  const errors: { row: number; reason: string }[] = []
+  const valid: Array<{ org_id: string } & Record<string, unknown>> = []
+
+  for (let i = 0; i < rows.length; i++) {
+    const raw = rows[i]
+    const parsed = prospectCreateSchema.safeParse({
+      business_name: raw.business_name,
+      platform: normalizePlatform(raw.platform),
+      handle: raw.handle || undefined,
+      industry: raw.industry || undefined,
+      location: raw.location || undefined,
+      website_url: raw.website_url || undefined,
+      status: normalizeStatus(raw.status),
+      notes: raw.notes || undefined,
+    })
+    if (!parsed.success) {
+      errors.push({ row: i + 2, reason: zodErrorMessage(parsed.error) })
+    } else {
+      valid.push({ ...parsed.data, org_id: ctx.orgId })
+    }
+  }
+
+  if (valid.length > 0) {
+    const CHUNK = 100
+    for (let i = 0; i < valid.length; i += CHUNK) {
+      const { error: insertError } = await ctx.supabase
+        .from("prospects")
+        .insert(valid.slice(i, i + CHUNK))
+      if (insertError) return fail(insertError.message)
+    }
+    revalidateProspectViews()
+  }
+
+  return ok({ imported: valid.length, errors })
 }
 
 export async function getProspectById(
