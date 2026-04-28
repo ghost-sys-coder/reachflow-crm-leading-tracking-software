@@ -75,6 +75,11 @@ export function GenerateSheet({
                 prospectId={prospect.id}
                 messages={messages}
                 agencyReady={agencyReady}
+                prospect={{
+                  business_name: prospect.business_name,
+                  handle: prospect.handle,
+                  platform: prospect.platform,
+                }}
               />
             )}
           </div>

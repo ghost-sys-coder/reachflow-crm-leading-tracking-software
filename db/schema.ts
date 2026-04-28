@@ -195,6 +195,30 @@ export const tags = pgTable(
   ],
 )
 
+export const messageTemplates = pgTable(
+  "message_templates",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    message_type: text().notNull(),
+    subject: text(),
+    body: text().notNull(),
+    created_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("message_templates_org_idx").on(table.org_id),
+    check(
+      "message_templates_type_valid",
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'follow_up', 'custom')`,
+    ),
+  ],
+)
+
 export const generationLogs = pgTable(
   "generation_logs",
   {

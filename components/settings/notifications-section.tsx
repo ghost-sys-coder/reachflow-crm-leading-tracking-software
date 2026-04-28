@@ -37,6 +37,7 @@ export function NotificationsSection({ profile }: { profile: Profile | null }) {
         </div>
 
         <button
+          title="switch"
           type="button"
           role="switch"
           aria-checked={enabled}
