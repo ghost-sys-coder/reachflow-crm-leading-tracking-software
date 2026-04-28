@@ -32,6 +32,7 @@ import {
   MESSAGE_TYPE_ICONS,
   MESSAGE_TYPE_LABELS,
 } from "@/components/crm/message-meta"
+import { TemplatePicker } from "@/components/crm/template-picker"
 import { deleteMessage, markMessageAsSent } from "@/app/actions/messages"
 import { cn } from "@/lib/utils"
 import type { MessageType } from "@/db/schema"
@@ -102,10 +103,12 @@ export function GeneratorPanel({
   prospectId,
   messages,
   agencyReady,
+  prospect,
 }: {
   prospectId: string
   messages: Message[]
   agencyReady: boolean
+  prospect?: { business_name?: string | null; handle?: string | null; platform?: string | null }
 }) {
   const router = useRouter()
   const [messageType, setMessageType] = React.useState<MessageType>("instagram_dm")
@@ -259,6 +262,9 @@ export function GeneratorPanel({
           })}
         </div>
       </div>
+
+      {/* Template picker */}
+      <TemplatePicker messageType={messageType} prospect={prospect} />
 
       {/* Custom instructions */}
       {messageType === "custom" && (

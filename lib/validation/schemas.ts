@@ -89,6 +89,18 @@ export const themeUpdateSchema = z.object({
   theme_preference: themeSchema,
 })
 
+export const templateCreateSchema = z.object({
+  name:         z.string().trim().min(1, "Name required").max(100),
+  message_type: messageTypeSchema,
+  subject:      optionalTrimmedString(200),
+  body:         z.string().trim().min(1, "Body required").max(5000),
+})
+
+export const templateUpdateSchema = templateCreateSchema.partial()
+
+export type TemplateCreateInput = z.infer<typeof templateCreateSchema>
+export type TemplateUpdateInput = z.infer<typeof templateUpdateSchema>
+
 export const inviteCreateSchema = z.object({
   email: z.string().trim().toLowerCase().email("Valid email required"),
   role: memberRoleSchema.default("viewer"),

@@ -1,4 +1,5 @@
 import type {
+  messageTemplates,
   messages,
   organizationInvites,
   organizationMembers,
@@ -40,6 +41,9 @@ export type NewProspect = typeof prospects.$inferInsert
 
 export type Message = typeof messages.$inferSelect
 export type NewMessage = typeof messages.$inferInsert
+
+export type MessageTemplate = typeof messageTemplates.$inferSelect
+export type NewMessageTemplate = typeof messageTemplates.$inferInsert
 
 export type Tag = typeof tags.$inferSelect
 export type NewTag = typeof tags.$inferInsert

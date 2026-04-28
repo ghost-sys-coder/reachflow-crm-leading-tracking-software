@@ -71,6 +71,13 @@
       "when": 1746144000000,
       "tag": "0009_follow_up_digest",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1746230400000,
+      "tag": "0010_message_templates",
+      "breakpoints": true
     }
   ]
 }

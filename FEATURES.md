@@ -12,7 +12,7 @@ Pick one feature at a time. Mark it **In Progress** when you start, **Done** whe
 | 2 | [Export prospects to CSV](#2-export-prospects-to-csv) | Done |
 | 3 | [Analytics dashboard](#3-analytics-dashboard) | Done |
 | 4 | [Follow-up reminders via email](#4-follow-up-reminders) | Done |
-| 5 | [Message templates library](#5-message-templates-library) | Not started |
+| 5 | [Message templates library](#5-message-templates-library) | Done |
 
 ---
 

@@ -322,6 +322,11 @@ function DetailBody({
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
             )}
             agencyReady={agencyReady}
+            prospect={{
+              business_name: prospect.business_name,
+              handle: prospect.handle,
+              platform: prospect.platform,
+            }}
           />
         </section>
       </div>
