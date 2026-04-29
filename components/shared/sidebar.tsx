@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   MessagesSquare,
   Palette,
+  ScrollText,
   Settings,
   Users,
   type LucideIcon,
@@ -27,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Prospects",     href: "/prospects",     icon: Users         },
   { label: "Analytics",     href: "/analytics",     icon: BarChart3     },
   { label: "Messages",      href: "/messages",      icon: MessagesSquare },
+  { label: "Activity",      href: "/activity",      icon: ScrollText    },
   { label: "Design system", href: "/design-system", icon: Palette       },
   { label: "Settings",      href: "/settings",      icon: Settings      },
 ]

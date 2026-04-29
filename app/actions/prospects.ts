@@ -10,6 +10,7 @@ import { sendMail } from "@/lib/email/mailer"
 import { prospectAssignedEmailHtml } from "@/lib/email/templates/prospect-assigned"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { createNotification } from "@/app/actions/notifications"
+import { logActivity } from "@/lib/activity/log"
 import {
   PLATFORMS,
   PROSPECT_STATUSES,
@@ -50,6 +51,13 @@ export async function createProspect(
     .single()
 
   if (insertError) return fail(insertError.message)
+  void logActivity({
+    orgId: ctx.orgId,
+    prospectId: (data as Prospect).id,
+    userId: ctx.userId,
+    action: "prospect_created",
+    newValue: (data as Prospect).business_name,
+  })
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -72,6 +80,14 @@ export async function updateProspect(
     .single()
 
   if (error) return fail(error.message)
+  const updatedKeys = Object.keys(parsed.data)
+  const isNotesOnly = updatedKeys.length === 1 && updatedKeys[0] === "notes"
+  void logActivity({
+    orgId: (data as Prospect).org_id,
+    prospectId: id,
+    userId: user.id,
+    action: isNotesOnly ? "note_updated" : "prospect_updated",
+  })
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -88,7 +104,7 @@ export async function updateProspectStatus(
 
   const { data: before } = await ctx.supabase
     .from("prospects")
-    .select("assigned_to, business_name, org_id")
+    .select("assigned_to, business_name, org_id, status")
     .eq("id", id)
     .single()
 
@@ -111,6 +127,15 @@ export async function updateProspectStatus(
       message: `${before.business_name} was moved to ${parsed.data.status}`,
     })
   }
+
+  void logActivity({
+    orgId: ctx.orgId,
+    prospectId: id,
+    userId: ctx.userId,
+    action: "status_changed",
+    oldValue: before?.status ?? null,
+    newValue: parsed.data.status,
+  })
 
   revalidateProspectViews()
   return ok(data as Prospect)
@@ -203,7 +228,7 @@ export async function assignProspect(
 
   const { data: prospect } = await ctx.supabase
     .from("prospects")
-    .select("business_name, platform, handle")
+    .select("business_name, platform, handle, assigned_to")
     .eq("id", prospectId)
     .eq("org_id", ctx.orgId)
     .single()
@@ -224,6 +249,15 @@ export async function assignProspect(
       type: "prospect_assigned",
       subjectId: prospectId,
       message: `You've been assigned to ${prospect.business_name}`,
+    })
+
+    void logActivity({
+      orgId: ctx.orgId,
+      prospectId,
+      userId: ctx.userId,
+      action: "assignee_changed",
+      oldValue: prospect.assigned_to ?? "Unassigned",
+      newValue: userId ?? "Unassigned",
     })
 
     void sendAssignmentEmail({

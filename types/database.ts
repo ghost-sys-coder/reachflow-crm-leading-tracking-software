@@ -1,4 +1,5 @@
 import type {
+  activityLog,
   messageTemplates,
   messages,
   notifications,
@@ -11,7 +12,7 @@ import type {
   tags,
 } from "@/db/schema"
 
-export type { NotificationType } from "@/db/schema"
+export type { NotificationType, ActivityAction } from "@/db/schema"
 
 //base row types inferred from Drizzle schema
 export type Profile = typeof profiles.$inferSelect
@@ -70,6 +71,9 @@ export type MessageWithProspect = Message & {
 
 export type Notification = typeof notifications.$inferSelect
 export type NewNotification = typeof notifications.$inferInsert
+
+export type ActivityLog = typeof activityLog.$inferSelect
+export type NewActivityLog = typeof activityLog.$inferInsert
 
 //consistent return shape for every server action
 export type ActionResult<T> =
