@@ -1,6 +1,7 @@
 import type {
   messageTemplates,
   messages,
+  notifications,
   organizationInvites,
   organizationMembers,
   organizations,
@@ -9,6 +10,8 @@ import type {
   prospects,
   tags,
 } from "@/db/schema"
+
+export type { NotificationType } from "@/db/schema"
 
 //base row types inferred from Drizzle schema
 export type Profile = typeof profiles.$inferSelect
@@ -64,6 +67,9 @@ export type ProspectWithDetail = Prospect & {
 export type MessageWithProspect = Message & {
   prospect: Prospect
 }
+
+export type Notification = typeof notifications.$inferSelect
+export type NewNotification = typeof notifications.$inferInsert
 
 //consistent return shape for every server action
 export type ActionResult<T> =
