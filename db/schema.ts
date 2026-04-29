@@ -24,6 +24,15 @@ export const MESSAGE_TYPES = ["instagram_dm", "cold_email", "follow_up", "custom
 export const THEMES = ["default", "midnight", "sunset"] as const
 export const MEMBER_ROLES = ["admin", "editor", "viewer"] as const
 export const NOTIFICATION_TYPES = ["prospect_assigned", "status_changed", "follow_up_due"] as const
+export const ACTIVITY_ACTIONS = [
+  "prospect_created",
+  "status_changed",
+  "assignee_changed",
+  "note_updated",
+  "prospect_updated",
+  "message_saved",
+  "outreach_sent",
+] as const
 
 export type Platform = (typeof PLATFORMS)[number]
 export type ProspectStatus = (typeof PROSPECT_STATUSES)[number]
@@ -31,6 +40,7 @@ export type MessageType = (typeof MESSAGE_TYPES)[number]
 export type ThemePreference = (typeof THEMES)[number]
 export type MemberRole = (typeof MEMBER_ROLES)[number]
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
+export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number]
 
 export const profiles = pgTable(
   "profiles",
@@ -285,6 +295,33 @@ export const notifications = pgTable(
   ],
 )
 
+export const activityLog = pgTable(
+  "activity_log",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    prospect_id: uuid()
+      .notNull()
+      .references(() => prospects.id, { onDelete: "cascade" }),
+    user_id: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    actor_name: text().notNull().default("Team member"),
+    action: text().notNull(),
+    old_value: text(),
+    new_value: text(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("activity_log_prospect_idx").on(table.prospect_id),
+    index("activity_log_org_idx").on(table.org_id),
+    check(
+      "activity_log_action_valid",
+      sql`${table.action} IN ('prospect_created','status_changed','assignee_changed','note_updated','prospect_updated','message_saved','outreach_sent')`,
+    ),
+  ],
+)
+
 // relations
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
@@ -370,6 +407,21 @@ export const prospectTagsRelations = relations(prospectTags, ({ one }) => ({
   tag: one(tags, {
     fields: [prospectTags.tag_id],
     references: [tags.id],
+  }),
+}))
+
+export const activityLogRelations = relations(activityLog, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [activityLog.org_id],
+    references: [organizations.id],
+  }),
+  prospect: one(prospects, {
+    fields: [activityLog.prospect_id],
+    references: [prospects.id],
+  }),
+  actor: one(profiles, {
+    fields: [activityLog.user_id],
+    references: [profiles.id],
   }),
 }))
 

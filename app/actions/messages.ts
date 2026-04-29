@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
+import { logActivity } from "@/lib/activity/log"
 import {
   messageCreateSchema,
   type MessageCreateInput,
@@ -31,6 +32,13 @@ export async function saveMessage(
     .single()
 
   if (insertError) return fail(insertError.message)
+  void logActivity({
+    orgId: ctx.orgId,
+    prospectId: parsed.data.prospect_id,
+    userId: ctx.userId,
+    action: "message_saved",
+    newValue: parsed.data.message_type,
+  })
   revalidatePath("/prospects", "layout")
   return ok(data as Message)
 }
@@ -54,6 +62,14 @@ export async function markMessageAsSent(id: string): Promise<ActionResult<Messag
       .from("prospects")
       .update({ last_contacted_at: new Date().toISOString() })
       .eq("id", data.prospect_id)
+
+    void logActivity({
+      orgId: (data as Message).org_id,
+      prospectId: (data as Message).prospect_id,
+      userId: user.id,
+      action: "outreach_sent",
+      newValue: (data as Message).message_type,
+    })
   }
 
   revalidatePath("/prospects", "layout")

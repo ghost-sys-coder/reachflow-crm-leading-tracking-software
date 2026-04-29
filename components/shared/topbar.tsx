@@ -19,6 +19,7 @@ const PAGE_TITLES: Array<{ match: RegExp; title: string }> = [
   { match: /^\/pipeline/, title: "Pipeline" },
   { match: /^\/prospects/, title: "Prospects" },
   { match: /^\/messages/, title: "Messages" },
+  { match: /^\/activity/, title: "Activity Log" },
   { match: /^\/settings/, title: "Settings" },
   { match: /^\/design-system/, title: "Design system" },
 ]
