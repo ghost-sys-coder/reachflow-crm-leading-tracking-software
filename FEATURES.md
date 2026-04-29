@@ -20,7 +20,7 @@ Pick one feature at a time. Mark it **In Progress** when you start, **Done** whe
 
 | # | Feature | Status |
 |---|---------|--------|
-| 6 | [Billing & subscription (Stripe)](#6-billing--subscription) | Not started |
+| 6 | [Billing & subscription (Pesapal since stripe does not offer business solutions to Ugandan services)](#6-billing--subscription) | Not started |
 | 7 | [In-app notifications](#7-in-app-notifications) | Not started |
 | 8 | [Activity / audit log](#8-activity--audit-log) | Not started |
 | 9 | [Multi-step outreach sequences](#9-multi-step-outreach-sequences) | Not started |
@@ -86,7 +86,7 @@ Admins can create reusable outreach templates (subject line + body with `{{agenc
 
 ### 6. Billing & Subscription
 
-Required before selling to other businesses. Stripe Checkout for plan selection, Stripe Customer Portal for self-serve upgrades/cancellations. Plans gate features (e.g. seat count, number of prospects). Webhooks update a `subscriptions` table; middleware blocks access when subscription is inactive.
+Required before selling to other businesses. Required before selling to other businesses. We are using pesapal to integrate both mobile money and card payments. We can't use Stripe since it doesn't offer business solutions for Ugandan businesses and I am located in Uganda. Intend to capture both local and global payments
 
 **Scope:** Stripe SDK, webhook endpoint, `subscriptions` table, plan-gating middleware, billing settings tab.
 
