@@ -20,6 +20,11 @@ import { GeneratorPanel } from "@/components/crm/generator-panel"
 import { PlatformIcon, PLATFORM_LABELS } from "@/components/crm/platform-icon"
 import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { ActivityTimeline } from "@/components/crm/activity-timeline"
+<<<<<<< Updated upstream
+=======
+import { CustomFieldsPanel } from "@/components/crm/custom-fields-panel"
+import { ProspectSequenceSection } from "@/components/sequences/prospect-sequence-section"
+>>>>>>> Stashed changes
 import { PROSPECT_STATUS_LABELS, StatusBadge } from "@/components/crm/status-badge"
 import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
@@ -289,6 +294,33 @@ function DetailBody({
 
         <section className="space-y-3">
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+<<<<<<< Updated upstream
+=======
+            Custom fields
+          </h3>
+          <CustomFieldsPanel
+            prospectId={prospect.id}
+            initialValues={(prospect.custom_fields ?? {}) as Record<string, string | number | boolean | null>}
+          />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Sequence
+          </h3>
+          <ProspectSequenceSection
+            prospectId={prospect.id}
+            canEnroll={isAdmin}
+          />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+>>>>>>> Stashed changes
             History
           </h3>
           <ActivityTimeline prospectId={prospect.id} />

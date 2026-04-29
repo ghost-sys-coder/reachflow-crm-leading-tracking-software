@@ -16,6 +16,7 @@ import {
 } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
+import { getCustomFieldDefinitions } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import {
   PLATFORMS,
@@ -36,6 +37,7 @@ type PipelineSearchParams = {
   q?: string
   prospect?: string
   assigned?: string
+  [key: string]: string | undefined
 }
 
 function parseStatus(value: string | undefined): ProspectStatus | null {
@@ -89,6 +91,7 @@ function filterProspects(
     platform: Platform | null
     search: string
     assignedToUserId: string | null
+    customFields?: Record<string, string>
   },
 ): Prospect[] {
   const term = filters.search.trim().toLowerCase()
@@ -96,6 +99,12 @@ function filterProspects(
     if (filters.status && p.status !== filters.status) return false
     if (filters.platform && p.platform !== filters.platform) return false
     if (filters.assignedToUserId && p.assigned_to !== filters.assignedToUserId) return false
+    if (filters.customFields) {
+      const cf = (p.custom_fields ?? {}) as Record<string, unknown>
+      for (const [fieldId, expected] of Object.entries(filters.customFields)) {
+        if (String(cf[fieldId] ?? "") !== expected) return false
+      }
+    }
     if (term) {
       const hay = [
         p.business_name,
@@ -141,12 +150,13 @@ export default async function PipelinePage({
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, customFieldDefsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
     getTeamMembers(),
     getAuthedOrgClient(),
+    getCustomFieldDefinitions(),
   ])
 
   const all = allResult.data ?? []
@@ -155,15 +165,27 @@ export default async function PipelinePage({
   const agencyReady = Boolean(orgResult.data?.agency_name)
   const currentUserId = orgCtxResult.ctx?.userId ?? ""
   const isAdmin = orgCtxResult.ctx?.role === "admin"
+  const customFieldDefs = customFieldDefsResult.data ?? []
+  const customSelectFields = customFieldDefs
+    .filter((d) => d.field_type === "select" && Array.isArray(d.options) && (d.options as string[]).length > 0)
+    .map((d) => ({ id: d.id, name: d.name, options: d.options as string[] }))
+
   const industrySuggestions = buildIndustrySuggestions(all)
   const stats = computeStats(all)
   const counts = computeCounts(all, currentUserId)
+
+  const activeCustomFields: Record<string, string> = {}
+  for (const cf of customSelectFields) {
+    const val = params[`cf_${cf.id}`]
+    if (val) activeCustomFields[cf.id] = val
+  }
 
   const filtered = filterProspects(all, {
     status,
     platform,
     search,
     assignedToUserId: assignedToMe ? currentUserId : null,
+    customFields: Object.keys(activeCustomFields).length > 0 ? activeCustomFields : undefined,
   })
   const prospects = await attachTags(filtered, allTags)
 
@@ -200,6 +222,7 @@ export default async function PipelinePage({
             activeStatus={status}
             activePlatform={platform}
             activeAssignedToMe={assignedToMe}
+            customSelectFields={customSelectFields}
           />
 
           <Suspense fallback={<ProspectListSkeleton />}>

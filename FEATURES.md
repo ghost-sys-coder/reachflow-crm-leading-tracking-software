@@ -23,8 +23,13 @@ Pick one feature at a time. Mark it **In Progress** when you start, **Done** whe
 | 6 | [Billing & subscription (Pesapal since stripe does not offer business solutions to Ugandan services)](#6-billing--subscription) | Not started |
 | 7 | [In-app notifications](#7-in-app-notifications) | Done |
 | 8 | [Activity / audit log](#8-activity--audit-log) | Done |
+<<<<<<< Updated upstream
 | 9 | [Multi-step outreach sequences](#9-multi-step-outreach-sequences) | Not started |
 | 10 | [Custom fields on prospects](#10-custom-fields-on-prospects) | Not started |
+=======
+| 9 | [Multi-step outreach sequences](#9-multi-step-outreach-sequences) | Done |
+| 10 | [Custom fields on prospects](#10-custom-fields-on-prospects) | Done |
+>>>>>>> Stashed changes
 
 ---
 

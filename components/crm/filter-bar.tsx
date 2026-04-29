@@ -24,12 +24,14 @@ export function FilterBar({
   activeStatus,
   activePlatform,
   activeAssignedToMe = false,
+  customSelectFields = [],
 }: {
   counts: FilterCounts
   initialSearch: string
   activeStatus: ProspectStatus | null
   activePlatform: Platform | null
   activeAssignedToMe?: boolean
+  customSelectFields?: Array<{ id: string; name: string; options: string[] }>
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -118,6 +120,22 @@ export function FilterBar({
           onPick={(v) => updateParam("assigned", v)}
         />
       )}
+
+      {customSelectFields.map((cf) => {
+        const paramKey = `cf_${cf.id}`
+        return (
+          <PillRow
+            key={cf.id}
+            label={cf.name}
+            items={[
+              { value: null, label: "All" },
+              ...cf.options.map((o) => ({ value: o, label: o })),
+            ]}
+            active={searchParams.get(paramKey) ?? null}
+            onPick={(v) => updateParam(paramKey, v)}
+          />
+        )
+      })}
     </div>
   )
 }

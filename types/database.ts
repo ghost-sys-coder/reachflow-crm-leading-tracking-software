@@ -1,5 +1,6 @@
 import type {
   activityLog,
+  customFieldDefinitions,
   messageTemplates,
   messages,
   notifications,
@@ -12,7 +13,7 @@ import type {
   tags,
 } from "@/db/schema"
 
-export type { NotificationType, ActivityAction } from "@/db/schema"
+export type { NotificationType, ActivityAction, CustomFieldType } from "@/db/schema"
 
 //base row types inferred from Drizzle schema
 export type Profile = typeof profiles.$inferSelect
@@ -71,6 +72,11 @@ export type MessageWithProspect = Message & {
 
 export type Notification = typeof notifications.$inferSelect
 export type NewNotification = typeof notifications.$inferInsert
+
+export type CustomFieldDefinition = typeof customFieldDefinitions.$inferSelect
+export type NewCustomFieldDefinition = typeof customFieldDefinitions.$inferInsert
+
+export type CustomFieldValues = Record<string, string | number | boolean | null>
 
 export type ActivityLog = typeof activityLog.$inferSelect
 export type NewActivityLog = typeof activityLog.$inferInsert

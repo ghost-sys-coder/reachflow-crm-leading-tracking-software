@@ -4,6 +4,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgSchema,
   pgTable,
   primaryKey,
@@ -140,6 +141,7 @@ export const prospects = pgTable(
     assigned_to: uuid().references(() => profiles.id, { onDelete: "set null" }),
     follow_up_at: timestamp({ withTimezone: true }),
     last_contacted_at: timestamp({ withTimezone: true }),
+    custom_fields: jsonb().$type<Record<string, string | number | boolean | null>>().notNull().default({}),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -295,6 +297,99 @@ export const notifications = pgTable(
   ],
 )
 
+<<<<<<< Updated upstream
+=======
+export const sequences = pgTable(
+  "sequences",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    description: text(),
+    created_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("sequences_org_idx").on(table.org_id)],
+)
+
+export const sequenceSteps = pgTable(
+  "sequence_steps",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    sequence_id: uuid().notNull().references(() => sequences.id, { onDelete: "cascade" }),
+    step_number: integer().notNull(),
+    delay_days: integer().notNull().default(0),
+    message_type: text().notNull(),
+    subject: text(),
+    body_template: text().notNull().default(""),
+  },
+  (table) => [
+    index("sequence_steps_seq_idx").on(table.sequence_id),
+    unique("sequence_steps_seq_step_uq").on(table.sequence_id, table.step_number),
+    check("sequence_steps_type_valid", sql`${table.message_type} IN ('instagram_dm','cold_email','follow_up','custom')`),
+    check("sequence_steps_delay_check", sql`${table.delay_days} >= 0`),
+    check("sequence_steps_step_check", sql`${table.step_number} >= 1`),
+  ],
+)
+
+export const prospectSequences = pgTable(
+  "prospect_sequences",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    prospect_id: uuid().notNull().references(() => prospects.id, { onDelete: "cascade" }),
+    sequence_id: uuid().notNull().references(() => sequences.id, { onDelete: "cascade" }),
+    enrolled_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    started_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    status: text().notNull().default("active"),
+  },
+  (table) => [
+    index("prospect_sequences_prospect_idx").on(table.prospect_id),
+    index("prospect_sequences_org_idx").on(table.org_id),
+    check("prospect_sequences_status_valid", sql`${table.status} IN ('active','paused','completed','cancelled')`),
+  ],
+)
+
+export const prospectSequenceSteps = pgTable(
+  "prospect_sequence_steps",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    prospect_sequence_id: uuid().notNull().references(() => prospectSequences.id, { onDelete: "cascade" }),
+    step_id: uuid().notNull().references(() => sequenceSteps.id, { onDelete: "cascade" }),
+    step_number: integer().notNull(),
+    due_at: timestamp({ withTimezone: true }).notNull(),
+    status: text().notNull().default("pending"),
+    completed_at: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    index("pss_prospect_sequence_idx").on(table.prospect_sequence_id),
+    index("pss_due_status_idx").on(table.due_at, table.status),
+    check("pss_status_valid", sql`${table.status} IN ('pending','ready','skipped')`),
+  ],
+)
+
+export const CUSTOM_FIELD_TYPES = ["text", "number", "boolean", "date", "select"] as const
+export type CustomFieldType = (typeof CUSTOM_FIELD_TYPES)[number]
+
+export const customFieldDefinitions = pgTable(
+  "custom_field_definitions",
+  {
+    id:         uuid().primaryKey().defaultRandom(),
+    org_id:     uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    name:       text().notNull(),
+    field_type: text().notNull(),
+    options:    jsonb().$type<string[]>(),
+    position:   integer().notNull().default(0),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("cfd_org_idx").on(table.org_id),
+    check("cfd_type_valid", sql`${table.field_type} IN ('text','number','boolean','date','select')`),
+  ],
+)
+
+>>>>>>> Stashed changes
 export const activityLog = pgTable(
   "activity_log",
   {
@@ -410,6 +505,34 @@ export const prospectTagsRelations = relations(prospectTags, ({ one }) => ({
   }),
 }))
 
+<<<<<<< Updated upstream
+=======
+export const sequencesRelations = relations(sequences, ({ one, many }) => ({
+  organization: one(organizations, { fields: [sequences.org_id], references: [organizations.id] }),
+  steps: many(sequenceSteps),
+}))
+
+export const sequenceStepsRelations = relations(sequenceSteps, ({ one }) => ({
+  sequence: one(sequences, { fields: [sequenceSteps.sequence_id], references: [sequences.id] }),
+}))
+
+export const prospectSequencesRelations = relations(prospectSequences, ({ one, many }) => ({
+  organization: one(organizations, { fields: [prospectSequences.org_id], references: [organizations.id] }),
+  prospect: one(prospects, { fields: [prospectSequences.prospect_id], references: [prospects.id] }),
+  sequence: one(sequences, { fields: [prospectSequences.sequence_id], references: [sequences.id] }),
+  steps: many(prospectSequenceSteps),
+}))
+
+export const prospectSequenceStepsRelations = relations(prospectSequenceSteps, ({ one }) => ({
+  prospectSequence: one(prospectSequences, { fields: [prospectSequenceSteps.prospect_sequence_id], references: [prospectSequences.id] }),
+  step: one(sequenceSteps, { fields: [prospectSequenceSteps.step_id], references: [sequenceSteps.id] }),
+}))
+
+export const customFieldDefinitionsRelations = relations(customFieldDefinitions, ({ one }) => ({
+  organization: one(organizations, { fields: [customFieldDefinitions.org_id], references: [organizations.id] }),
+}))
+
+>>>>>>> Stashed changes
 export const activityLogRelations = relations(activityLog, ({ one }) => ({
   organization: one(organizations, {
     fields: [activityLog.org_id],

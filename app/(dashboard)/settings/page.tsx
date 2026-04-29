@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 import { Bell, BookTemplate, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
+=======
+import { Bell, BookTemplate, ListOrdered, Palette, Shield, SlidersHorizontal, Sparkles, Tag, User, Users } from "lucide-react"
+>>>>>>> Stashed changes
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { AppearanceSection } from "@/components/settings/appearance-section"
@@ -7,6 +11,11 @@ import { ProfileForm } from "@/components/settings/profile-form"
 import { TagsSection } from "@/components/settings/tags-section"
 import { TeamSection } from "@/components/settings/team-section"
 import { TemplatesSection } from "@/components/settings/templates-section"
+<<<<<<< Updated upstream
+=======
+import { CustomFieldsSection } from "@/components/settings/custom-fields-section"
+import { SequencesSection } from "@/components/sequences/sequences-section"
+>>>>>>> Stashed changes
 import {
   Card,
   CardContent,
@@ -19,6 +28,11 @@ import { getCurrentOrg, getCurrentProfile } from "@/app/actions/profile"
 import { getTemplates } from "@/app/actions/templates"
 import { getUserTags } from "@/app/actions/tags"
 import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
+<<<<<<< Updated upstream
+=======
+import { getSequences } from "@/app/actions/sequences"
+import { getCustomFieldDefinitions } from "@/app/actions/custom-fields"
+>>>>>>> Stashed changes
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
@@ -78,11 +92,21 @@ const NAV_ITEMS = [
   { value: "notifications", label: "Notifications", icon: Bell          },
   { value: "tags",          label: "Tags",          icon: Tag           },
   { value: "templates",     label: "Templates",     icon: BookTemplate  },
+<<<<<<< Updated upstream
   { value: "team",          label: "Team",          icon: Users         },
 ] as const
 
 export default async function SettingsPage() {
   const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, orgCtx] =
+=======
+  { value: "sequences",     label: "Sequences",     icon: ListOrdered       },
+  { value: "custom-fields", label: "Custom Fields", icon: SlidersHorizontal },
+  { value: "team",          label: "Team",          icon: Users             },
+] as const
+
+export default async function SettingsPage() {
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, customFieldsResult, orgCtx] =
+>>>>>>> Stashed changes
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -90,6 +114,11 @@ export default async function SettingsPage() {
       getTeamMembers(),
       getPendingInvites(),
       getTemplates(),
+<<<<<<< Updated upstream
+=======
+      getSequences(),
+      getCustomFieldDefinitions(),
+>>>>>>> Stashed changes
       getAuthedOrgClient(),
     ])
 
@@ -99,6 +128,11 @@ export default async function SettingsPage() {
   const members = membersResult.data ?? []
   const invites = invitesResult.data ?? []
   const templates = templatesResult.data?.templates ?? []
+<<<<<<< Updated upstream
+=======
+  const sequences = sequencesResult.data ?? []
+  const customFields = customFieldsResult.data ?? []
+>>>>>>> Stashed changes
   const savedTheme = (profile?.theme_preference ?? "default") as Theme
   const currentUserId = orgCtx.ctx?.userId ?? ""
   const currentUserRole = (orgCtx.ctx?.role ?? "viewer") as MemberRole
@@ -238,6 +272,40 @@ export default async function SettingsPage() {
             </Card>
           </TabsContent>
 
+<<<<<<< Updated upstream
+=======
+          <TabsContent value="sequences">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Outreach sequences</CardTitle>
+                <CardDescription>
+                  Multi-step outreach plans that auto-schedule drafts for enrolled prospects.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <SequencesSection
+                  initialSequences={sequences}
+                  role={currentUserRole}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="custom-fields">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Custom fields</CardTitle>
+                <CardDescription>
+                  Extra fields shown on every prospect — budget, deal stage, decision maker, and more.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <CustomFieldsSection initialFields={customFields} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+>>>>>>> Stashed changes
           <TabsContent value="team">
             <Card>
               <CardHeader className="border-b">
