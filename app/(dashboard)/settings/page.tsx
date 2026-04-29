@@ -1,4 +1,4 @@
-import { Bell, BookTemplate, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
+import { Bell, BookTemplate, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { AppearanceSection } from "@/components/settings/appearance-section"
@@ -7,6 +7,7 @@ import { ProfileForm } from "@/components/settings/profile-form"
 import { TagsSection } from "@/components/settings/tags-section"
 import { TeamSection } from "@/components/settings/team-section"
 import { TemplatesSection } from "@/components/settings/templates-section"
+import { SequencesSection } from "@/components/sequences/sequences-section"
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import { getCurrentOrg, getCurrentProfile } from "@/app/actions/profile"
 import { getTemplates } from "@/app/actions/templates"
 import { getUserTags } from "@/app/actions/tags"
 import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
+import { getSequences } from "@/app/actions/sequences"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
@@ -78,11 +80,12 @@ const NAV_ITEMS = [
   { value: "notifications", label: "Notifications", icon: Bell          },
   { value: "tags",          label: "Tags",          icon: Tag           },
   { value: "templates",     label: "Templates",     icon: BookTemplate  },
+  { value: "sequences",     label: "Sequences",     icon: ListOrdered   },
   { value: "team",          label: "Team",          icon: Users         },
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, orgCtx] =
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx] =
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -90,6 +93,7 @@ export default async function SettingsPage() {
       getTeamMembers(),
       getPendingInvites(),
       getTemplates(),
+      getSequences(),
       getAuthedOrgClient(),
     ])
 
@@ -99,6 +103,7 @@ export default async function SettingsPage() {
   const members = membersResult.data ?? []
   const invites = invitesResult.data ?? []
   const templates = templatesResult.data?.templates ?? []
+  const sequences = sequencesResult.data ?? []
   const savedTheme = (profile?.theme_preference ?? "default") as Theme
   const currentUserId = orgCtx.ctx?.userId ?? ""
   const currentUserRole = (orgCtx.ctx?.role ?? "viewer") as MemberRole
@@ -232,6 +237,23 @@ export default async function SettingsPage() {
               <CardContent className="pt-5">
                 <TemplatesSection
                   initialTemplates={templates}
+                  role={currentUserRole}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="sequences">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Outreach sequences</CardTitle>
+                <CardDescription>
+                  Multi-step outreach plans that auto-schedule drafts for enrolled prospects.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <SequencesSection
+                  initialSequences={sequences}
                   role={currentUserRole}
                 />
               </CardContent>

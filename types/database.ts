@@ -7,8 +7,12 @@ import type {
   organizationMembers,
   organizations,
   profiles,
+  prospectSequences,
+  prospectSequenceSteps,
   prospectTags,
   prospects,
+  sequences,
+  sequenceSteps,
   tags,
 } from "@/db/schema"
 
@@ -74,6 +78,27 @@ export type NewNotification = typeof notifications.$inferInsert
 
 export type ActivityLog = typeof activityLog.$inferSelect
 export type NewActivityLog = typeof activityLog.$inferInsert
+
+export type Sequence = typeof sequences.$inferSelect
+export type NewSequence = typeof sequences.$inferInsert
+
+export type SequenceStep = typeof sequenceSteps.$inferSelect
+export type NewSequenceStep = typeof sequenceSteps.$inferInsert
+
+export type ProspectSequence = typeof prospectSequences.$inferSelect
+export type NewProspectSequence = typeof prospectSequences.$inferInsert
+
+export type ProspectSequenceStep = typeof prospectSequenceSteps.$inferSelect
+export type NewProspectSequenceStep = typeof prospectSequenceSteps.$inferInsert
+
+export type SequenceWithSteps = Sequence & { steps: SequenceStep[] }
+
+export type ProspectSequenceWithDetails = ProspectSequence & {
+  sequence: { name: string; description: string | null }
+  steps: Array<ProspectSequenceStep & {
+    step: Pick<SequenceStep, "message_type" | "delay_days" | "body_template" | "subject">
+  }>
+}
 
 //consistent return shape for every server action
 export type ActionResult<T> =

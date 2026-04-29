@@ -11,6 +11,7 @@ import { prospectAssignedEmailHtml } from "@/lib/email/templates/prospect-assign
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { createNotification } from "@/app/actions/notifications"
 import { logActivity } from "@/lib/activity/log"
+import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
   PLATFORMS,
   PROSPECT_STATUSES,
@@ -92,6 +93,29 @@ export async function updateProspect(
   return ok(data as Prospect)
 }
 
+async function cancelActiveSequencesForProspect(prospectId: string): Promise<void> {
+  try {
+    const admin = _adminClient()
+    const { data: active } = await admin
+      .from("prospect_sequences")
+      .select("id")
+      .eq("prospect_id", prospectId)
+      .eq("status", "active")
+
+    if (!active?.length) return
+
+    const ids = active.map((r: { id: string }) => r.id)
+    await admin.from("prospect_sequences").update({ status: "completed" }).in("id", ids)
+    await admin
+      .from("prospect_sequence_steps")
+      .update({ status: "skipped", completed_at: new Date().toISOString() })
+      .in("prospect_sequence_id", ids)
+      .eq("status", "pending")
+  } catch {
+    // never break parent action
+  }
+}
+
 export async function updateProspectStatus(
   id: string,
   input: ProspectStatusUpdateInput,
@@ -136,6 +160,11 @@ export async function updateProspectStatus(
     oldValue: before?.status ?? null,
     newValue: parsed.data.status,
   })
+
+  // Auto-complete active sequences when prospect replies or books
+  if (parsed.data.status === "replied" || parsed.data.status === "booked") {
+    void cancelActiveSequencesForProspect(id)
+  }
 
   revalidateProspectViews()
   return ok(data as Prospect)

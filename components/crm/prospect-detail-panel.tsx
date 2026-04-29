@@ -20,6 +20,7 @@ import { GeneratorPanel } from "@/components/crm/generator-panel"
 import { PlatformIcon, PLATFORM_LABELS } from "@/components/crm/platform-icon"
 import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { ActivityTimeline } from "@/components/crm/activity-timeline"
+import { ProspectSequenceSection } from "@/components/sequences/prospect-sequence-section"
 import { PROSPECT_STATUS_LABELS, StatusBadge } from "@/components/crm/status-badge"
 import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
@@ -283,6 +284,18 @@ function DetailBody({
 
         <section>
           <ProspectNotes prospectId={prospect.id} initialNotes={prospect.notes} />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Sequence
+          </h3>
+          <ProspectSequenceSection
+            prospectId={prospect.id}
+            canEnroll={isAdmin}
+          />
         </section>
 
         <Separator />
