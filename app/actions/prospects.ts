@@ -4,8 +4,12 @@ import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { toCsv } from "@/lib/csv/generate"
+import { sendMail } from "@/lib/email/mailer"
+import { prospectAssignedEmailHtml } from "@/lib/email/templates/prospect-assigned"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
+import { createNotification } from "@/app/actions/notifications"
 import {
   PLATFORMS,
   PROSPECT_STATUSES,
@@ -79,10 +83,16 @@ export async function updateProspectStatus(
   const parsed = prospectStatusUpdateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
 
-  const { data, error } = await supabase
+  const { data: before } = await ctx.supabase
+    .from("prospects")
+    .select("assigned_to, business_name, org_id")
+    .eq("id", id)
+    .single()
+
+  const { data, error } = await ctx.supabase
     .from("prospects")
     .update({ status: parsed.data.status })
     .eq("id", id)
@@ -90,6 +100,18 @@ export async function updateProspectStatus(
     .single()
 
   if (error) return fail(error.message)
+
+  if (before?.assigned_to && before.assigned_to !== ctx.userId) {
+    await createNotification({
+      orgId: ctx.orgId,
+      userId: before.assigned_to,
+      actorId: ctx.userId,
+      type: "status_changed",
+      subjectId: id,
+      message: `${before.business_name} was moved to ${parsed.data.status}`,
+    })
+  }
+
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -130,6 +152,47 @@ export async function getProspects(
   return ok((data ?? []) as Prospect[])
 }
 
+async function sendAssignmentEmail(params: {
+  assigneeId: string
+  actorId: string
+  prospect: { id: string; business_name: string; platform: string; handle: string | null }
+}) {
+  try {
+    const admin = createAdminClient()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+
+    const [{ data: assigneeAuth }, { data: actorAuth }, assigneeProfile, actorProfile] =
+      await Promise.all([
+        admin.auth.admin.getUserById(params.assigneeId),
+        admin.auth.admin.getUserById(params.actorId),
+        admin.from("profiles").select("full_name").eq("id", params.assigneeId).single(),
+        admin.from("profiles").select("full_name").eq("id", params.actorId).single(),
+      ])
+
+    const toEmail = assigneeAuth?.user?.email
+    if (!toEmail) return
+
+    const recipientName = assigneeProfile.data?.full_name ?? toEmail.split("@")[0]
+    const actorName = actorProfile.data?.full_name ?? actorAuth?.user?.email?.split("@")[0] ?? "A team member"
+
+    await sendMail({
+      to: toEmail,
+      subject: `New lead assigned: ${params.prospect.business_name}`,
+      html: prospectAssignedEmailHtml({
+        recipientName,
+        actorName,
+        businessName: params.prospect.business_name,
+        platform: params.prospect.platform,
+        handle: params.prospect.handle,
+        prospectUrl: `${appUrl}/prospects/${params.prospect.id}`,
+        settingsUrl: `${appUrl}/settings`,
+      }),
+    })
+  } catch {
+    // email failures must never break the parent action
+  }
+}
+
 export async function assignProspect(
   prospectId: string,
   userId: string | null,
@@ -138,6 +201,13 @@ export async function assignProspect(
   if (!ctx) return fail(error)
   if (ctx.role !== "admin") return fail("Only admins can assign leads")
 
+  const { data: prospect } = await ctx.supabase
+    .from("prospects")
+    .select("business_name, platform, handle")
+    .eq("id", prospectId)
+    .eq("org_id", ctx.orgId)
+    .single()
+
   const { error: dbError } = await ctx.supabase
     .from("prospects")
     .update({ assigned_to: userId })
@@ -145,6 +215,29 @@ export async function assignProspect(
     .eq("org_id", ctx.orgId)
 
   if (dbError) return fail(dbError.message)
+
+  if (userId && userId !== ctx.userId && prospect?.business_name) {
+    await createNotification({
+      orgId: ctx.orgId,
+      userId,
+      actorId: ctx.userId,
+      type: "prospect_assigned",
+      subjectId: prospectId,
+      message: `You've been assigned to ${prospect.business_name}`,
+    })
+
+    void sendAssignmentEmail({
+      assigneeId: userId,
+      actorId: ctx.userId,
+      prospect: {
+        id: prospectId,
+        business_name: prospect.business_name,
+        platform: prospect.platform,
+        handle: prospect.handle ?? null,
+      },
+    })
+  }
+
   revalidateProspectViews()
   return ok({ done: true })
 }

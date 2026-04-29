@@ -13,6 +13,7 @@ import {
 import { SidebarNav } from "@/components/shared/sidebar"
 import { ThemeSwitcher } from "@/components/shared/theme-switcher"
 import { UserMenu } from "@/components/shared/user-menu"
+import { NotificationsBell } from "@/components/shared/notifications-bell"
 
 const PAGE_TITLES: Array<{ match: RegExp; title: string }> = [
   { match: /^\/pipeline/, title: "Pipeline" },
@@ -59,6 +60,7 @@ export function Topbar({
 
       <div className="ml-auto flex items-center gap-2">
         <ThemeSwitcher />
+        <NotificationsBell />
         <UserMenu
           userEmail={userEmail}
           userName={userName}
