@@ -17,6 +17,18 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ReachFlow CRM",
   description: "A niche CRM for digital agencies running cold outreach.",
+  icons: {
+    icon: [
+      { url: "/brand/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+  },
+  openGraph: {
+    title: "ReachFlow CRM",
+    description: "A niche CRM for digital agencies running cold outreach.",
+    images: [{ url: "/brand/og-image.svg", width: 1200, height: 630, alt: "ReachFlow CRM" }],
+    type: "website",
+  },
 }
 
 //inline script runs before hydration to set data-theme and avoid FOUC

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#4f46e5"/>
+  <!-- Chat bubble + arrow icon (24×24 paths centered in 64×64 at offset 20,20) -->
+  <g transform="translate(20,20)">
+    <path d="M4 7c0-.6.4-1 1-1h8a5 5 0 0 1 5 5 5 5 0 0 1-5 5H8l-4 3V7Z" fill="white" fill-opacity="0.3"/>
+    <path d="M4 7c0-.6.4-1 1-1h8a5 5 0 0 1 5 5 5 5 0 0 1-5 5H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m14 9 3 2-3 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

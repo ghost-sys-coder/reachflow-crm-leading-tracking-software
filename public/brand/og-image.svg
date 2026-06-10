@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none">
+  <defs>
+    <!-- Background gradient: deep navy → dark indigo -->
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a0a18"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <!-- Ambient glow behind logo -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Soft blur filter for ambient circles -->
+    <filter id="blur-xl" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <!-- Subtle grid pattern -->
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#ffffff" stroke-opacity="0.025" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background layers -->
+  <rect width="1200" height="630" fill="url(#bg-grad)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Ambient light blobs -->
+  <circle cx="220" cy="180" r="220" fill="#4f46e5" fill-opacity="0.12" filter="url(#blur-xl)"/>
+  <circle cx="980" cy="450" r="200" fill="#7c3aed" fill-opacity="0.12" filter="url(#blur-xl)"/>
+
+  <!-- Logo icon: 100×100 centered at (600, 220) -->
+  <rect x="550" y="170" width="100" height="100" rx="24" fill="#4f46e5"/>
+  <svg x="571" y="191" width="58" height="58" viewBox="0 0 24 24" fill="none">
+    <path d="M4 7c0-.6.4-1 1-1h8a5 5 0 0 1 5 5 5 5 0 0 1-5 5H8l-4 3V7Z" fill="white" fill-opacity="0.3"/>
+    <path d="M4 7c0-.6.4-1 1-1h8a5 5 0 0 1 5 5 5 5 0 0 1-5 5H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m14 9 3 2-3 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+
+  <!-- Wordmark -->
+  <text x="600" y="345" text-anchor="middle"
+    font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif"
+    font-size="64" font-weight="700" letter-spacing="-1.5" fill="#ffffff">ReachFlow</text>
+
+  <!-- Tagline -->
+  <text x="600" y="392" text-anchor="middle"
+    font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif"
+    font-size="22" font-weight="400" letter-spacing="-0.2" fill="#ffffff" fill-opacity="0.55">Cold outreach CRM for digital agencies</text>
+
+  <!-- Badge pill -->
+  <rect x="526" y="426" width="148" height="36" rx="18" fill="#4f46e5" fill-opacity="0.45"/>
+  <rect x="526" y="426" width="148" height="36" rx="18" stroke="#818cf8" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="600" y="449" text-anchor="middle"
+    font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif"
+    font-size="13" font-weight="500" letter-spacing="0.4" fill="#c7d2fe">CRM PLATFORM</text>
+</svg>
