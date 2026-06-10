@@ -14,6 +14,8 @@ export function prospectAssignedEmailHtml({
   handle,
   prospectUrl,
   settingsUrl,
+  brandName,
+  primaryColor,
 }: {
   recipientName: string
   actorName: string
@@ -22,7 +24,11 @@ export function prospectAssignedEmailHtml({
   handle: string | null
   prospectUrl: string
   settingsUrl: string
+  brandName?: string
+  primaryColor?: string
 }) {
+  const brand    = brandName ?? "ReachFlow"
+  const color    = primaryColor ?? "#4f46e5"
   const subtitle = handle ? esc(handle) : esc(platform)
 
   return `<!DOCTYPE html>
@@ -39,8 +45,8 @@ export function prospectAssignedEmailHtml({
         <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
 
           <tr>
-            <td style="background:#4f46e5;padding:28px 40px;">
-              <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">ReachFlow</p>
+            <td style="background:${color};padding:28px 40px;">
+              <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">${esc(brand)}</p>
             </td>
           </tr>
 
@@ -64,7 +70,7 @@ export function prospectAssignedEmailHtml({
 
               <table cellpadding="0" cellspacing="0" style="margin-top:24px;">
                 <tr>
-                  <td style="border-radius:8px;background:#4f46e5;">
+                  <td style="border-radius:8px;background:${color};">
                     <a href="${prospectUrl}"
                        style="display:inline-block;padding:11px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
                       View prospect
@@ -78,7 +84,7 @@ export function prospectAssignedEmailHtml({
           <tr>
             <td style="padding:20px 40px;background:#f9fafb;border-top:1px solid #f3f4f6;">
               <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
-                You're receiving this because a lead was assigned to you in ReachFlow.<br />
+                You're receiving this because a lead was assigned to you in ${esc(brand)}.<br />
                 <a href="${settingsUrl}" style="color:#6b7280;">Manage notification preferences</a>
               </p>
             </td>

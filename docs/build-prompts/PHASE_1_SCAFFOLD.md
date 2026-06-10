@@ -19,7 +19,7 @@ npm install -D @types/node
 
 Create `.env.local` with placeholders (do NOT commit real keys):
 
-```
+```text
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ANTHROPIC_API_KEY=

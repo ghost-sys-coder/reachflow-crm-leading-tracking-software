@@ -1,6 +1,7 @@
-import { Bell, BookTemplate, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
+import { Bell, BookTemplate, Brush, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
+import { WhiteLabelSection } from "@/components/settings/white-label-section"
 import { AppearanceSection } from "@/components/settings/appearance-section"
 import { NotificationsSection } from "@/components/settings/notifications-section"
 import { ProfileForm } from "@/components/settings/profile-form"
@@ -76,6 +77,7 @@ function RoleBadge({ role }: { role: MemberRole }) {
 const NAV_ITEMS = [
   { value: "profile",       label: "Profile",       icon: User          },
   { value: "agency",        label: "Agency",        icon: Sparkles      },
+  { value: "branding",      label: "Branding",      icon: Brush         },
   { value: "appearance",    label: "Appearance",    icon: Palette       },
   { value: "notifications", label: "Notifications", icon: Bell          },
   { value: "tags",          label: "Tags",          icon: Tag           },
@@ -180,6 +182,27 @@ export default async function SettingsPage() {
               </CardHeader>
               <CardContent className="pt-5">
                 <AgencyForm org={org} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="branding">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>White-label branding</CardTitle>
+                <CardDescription>
+                  Replace ReachFlow&apos;s branding with your own logo, name, and colors in the
+                  app shell and emails.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                {currentUserRole === "admin" ? (
+                  <WhiteLabelSection org={org} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Only workspace admins can configure branding.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

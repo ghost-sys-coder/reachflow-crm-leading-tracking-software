@@ -159,19 +159,27 @@ async function sendInviteEmail({
   token: string
 }) {
   const [orgResult, profileResult, headersList] = await Promise.all([
-    supabase.from("organizations").select("name").eq("id", orgId).single(),
+    supabase
+      .from("organizations")
+      .select("name, agency_name, white_label_enabled, brand_primary_color")
+      .eq("id", orgId)
+      .single(),
     supabase.from("profiles").select("full_name").eq("id", inviterId).single(),
     headers(),
   ])
 
   const orgName = orgResult.data?.name ?? "your team"
+  const whiteLabelEnabled = orgResult.data?.white_label_enabled ?? false
+  const brandName = whiteLabelEnabled ? (orgResult.data?.agency_name ?? undefined) : undefined
+  const primaryColor = whiteLabelEnabled ? (orgResult.data?.brand_primary_color ?? undefined) : undefined
   const inviterName = profileResult.data?.full_name ?? "A teammate"
   const origin = headersList.get("origin") ?? headersList.get("x-forwarded-host") ?? ""
   const inviteUrl = `${origin}/invite/${token}`
 
   await sendMail({
     to: email,
-    subject: `${inviterName} invited you to join ${orgName} on ReachFlow`,
-    html: inviteEmailHtml({ inviterName, orgName, inviteUrl }),
+    subject: `${inviterName} invited you to join ${orgName} on ${brandName ?? "ReachFlow"}`,
+    html: inviteEmailHtml({ inviterName, orgName, inviteUrl, brandName, primaryColor }),
+    fromName: brandName,
   })
 }

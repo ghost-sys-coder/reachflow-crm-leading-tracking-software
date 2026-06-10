@@ -65,11 +65,17 @@ export function digestEmailHtml({
   userName,
   prospects,
   appUrl,
+  brandName,
+  primaryColor,
 }: {
   userName: string
   prospects: DigestProspect[]
   appUrl: string
+  brandName?: string
+  primaryColor?: string
 }) {
+  const brand  = brandName ?? "ReachFlow"
+  const color  = primaryColor ?? "#4f46e5"
   const count  = prospects.length
   const rows   = prospects.map((p) => prospectRow(p, appUrl)).join("")
   const settingsUrl = `${appUrl}/settings`
@@ -88,8 +94,8 @@ export function digestEmailHtml({
         <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
 
           <tr>
-            <td style="background:#4f46e5;padding:28px 40px;">
-              <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">ReachFlow</p>
+            <td style="background:${color};padding:28px 40px;">
+              <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">${esc(brand)}</p>
             </td>
           </tr>
 
@@ -108,10 +114,10 @@ export function digestEmailHtml({
 
               <table cellpadding="0" cellspacing="0" style="margin-top:28px;">
                 <tr>
-                  <td style="border-radius:8px;background:#4f46e5;">
+                  <td style="border-radius:8px;background:${color};">
                     <a href="${appUrl}/prospects"
                        style="display:inline-block;padding:11px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
-                      Open ReachFlow
+                      Open ${esc(brand)}
                     </a>
                   </td>
                 </tr>

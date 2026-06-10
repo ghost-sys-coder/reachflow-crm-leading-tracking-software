@@ -209,18 +209,20 @@ export async function getProspects(
 async function sendAssignmentEmail(params: {
   assigneeId: string
   actorId: string
+  orgId: string
   prospect: { id: string; business_name: string; platform: string; handle: string | null }
 }) {
   try {
     const admin = createAdminClient()
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
-    const [{ data: assigneeAuth }, { data: actorAuth }, assigneeProfile, actorProfile] =
+    const [{ data: assigneeAuth }, { data: actorAuth }, assigneeProfile, actorProfile, orgData] =
       await Promise.all([
         admin.auth.admin.getUserById(params.assigneeId),
         admin.auth.admin.getUserById(params.actorId),
         admin.from("profiles").select("full_name").eq("id", params.assigneeId).single(),
         admin.from("profiles").select("full_name").eq("id", params.actorId).single(),
+        admin.from("organizations").select("white_label_enabled, agency_name, brand_primary_color").eq("id", params.orgId).single(),
       ])
 
     const toEmail = assigneeAuth?.user?.email
@@ -228,6 +230,9 @@ async function sendAssignmentEmail(params: {
 
     const recipientName = assigneeProfile.data?.full_name ?? toEmail.split("@")[0]
     const actorName = actorProfile.data?.full_name ?? actorAuth?.user?.email?.split("@")[0] ?? "A team member"
+    const whiteLabelEnabled = orgData.data?.white_label_enabled ?? false
+    const brandName = whiteLabelEnabled ? (orgData.data?.agency_name ?? undefined) : undefined
+    const primaryColor = whiteLabelEnabled ? (orgData.data?.brand_primary_color ?? undefined) : undefined
 
     await sendMail({
       to: toEmail,
@@ -240,7 +245,10 @@ async function sendAssignmentEmail(params: {
         handle: params.prospect.handle,
         prospectUrl: `${appUrl}/prospects/${params.prospect.id}`,
         settingsUrl: `${appUrl}/settings`,
+        brandName,
+        primaryColor,
       }),
+      fromName: brandName,
     })
   } catch {
     // email failures must never break the parent action
@@ -292,6 +300,7 @@ export async function assignProspect(
     void sendAssignmentEmail({
       assigneeId: userId,
       actorId: ctx.userId,
+      orgId: ctx.orgId,
       prospect: {
         id: prospectId,
         business_name: prospect.business_name,

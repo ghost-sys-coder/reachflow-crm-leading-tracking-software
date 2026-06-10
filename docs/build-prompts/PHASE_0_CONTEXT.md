@@ -45,7 +45,7 @@ All themes use the same semantic token names (`--color-background`, `--color-for
 
 ## Folder structure (target)
 
-```
+```text
 ├── app/
 │   ├── (auth)/                  → sign-in, sign-up, forgot-password
 │   ├── (dashboard)/             → protected app routes
