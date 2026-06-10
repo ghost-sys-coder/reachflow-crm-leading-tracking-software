@@ -3,12 +3,19 @@ export function inviteEmailHtml({
   orgName,
   inviteUrl,
   expiresInDays = 7,
+  brandName,
+  primaryColor,
 }: {
   inviterName: string
   orgName: string
   inviteUrl: string
   expiresInDays?: number
+  brandName?: string
+  primaryColor?: string
 }) {
+  const brand = brandName ?? "ReachFlow"
+  const color = primaryColor ?? "#4f46e5"
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +31,8 @@ export function inviteEmailHtml({
 
           <!-- Header -->
           <tr>
-            <td style="background:#4f46e5;padding:32px 40px;">
-              <p style="margin:0;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">ReachFlow</p>
+            <td style="background:${color};padding:32px 40px;">
+              <p style="margin:0;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">${escapeHtml(brand)}</p>
             </td>
           </tr>
 
@@ -37,13 +44,13 @@ export function inviteEmailHtml({
               </h1>
               <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
                 ${escapeHtml(inviterName)} has invited you to collaborate on
-                <strong style="color:#111827;">${escapeHtml(orgName)}</strong> on ReachFlow.
+                <strong style="color:#111827;">${escapeHtml(orgName)}</strong> on ${escapeHtml(brand)}.
               </p>
 
               <!-- CTA button -->
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="border-radius:8px;background:#4f46e5;">
+                  <td style="border-radius:8px;background:${color};">
                     <a href="${escapeHtml(inviteUrl)}"
                        style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
                       Accept invitation
@@ -54,7 +61,7 @@ export function inviteEmailHtml({
 
               <p style="margin:28px 0 0;font-size:13px;color:#9ca3af;line-height:1.5;">
                 Or copy this link into your browser:<br />
-                <a href="${escapeHtml(inviteUrl)}" style="color:#4f46e5;word-break:break-all;">${escapeHtml(inviteUrl)}</a>
+                <a href="${escapeHtml(inviteUrl)}" style="color:${color};word-break:break-all;">${escapeHtml(inviteUrl)}</a>
               </p>
 
               <hr style="margin:28px 0;border:none;border-top:1px solid #f3f4f6;" />
@@ -69,7 +76,7 @@ export function inviteEmailHtml({
           <tr>
             <td style="padding:20px 40px;background:#f9fafb;border-top:1px solid #f3f4f6;">
               <p style="margin:0;font-size:12px;color:#9ca3af;">
-                Sent by ReachFlow &mdash; outreach automation for agencies.
+                Sent by ${escapeHtml(brand)} &mdash; outreach automation for agencies.
               </p>
             </td>
           </tr>

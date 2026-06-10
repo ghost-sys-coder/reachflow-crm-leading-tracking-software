@@ -41,6 +41,7 @@ For each phase:
 ### Why one phase per session
 
 Claude Code loses track when sessions get long. Scoping to one phase:
+
 - Keeps context window focused on relevant files only
 - Prevents feature creep ("while I'm here, let me also...")
 - Makes it easy to roll back if something goes wrong
@@ -48,6 +49,7 @@ Claude Code loses track when sessions get long. Scoping to one phase:
 ### Quality gates between phases
 
 DO NOT move to the next phase if:
+
 - TypeScript build fails
 - Any acceptance criterion is unchecked
 - You haven't manually verified the happy path
@@ -79,6 +81,7 @@ Don't try to do it all in one day. Spread across 3–5 sessions.
 ## After v1.0
 
 Phase 7 candidates (future work):
+
 - Email sending integration (Resend / Postmark)
 - CSV import for bulk prospects
 - Team accounts and shared pipelines

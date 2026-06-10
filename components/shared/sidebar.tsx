@@ -37,10 +37,14 @@ export function SidebarNav({
   userEmail,
   userName,
   onNavigate,
+  orgName,
+  orgLogoUrl,
 }: {
   userEmail: string
   userName: string | null
   onNavigate?: () => void
+  orgName?: string
+  orgLogoUrl?: string
 }) {
   const pathname = usePathname()
   const initials = (userName ?? userEmail).slice(0, 2).toUpperCase()
@@ -48,8 +52,8 @@ export function SidebarNav({
   return (
     <div className="flex h-full flex-col gap-6 border-r border-border bg-card">
       <div className="px-4 pt-5">
-        <Link href="/pipeline" onClick={onNavigate} aria-label="ReachFlow">
-          <BrandMark size="md" />
+        <Link href="/pipeline" onClick={onNavigate} aria-label={orgName ?? "ReachFlow"}>
+          <BrandMark size="md" orgName={orgName} orgLogoUrl={orgLogoUrl} />
         </Link>
       </div>
 
@@ -96,13 +100,22 @@ export function SidebarNav({
 export function DesktopSidebar({
   userEmail,
   userName,
+  orgName,
+  orgLogoUrl,
 }: {
   userEmail: string
   userName: string | null
+  orgName?: string
+  orgLogoUrl?: string
 }) {
   return (
     <aside className="hidden w-60 shrink-0 lg:block">
-      <SidebarNav userEmail={userEmail} userName={userName} />
+      <SidebarNav
+        userEmail={userEmail}
+        userName={userName}
+        orgName={orgName}
+        orgLogoUrl={orgLogoUrl}
+      />
     </aside>
   )
 }

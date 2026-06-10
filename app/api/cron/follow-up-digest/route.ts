@@ -66,6 +66,26 @@ export async function GET(request: Request): Promise<Response> {
 
   const emailMap = new Map(users.map((u) => [u.id, u.email ?? ""]))
 
+  // Cache org white-label settings to avoid N+1 queries across members of the same org
+  type OrgBrand = { white_label_enabled: boolean; agency_name: string | null; brand_primary_color: string | null }
+  const orgBrandCache = new Map<string, OrgBrand>()
+
+  async function getOrgBrand(orgId: string): Promise<OrgBrand> {
+    if (orgBrandCache.has(orgId)) return orgBrandCache.get(orgId)!
+    const { data } = await admin
+      .from("organizations")
+      .select("white_label_enabled, agency_name, brand_primary_color")
+      .eq("id", orgId)
+      .single()
+    const result: OrgBrand = {
+      white_label_enabled: data?.white_label_enabled ?? false,
+      agency_name: data?.agency_name ?? null,
+      brand_primary_color: data?.brand_primary_color ?? null,
+    }
+    orgBrandCache.set(orgId, result)
+    return result
+  }
+
   let sent = 0
 
   for (const m of active) {
@@ -91,12 +111,16 @@ export async function GET(request: Request): Promise<Response> {
     if (!prospects?.length) continue
 
     const userName = profileOf(m)?.full_name ?? email
+    const orgBrand = await getOrgBrand(m.org_id)
+    const brandName = orgBrand.white_label_enabled ? (orgBrand.agency_name ?? undefined) : undefined
+    const primaryColor = orgBrand.white_label_enabled ? (orgBrand.brand_primary_color ?? undefined) : undefined
 
     try {
       await sendMail({
         to: email,
-        subject: `${prospects.length} prospect${prospects.length !== 1 ? "s" : ""} due for follow-up — ReachFlow`,
-        html: digestEmailHtml({ userName, prospects: prospects as ProspectRow[], appUrl }),
+        subject: `${prospects.length} prospect${prospects.length !== 1 ? "s" : ""} due for follow-up — ${brandName ?? "ReachFlow"}`,
+        html: digestEmailHtml({ userName, prospects: prospects as ProspectRow[], appUrl, brandName, primaryColor }),
+        fromName: brandName,
       })
       sent++
     } catch (err) {

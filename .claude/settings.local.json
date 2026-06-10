@@ -14,7 +14,8 @@
       "Bash(git commit *)",
       "Bash(cat .env.local)",
       "Bash(cat .env)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(xargs wc *)"
     ]
   }
 }

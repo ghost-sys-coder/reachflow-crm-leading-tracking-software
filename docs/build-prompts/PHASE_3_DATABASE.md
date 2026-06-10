@@ -11,6 +11,7 @@ Phase 2 complete and committed. Design system working across all three themes.
 ### 1. Supabase project setup
 
 If not already done:
+
 - Create a new Supabase project
 - Copy the project URL and anon key into `.env.local`
 - Enable email auth in Supabase Auth settings
@@ -23,6 +24,7 @@ Write a single SQL migration file: `supabase/migrations/0001_initial_schema.sql`
 Tables required:
 
 **`profiles`** (extends auth.users)
+
 ```sql
 - id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE
 - full_name text
@@ -33,6 +35,7 @@ Tables required:
 ```
 
 **`prospects`**
+
 ```sql
 - id uuid PRIMARY KEY DEFAULT gen_random_uuid()
 - user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
@@ -51,6 +54,7 @@ Tables required:
 ```
 
 **`messages`** (stores generated and sent outreach messages for history)
+
 ```sql
 - id uuid PRIMARY KEY DEFAULT gen_random_uuid()
 - prospect_id uuid NOT NULL REFERENCES prospects(id) ON DELETE CASCADE
@@ -64,6 +68,7 @@ Tables required:
 ```
 
 **`tags`** (for prospect categorization)
+
 ```sql
 - id uuid PRIMARY KEY DEFAULT gen_random_uuid()
 - user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
@@ -74,6 +79,7 @@ Tables required:
 ```
 
 **`prospect_tags`** (junction table)
+
 ```sql
 - prospect_id uuid REFERENCES prospects(id) ON DELETE CASCADE
 - tag_id uuid REFERENCES tags(id) ON DELETE CASCADE
@@ -85,6 +91,7 @@ Tables required:
 Enable RLS on every table. Write policies that enforce users can only read/write their own rows.
 
 Example pattern (apply to all tables):
+
 ```sql
 ALTER TABLE prospects ENABLE ROW LEVEL SECURITY;
 
@@ -139,6 +146,7 @@ Create `/types/database.ts` that re-exports and extends the generated types with
 Create `/app/actions/` with these files:
 
 **`prospects.ts`** — server actions
+
 - `createProspect(data)`
 - `updateProspect(id, data)`
 - `deleteProspect(id)`
@@ -147,11 +155,13 @@ Create `/app/actions/` with these files:
 - `getProspectById(id)`
 
 **`messages.ts`** — server actions
+
 - `saveMessage(prospectId, content, type, subject?)`
 - `markMessageAsSent(messageId)`
 - `getMessagesForProspect(prospectId)`
 
 **`tags.ts`** — server actions
+
 - `createTag(name, color)`
 - `deleteTag(id)`
 - `addTagToProspect(prospectId, tagId)`
@@ -159,14 +169,16 @@ Create `/app/actions/` with these files:
 - `getUserTags()`
 
 **`profile.ts`** — server actions
+
 - `getCurrentProfile()`
 - `updateProfile(data)`
 - `updateThemePreference(theme)`
 
 All actions:
+
 - Use the Supabase server client
 - Validate input with Zod schemas (install `zod`: `npm install zod`)
-- Return a consistent shape: `{ data, error }` 
+- Return a consistent shape: `{ data, error }`
 - Call `revalidatePath` on relevant paths after mutations
 
 ### 8. Zod schemas

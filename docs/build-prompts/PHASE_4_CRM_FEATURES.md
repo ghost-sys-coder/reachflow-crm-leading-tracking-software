@@ -13,6 +13,7 @@ Phase 3 complete. Database schema live, RLS working, server actions tested.
 Build `/app/(dashboard)/layout.tsx` — the authenticated app shell.
 
 Structure:
+
 - **Sidebar** (left, 240px, collapsible on mobile to a sheet)
   - Logo: "ReachFlow" with small type accent
   - Nav items with icons (lucide-react): Pipeline, Prospects, Messages, Settings
@@ -31,6 +32,7 @@ Build `/app/(dashboard)/pipeline/page.tsx`.
 **Sections (in order):**
 
 **A. Metrics row** — 4 stat cards
+
 - Total prospects
 - Reply rate (replied+booked / total, as percentage)
 - Calls booked (count of `booked` status)
@@ -39,17 +41,19 @@ Build `/app/(dashboard)/pipeline/page.tsx`.
 Each card uses muted background, label above, large number below.
 
 **B. Status filters** — horizontal pill row
+
 - All, Sent, Waiting, Replied, Booked, Closed, Dead
 - Shows count next to each status
 - Active filter styled with primary color
 - Clicking updates query params (`?status=replied`) so state is URL-shareable
 
 **C. Platform filters** — secondary pill row
+
 - All platforms, Instagram, Email, Facebook, LinkedIn, Twitter, Other
 
 **D. Search bar** — searches business_name, handle, industry, notes
-
 **E. Prospect list**
+
 - Card-style rows (not a table — better on mobile)
 - Each row shows: business name, industry + location, platform tag, status pill
 - Click opens detail panel (right side drawer on desktop, full page on mobile)
@@ -62,6 +66,7 @@ Build `/components/crm/add-prospect-dialog.tsx` — a shadcn Dialog component.
 Triggered by a "+ Add prospect" button in the top bar and an empty-state CTA.
 
 Form fields (all with proper labels, validation, error states):
+
 - Business name (required)
 - Platform (select, required)
 - Handle / email (text)
@@ -72,11 +77,13 @@ Form fields (all with proper labels, validation, error states):
 - Notes (textarea)
 
 Uses `react-hook-form` + `zodResolver` for validation. Install:
+
 ```bash
 npm install react-hook-form @hookform/resolvers
 ```
 
 On submit:
+
 - Call `createProspect` server action
 - Show success toast
 - Close dialog
@@ -87,6 +94,7 @@ On submit:
 Build `/components/crm/prospect-detail-panel.tsx` using shadcn Sheet (side drawer).
 
 Sections:
+
 - **Header**: business name, industry, status pill, close button
 - **Quick actions**: Edit, Delete (with confirmation dialog), Mark as replied / booked / dead (quick buttons)
 - **Contact info**: platform, handle, location, website (with click-to-open)
@@ -98,6 +106,7 @@ Sections:
 ### 5. Status update mechanism
 
 Three ways to change status:
+
 1. Quick buttons in detail panel (Replied, Booked, Dead, etc.)
 2. Dropdown in each list row (right-click or three-dot menu)
 3. Full edit form
@@ -105,6 +114,7 @@ Three ways to change status:
 All use `updateProspectStatus` server action. Use optimistic updates: UI changes immediately, reverts if server action fails.
 
 Install if needed:
+
 ```bash
 npm install sonner
 ```
@@ -122,6 +132,7 @@ Confirmation dialog before delete. Uses `deleteProspect` action. Toast confirms 
 ### 8. Tags
 
 Build `/components/crm/tag-manager.tsx`:
+
 - Popover showing existing user tags as checkboxes
 - "Create new tag" input at bottom with color picker (preset colors: blue, green, amber, coral, purple)
 - Applies/removes tags via server actions
@@ -131,6 +142,7 @@ Display tags on prospect cards and in detail panel as small colored pills.
 ### 9. Empty states
 
 Every list needs a thoughtful empty state:
+
 - No prospects at all → illustration + "Add your first prospect" CTA
 - No results for current filter → "No prospects match these filters" + "Clear filters" button
 - No tags yet → "Tags help you organize prospects. Create your first one."

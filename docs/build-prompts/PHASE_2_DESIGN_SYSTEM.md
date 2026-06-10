@@ -14,7 +14,7 @@ In `/globals.css`, define semantic tokens for all three themes using the Tailwin
 
 **Semantic tokens required (all three themes must define these):**
 
-```
+```text
 --color-background         → main page background
 --color-foreground         → primary text on background
 --color-card               → raised surface background
@@ -42,6 +42,7 @@ In `/globals.css`, define semantic tokens for all three themes using the Tailwin
 **Theme palettes:**
 
 **Default theme** (light, professional)
+
 - Background: near-white (#FAFAF9 / OKLCH equivalent)
 - Foreground: deep slate (#0A0A0A)
 - Primary: indigo-blue (#4F46E5)
@@ -49,6 +50,7 @@ In `/globals.css`, define semantic tokens for all three themes using the Tailwin
 - Border: subtle neutral (#E4E4E7)
 
 **Midnight theme** (dark, premium)
+
 - Background: deep navy-charcoal (#0A0A14)
 - Foreground: near-white (#F4F4F5)
 - Primary: electric violet (#8B5CF6)
@@ -57,6 +59,7 @@ In `/globals.css`, define semantic tokens for all three themes using the Tailwin
 - Border: subtle glow (#2A2A3F)
 
 **Sunset theme** (warm, creative)
+
 - Background: cream (#FFF8F0)
 - Foreground: warm brown-black (#1F1612)
 - Primary: coral (#F97316)
@@ -91,6 +94,7 @@ npx shadcn@latest init
 ```
 
 Configure with:
+
 - Base color: Slate
 - CSS variables: YES
 - Import alias: `@/components/ui`

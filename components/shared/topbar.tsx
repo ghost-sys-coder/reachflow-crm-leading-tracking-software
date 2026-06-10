@@ -24,19 +24,23 @@ const PAGE_TITLES: Array<{ match: RegExp; title: string }> = [
   { match: /^\/design-system/, title: "Design system" },
 ]
 
-function resolveTitle(pathname: string) {
-  return PAGE_TITLES.find((p) => p.match.test(pathname))?.title ?? "ReachFlow"
+function resolveTitle(pathname: string, orgName?: string) {
+  return PAGE_TITLES.find((p) => p.match.test(pathname))?.title ?? orgName ?? "ReachFlow"
 }
 
 export function Topbar({
   userEmail,
   userName,
+  orgName,
+  orgLogoUrl,
 }: {
   userEmail: string
   userName: string | null
+  orgName?: string
+  orgLogoUrl?: string
 }) {
   const pathname = usePathname()
-  const title = resolveTitle(pathname)
+  const title = resolveTitle(pathname, orgName)
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
@@ -53,7 +57,12 @@ export function Topbar({
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <SidebarNav userEmail={userEmail} userName={userName} />
+          <SidebarNav
+            userEmail={userEmail}
+            userName={userName}
+            orgName={orgName}
+            orgLogoUrl={orgLogoUrl}
+          />
         </SheetContent>
       </Sheet>
 

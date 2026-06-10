@@ -21,14 +21,22 @@ function createTransporter() {
 export const FROM_ADDRESS =
   process.env.SMTP_FROM ?? `"ReachFlow" <noreply@reachflow.app>`
 
+function resolveFrom(fromName?: string): string {
+  if (!fromName) return FROM_ADDRESS
+  const emailMatch = FROM_ADDRESS.match(/<(.+?)>/)
+  const email = emailMatch ? emailMatch[1] : FROM_ADDRESS.trim()
+  return `"${fromName}" <${email}>`
+}
+
 export async function sendMail(options: {
   to: string
   subject: string
   html: string
+  fromName?: string
 }) {
   const transporter = createTransporter()
   await transporter.sendMail({
-    from: FROM_ADDRESS,
+    from: resolveFrom(options.fromName),
     to: options.to,
     subject: options.subject,
     html: options.html,

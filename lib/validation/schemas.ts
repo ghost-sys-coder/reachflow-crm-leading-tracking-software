@@ -117,6 +117,12 @@ export type MessageCreateInput = z.infer<typeof messageCreateSchema>
 export type TagCreateInput = z.infer<typeof tagCreateSchema>
 export const orgUpdateSchema = agencyProfileUpdateSchema
 
+export const whiteLabelSchema = z.object({
+  white_label_enabled: z.boolean(),
+  brand_primary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullish(),
+  brand_accent_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullish(),
+})
+
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 export type ThemeUpdateInput = z.infer<typeof themeUpdateSchema>
 export type AgencyProfileUpdateInput = z.infer<typeof agencyProfileUpdateSchema>
@@ -124,3 +130,4 @@ export type OrgUpdateInput = z.infer<typeof orgUpdateSchema>
 export type GenerateMessageInput = z.infer<typeof generateMessageSchema>
 export type InviteCreateInput = z.infer<typeof inviteCreateSchema>
 export type MemberRoleUpdateInput = z.infer<typeof memberRoleUpdateSchema>
+export type WhiteLabelInput = z.infer<typeof whiteLabelSchema>

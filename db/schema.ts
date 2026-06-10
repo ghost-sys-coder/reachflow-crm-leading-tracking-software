@@ -75,6 +75,9 @@ export const organizations = pgTable("organizations", {
   agency_value_props: text(),
   agency_services: text().array(),
   logo_url: text(),
+  white_label_enabled: boolean().notNull().default(false),
+  brand_primary_color: text(),
+  brand_accent_color: text(),
   created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
 })

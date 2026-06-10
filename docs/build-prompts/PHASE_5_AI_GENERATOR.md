@@ -11,11 +11,13 @@ Phase 4 complete. Prospects CRUD works. Detail panel renders. Messages table exi
 ### 1. Anthropic client setup
 
 Install the official SDK:
+
 ```bash
 npm install @anthropic-ai/sdk
 ```
 
 Create `/lib/anthropic/client.ts`:
+
 - Server-only module (add `"server-only"` import at top)
 - Exports configured Anthropic client using `ANTHROPIC_API_KEY` from env
 - Default model: `claude-sonnet-4-20250514`
@@ -25,6 +27,7 @@ Create `/lib/anthropic/client.ts`:
 Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 
 **Key principles for every prompt:**
+
 - Establish VeilCode-style agency context OR let user pass their own agency context (future-proofing — this product will be sold to multiple agencies, so the agency name/services must be configurable, not hardcoded)
 - Feed in prospect data: business name, industry, location, platform, notes
 - Include explicit constraints: word count, tone, structure, CTA
@@ -33,6 +36,7 @@ Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 **Prompt types:**
 
 **`buildInstagramDmPrompt(agency, prospect, extraContext?)`**
+
 - Max 100 words
 - Conversational, direct
 - No subject line
@@ -40,6 +44,7 @@ Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 - One low-friction CTA (question, not meeting request)
 
 **`buildColdEmailPrompt(agency, prospect, extraContext?)`**
+
 - Subject line + body separated clearly (use `---SUBJECT---` and `---BODY---` delimiters for parsing)
 - 120–150 word body
 - Subject under 8 words, benefit-led
@@ -47,6 +52,7 @@ Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 - Clear single CTA
 
 **`buildFollowUpPrompt(agency, prospect, previousMessageContent, daysSince)`**
+
 - Reference the previous message naturally
 - Acknowledge it's a follow-up without being defensive
 - Add new value or angle (don't just "bump")
@@ -54,6 +60,7 @@ Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 - Soft CTA
 
 **`buildCustomPrompt(agency, prospect, userInstructions)`**
+
 - User provides custom instructions
 - Still injects prospect context
 - Respects length and tone from user input
@@ -63,6 +70,7 @@ Create `/lib/anthropic/prompts.ts` with prompt builders for each message type.
 Since this is multi-tenant, each user needs to configure their own agency profile. Extend Phase 3's `profiles` table:
 
 Add columns (via new migration `0002_agency_profile.sql`):
+
 ```sql
 ALTER TABLE profiles ADD COLUMN agency_services text[];
 ALTER TABLE profiles ADD COLUMN agency_website text;
@@ -86,6 +94,7 @@ Create `/app/api/generate/route.ts`:
 - Saves the generated message to the `messages` table with `was_sent=false`
 
 **Error handling:**
+
 - Anthropic API errors: return user-friendly error, don't leak stack traces
 - Rate limit: return 429 with retry-after header
 - Missing agency profile: return 400 with clear "Set up your agency profile first" message
@@ -95,6 +104,7 @@ Create `/app/api/generate/route.ts`:
 In the prospect detail panel, add a "Generate message" section:
 
 **Layout:**
+
 - Message type selector (Instagram DM / Cold email / Follow-up / Custom)
 - If "Custom": show textarea for user instructions
 - "Generate" button
@@ -105,16 +115,19 @@ In the prospect detail panel, add a "Generate message" section:
   - **Mark as sent** (updates the message record, sets prospect status to "sent" if not already, updates `last_contacted_at`)
 
 **During generation:**
+
 - Button shows spinner, disabled
 - Optional: streaming response if using Anthropic streaming endpoint (stretch goal — can implement in Phase 6)
 
 **After generation:**
+
 - Show token usage subtly below output (so users see cost implications)
 - Output streams in with a typewriter-style animation (custom CSS, not Framer Motion yet)
 
 ### 6. Message history
 
 Extend the detail panel's message history section (from Phase 4 placeholder):
+
 - List past generated messages in reverse chronological order
 - Each entry shows: type, timestamp, first 80 chars, "was_sent" badge if sent
 - Click to expand full message
@@ -123,6 +136,7 @@ Extend the detail panel's message history section (from Phase 4 placeholder):
 ### 7. Settings integration
 
 Update `/app/(dashboard)/settings/page.tsx` to show:
+
 - Profile info
 - Agency profile section (with link to dedicated page)
 - Theme preference
@@ -135,6 +149,7 @@ Update `/app/(dashboard)/settings/page.tsx` to show:
 - Log every generation to a `generation_logs` table (prospect_id, user_id, message_type, tokens_used, timestamp) for cost tracking
 
 Add `generation_logs` migration:
+
 ```sql
 CREATE TABLE generation_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -153,6 +168,7 @@ CREATE POLICY "Users view own logs" ON generation_logs FOR SELECT USING (auth.ui
 ### 9. Prompt quality testing
 
 Before marking complete, test with 5 different prospect profiles across different industries:
+
 - A plumber with no website
 - A SaaS startup with poor conversion
 - A D2C brand on Instagram
@@ -160,6 +176,7 @@ Before marking complete, test with 5 different prospect profiles across differen
 - A law firm with outdated design
 
 For each, generate all three message types. Evaluate:
+
 - Is it actually personalized, or generic?
 - Does it feel human, or AI-slop?
 - Is it the right length?

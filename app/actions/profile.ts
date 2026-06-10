@@ -9,9 +9,11 @@ import {
   agencyProfileUpdateSchema,
   profileUpdateSchema,
   themeUpdateSchema,
+  whiteLabelSchema,
   type AgencyProfileUpdateInput,
   type ProfileUpdateInput,
   type ThemeUpdateInput,
+  type WhiteLabelInput,
 } from "@/lib/validation/schemas"
 import type { ActionResult, Organization, Profile } from "@/types/database"
 
@@ -150,6 +152,34 @@ export async function updateDigestPreference(
   if (error) return fail(error.message)
   revalidatePath("/settings")
   return ok(data as Profile)
+}
+
+export async function updateWhiteLabelSettings(
+  input: WhiteLabelInput,
+): Promise<ActionResult<Organization>> {
+  const parsed = whiteLabelSchema.safeParse(input)
+  if (!parsed.success) return fail(zodErrorMessage(parsed.error))
+
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+  if (ctx.role !== "admin") return fail("Only org admins can update white-label settings")
+
+  const payload = {
+    white_label_enabled: parsed.data.white_label_enabled,
+    brand_primary_color: parsed.data.brand_primary_color ?? null,
+    brand_accent_color: parsed.data.brand_accent_color ?? null,
+  }
+
+  const { data, error } = await ctx.supabase
+    .from("organizations")
+    .update(payload)
+    .eq("id", ctx.orgId)
+    .select()
+    .single()
+
+  if (error) return fail(error.message)
+  revalidatePath("/settings")
+  return ok(data as Organization)
 }
 
 export async function updateThemePreference(

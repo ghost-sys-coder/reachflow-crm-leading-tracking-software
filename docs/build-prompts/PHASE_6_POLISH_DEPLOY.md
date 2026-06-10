@@ -17,12 +17,14 @@ npm install framer-motion
 ### 2. Motion rules (keep it restrained)
 
 Before animating anything, internalize:
+
 - Animation should serve clarity, not decoration
 - Prefer transforms (scale, translate) over layout-changing properties (width, height)
 - Respect `prefers-reduced-motion` — every animation must check this
 - Duration: UI micro-interactions 150–200ms, layout transitions 250–350ms, nothing over 500ms
 
 Create `/lib/motion/variants.ts` with shared variants:
+
 ```ts
 export const fadeInUp = { ... }
 export const staggerChildren = { ... }
@@ -33,33 +35,41 @@ Create `/hooks/use-reduced-motion.ts` that wraps Framer's `useReducedMotion`.
 
 ### 3. Where to animate
 
-**Prospect list**
+Prospect list:
+
 - Staggered fade-in of cards on initial load (subtle, 50ms delay between rows, only on first render)
 - Exit animation when a prospect is deleted (slide out + fade)
 - Entry animation when new prospect added (slide in from top)
 
-**Detail panel**
+Detail panel:
+
 - Smooth slide-in from right on open (already partially there via Sheet; replace with Framer motion for more control)
 - Slide-out on close
 
-**Status pill updates**
+Status pill updates:
+
 - When status changes, the new pill pulses subtly (scale 1 → 1.08 → 1) to draw attention
 
-**AI message generation**
+AI message generation:
+
 - Typewriter-style streaming effect as content appears
 - Fade in of action buttons after generation completes
 
-**Metric cards**
+Metric cards:
+
 - Numbers animate from 0 to final value on page load (using `useSpring`)
 - Don't re-animate on filter changes (only on initial mount)
 
-**Theme switcher**
+Theme switcher:
+
 - Cross-fade between themes with `view-transitions` API where supported, fall back to Framer
 
-**Dialogs / modals**
+Dialogs / modals:
+
 - Scale + fade on open (shadcn default is fine, just tune the easing)
 
-**Nav items**
+Nav items:
+
 - Subtle hover: background fade in over 150ms
 
 ### 4. Follow-up reminders
@@ -68,7 +78,8 @@ Build the reminders system:
 
 **Database:** already have `follow_up_at` column from Phase 3.
 
-**UI:**
+UI:
+
 - In prospect detail panel, add "Set follow-up reminder" date picker (install `react-day-picker` via shadcn's Calendar component if not present)
 - Dashboard home page (new, at `/dashboard` or `/home`) shows a "Follow up today" section with prospects whose `follow_up_at <= today`
 - Badge on sidebar showing count of due follow-ups
@@ -80,6 +91,7 @@ Build the reminders system:
 Build `/app/page.tsx` as a proper marketing landing page:
 
 Sections:
+
 - **Hero** — headline, subhead, CTA button (go to sign-up), small demo visual
 - **Problem/solution** — "Most outreach tools are built for enterprise sales teams" + positioning for solo agencies
 - **Features** — 3-4 cards: Pipeline tracking, AI personalization, Multi-platform, Theme customization
@@ -100,6 +112,7 @@ Animate sections on scroll using Framer Motion's `whileInView`.
 ### 7. Keyboard shortcuts
 
 Add a few power-user shortcuts:
+
 - `Cmd+K` — open command palette (install `cmdk` or shadcn's command component)
 - `N` — new prospect
 - `/` — focus search
@@ -133,6 +146,7 @@ Command palette searches prospects by name, lets users jump to pages, triggers q
 ### 11. Analytics
 
 Install Vercel Analytics and Speed Insights:
+
 ```bash
 npm install @vercel/analytics @vercel/speed-insights
 ```
@@ -142,6 +156,7 @@ Add to root layout.
 ### 12. Documentation
 
 Finalize `README.md`:
+
 - Hosted demo link
 - Screenshots (all three themes)
 - Setup instructions
@@ -150,6 +165,7 @@ Finalize `README.md`:
 - Deployment guide
 
 Create `PHASE_NOTES.md` with:
+
 - Features deliberately deferred
 - Known issues
 - Phase 7+ roadmap ideas
