@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil } from "lucide-react"
+import { Calendar, Clock, ExternalLink, Globe, Mail, MapPin, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -163,6 +163,9 @@ function DetailBody({
               {prospect.location && (
                 <span className="text-xs text-muted-foreground">· {prospect.location}</span>
               )}
+              {prospect.country && (
+                <span className="text-xs text-muted-foreground">· {prospect.country}</span>
+              )}
             </SheetDescription>
           </div>
         </div>
@@ -245,6 +248,13 @@ function DetailBody({
                 icon={<MapPin className="size-3.5" />}
                 label="Location"
                 value={prospect.location}
+              />
+            )}
+            {prospect.country && (
+              <InfoRow
+                icon={<Globe className="size-3.5" />}
+                label="Country"
+                value={prospect.country}
               />
             )}
           </dl>

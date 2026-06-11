@@ -6,6 +6,7 @@ import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { toCsv } from "@/lib/csv/generate"
+import { normalizeCountry } from "@/lib/constants/countries"
 import { sendMail } from "@/lib/email/mailer"
 import { prospectAssignedEmailHtml } from "@/lib/email/templates/prospect-assigned"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
@@ -320,6 +321,7 @@ export type CsvImportRow = {
   handle?: string
   industry?: string
   location?: string
+  country?: string
   website_url?: string
   status?: string
   notes?: string
@@ -371,6 +373,7 @@ export async function importProspects(
       handle: raw.handle || undefined,
       industry: raw.industry || undefined,
       location: raw.location || undefined,
+      country: normalizeCountry(raw.country),
       website_url: raw.website_url || undefined,
       status: normalizeStatus(raw.status),
       notes: raw.notes || undefined,

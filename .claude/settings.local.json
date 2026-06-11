@@ -15,7 +15,8 @@
       "Bash(cat .env.local)",
       "Bash(cat .env)",
       "Bash(npm uninstall *)",
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

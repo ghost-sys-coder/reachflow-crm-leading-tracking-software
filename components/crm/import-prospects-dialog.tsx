@@ -33,6 +33,7 @@ const IMPORT_FIELDS = [
   { key: "handle",        label: "Handle",          required: false },
   { key: "industry",      label: "Industry",        required: false },
   { key: "location",      label: "Location",        required: false },
+  { key: "country",       label: "Country",         required: false, hint: "Full name or ISO code (e.g. United States, US)" },
   { key: "website_url",   label: "Website URL",     required: false },
   { key: "status",        label: "Status",          required: false, hint: "sent · waiting · replied · booked · closed · dead" },
   { key: "notes",         label: "Notes",           required: false },
@@ -51,9 +52,9 @@ type ParsedFile = {
 type Step = "idle" | "mapping" | "importing" | "done"
 
 const CSV_TEMPLATE = [
-  "business_name,platform,handle,industry,location,website_url,status,notes",
-  "Acme Corp,instagram,@acmecorp,Marketing,New York,https://acme.com,sent,Found via referral",
-  "Beta Studio,linkedin,betastudio,Design,San Francisco,,waiting,",
+  "business_name,platform,handle,industry,location,country,website_url,status,notes",
+  "Acme Corp,instagram,@acmecorp,Marketing,New York,United States,https://acme.com,sent,Found via referral",
+  "Beta Studio,linkedin,betastudio,Design,Toronto,Canada,,waiting,",
 ].join("\r\n")
 
 const TEMPLATE_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(CSV_TEMPLATE)}`
@@ -148,6 +149,7 @@ export function ImportProspectsDialog() {
       handle:        applyMapping(row, parsed.headers, mapping, "handle") || undefined,
       industry:      applyMapping(row, parsed.headers, mapping, "industry") || undefined,
       location:      applyMapping(row, parsed.headers, mapping, "location") || undefined,
+      country:       applyMapping(row, parsed.headers, mapping, "country") || undefined,
       website_url:   applyMapping(row, parsed.headers, mapping, "website_url") || undefined,
       status:        applyMapping(row, parsed.headers, mapping, "status") || undefined,
       notes:         applyMapping(row, parsed.headers, mapping, "notes") || undefined,

@@ -137,6 +137,7 @@ export const prospects = pgTable(
     handle: text(),
     industry: text(),
     location: text(),
+    country: text(),
     website_url: text(),
     status: text().notNull().default("sent"),
     notes: text(),

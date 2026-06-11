@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -18,6 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { PLATFORM_LABELS } from "@/components/crm/platform-icon"
 import { PROSPECT_STATUS_LABELS } from "@/components/crm/status-badge"
+import { COUNTRIES } from "@/lib/constants/countries"
 import {
   PLATFORMS,
   PROSPECT_STATUSES,
@@ -26,12 +28,19 @@ import {
 } from "@/lib/validation/schemas"
 import type { Prospect } from "@/types/database"
 
+const COUNTRY_OPTIONS = COUNTRIES.map((c) => ({
+  value: c.name,
+  label: `${c.flag} ${c.name}`,
+  hint: c.code,
+}))
+
 type FormValues = {
   business_name: string
   platform: ProspectCreateInput["platform"]
   handle?: string
   industry?: string
   location?: string
+  country?: string
   website_url?: string
   status: ProspectCreateInput["status"]
   notes?: string
@@ -45,6 +54,7 @@ function prospectToFormValues(prospect?: Prospect): FormValues {
     handle: prospect?.handle ?? undefined,
     industry: prospect?.industry ?? undefined,
     location: prospect?.location ?? undefined,
+    country: prospect?.country ?? undefined,
     website_url: prospect?.website_url ?? undefined,
     status: (prospect?.status ?? "sent") as FormValues["status"],
     notes: prospect?.notes ?? undefined,
@@ -186,6 +196,23 @@ export function ProspectForm({
           <Label htmlFor="location">Location</Label>
           <Input id="location" placeholder="Tucson, AZ" {...register("location")} />
         </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="country">Country</Label>
+        <Controller
+          control={control}
+          name="country"
+          render={({ field }) => (
+            <Combobox
+              options={COUNTRY_OPTIONS}
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Select a country…"
+              searchPlaceholder="Search countries…"
+            />
+          )}
+        />
       </div>
 
       <div className="grid gap-2">
