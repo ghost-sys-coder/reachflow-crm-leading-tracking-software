@@ -17,10 +17,12 @@ const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"
 
 export function ProspectDetailActions({
   prospect,
-  industrySuggestions,
+  industryOptions,
+  customPlatforms,
 }: {
   prospect: ProspectWithDetail
-  industrySuggestions: string[]
+  industryOptions?: string[]
+  customPlatforms?: string[]
 }) {
   const router = useRouter()
   const [editOpen, setEditOpen] = React.useState(false)
@@ -75,7 +77,8 @@ export function ProspectDetailActions({
         prospect={prospect}
         open={editOpen}
         onOpenChange={setEditOpen}
-        industrySuggestions={industrySuggestions}
+        industryOptions={industryOptions}
+        customPlatforms={customPlatforms}
       />
     </>
   )

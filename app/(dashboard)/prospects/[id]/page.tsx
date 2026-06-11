@@ -19,9 +19,10 @@ import { TAG_COLOR_OPTIONS, TagPill } from "@/components/crm/tag-pill"
 import { TagManager } from "@/components/crm/tag-manager"
 import { AssigneePicker } from "@/components/crm/assignee-picker"
 import { getCurrentOrg } from "@/app/actions/profile"
-import { getProspectById, getProspects } from "@/app/actions/prospects"
+import { getProspectById } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
+import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { cn } from "@/lib/utils"
 import type { Platform, ProspectStatus } from "@/db/schema"
@@ -33,12 +34,6 @@ function formatDateTime(value: string | Date | null) {
   return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
 }
 
-function buildIndustrySuggestions(data: { industry: string | null }[]): string[] {
-  const set = new Set<string>()
-  for (const p of data) if (p.industry) set.add(p.industry)
-  return Array.from(set).sort()
-}
-
 export default async function ProspectDetailPage({
   params,
 }: {
@@ -46,14 +41,15 @@ export default async function ProspectDetailPage({
 }) {
   const { id } = await params
 
-  const [prospectResult, tagsResult, allProspectsResult, orgResult, membersResult, orgCtxResult] =
+  const [prospectResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult] =
     await Promise.all([
       getProspectById(id),
       getUserTags(),
-      getProspects({}),
       getCurrentOrg(),
       getTeamMembers(),
       getAuthedOrgClient(),
+      getOrgIndustries(),
+      getOrgCustomPlatforms(),
     ])
 
   if (prospectResult.error || !prospectResult.data) notFound()
@@ -61,7 +57,8 @@ export default async function ProspectDetailPage({
   const prospect = prospectResult.data
   const allTags = tagsResult.data ?? []
   const teamMembers: TeamMember[] = membersResult.data ?? []
-  const industrySuggestions = buildIndustrySuggestions(allProspectsResult.data ?? [])
+  const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
+  const customPlatforms = (platformsResult.data ?? []).map((p) => p.name)
   const agencyReady = Boolean(orgResult.data?.agency_name)
   const isAdmin = orgCtxResult.ctx?.role === "admin"
   const assignee = teamMembers.find((m) => m.user_id === prospect.assigned_to)
@@ -127,7 +124,8 @@ export default async function ProspectDetailPage({
         </h3>
         <ProspectDetailActions
           prospect={prospect}
-          industrySuggestions={industrySuggestions}
+          industryOptions={industryOptions}
+          customPlatforms={customPlatforms}
         />
       </section>
 
