@@ -182,6 +182,25 @@ export async function deleteProspect(id: string): Promise<ActionResult<{ id: str
   return ok({ id })
 }
 
+export async function bulkDeleteProspects(ids: string[]): Promise<ActionResult<{ count: number }>> {
+  if (!ids.length) return fail("No prospects selected")
+
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  if (ctx.role !== "admin") return fail("Only admins can bulk delete")
+
+  const { error: dbError, count } = await ctx.supabase
+    .from("prospects")
+    .delete({ count: "exact" })
+    .in("id", ids)
+    .eq("org_id", ctx.orgId)
+
+  if (dbError) return fail(dbError.message)
+
+  revalidateProspectViews()
+  return ok({ count: count ?? ids.length })
+}
+
 export async function getProspects(
   filters: ProspectFilters = {},
 ): Promise<ActionResult<Prospect[]>> {
