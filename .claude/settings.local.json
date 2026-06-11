@@ -17,7 +17,12 @@
       "Bash(npm uninstall *)",
       "Bash(xargs wc *)",
       "Bash(node -e ' *)",
-      "Bash(claude mcp *)"
+      "Bash(claude mcp *)",
+      "mcp__stitch__list_screens",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "mcp__stitch__get_screen",
+      "Bash(curl -L -s \"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzk3YmZmZjY2YjQ4MjQ2ZWM5YWNiY2VmMzZjZTM1Njc0EgsSBxDRge6I6RwYAZIBIwoKcHJvamVjdF9pZBIVQhM5ODYwMzE2MjAxNDU2MjI1NDA4&filename=&opi=89354086\" -o \"/tmp/reachflow_pricing.html\")",
+      "Bash(curl -L -s \"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzk3YmZmZjY2YjQ4MjQ2ZWM5YWNiY2VmMzZjZTM1Njc0EgsSBxDRge6I6RwYAZIBIwoKcHJvamVjdF9pZBIVQhM5ODYwMzE2MjAxNDU2MjI1NDA4&filename=&opi=89354086\" -o \"C:/Users/HP/AppData/Local/Temp/reachflow_pricing.html\")"
     ]
   }
 }

@@ -10,6 +10,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // Redirect root to /v2 -- the old version of the app is still available at /, but we want to make sure new users land on the new version
+  redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/v2",
+        permanent: false
+      }
+    ]  
+  },
 };
 
 export default nextConfig;
