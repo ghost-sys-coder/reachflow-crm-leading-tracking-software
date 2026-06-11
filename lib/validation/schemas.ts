@@ -37,6 +37,7 @@ export const prospectCreateSchema = z.object({
   handle: optionalTrimmedString(200),
   industry: optionalTrimmedString(100),
   location: optionalTrimmedString(200),
+  country: optionalTrimmedString(100),
   website_url: optionalUrl,
   status: prospectStatusSchema.default("sent"),
   notes: optionalTrimmedString(2000),
