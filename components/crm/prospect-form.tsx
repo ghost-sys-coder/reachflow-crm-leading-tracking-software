@@ -120,7 +120,8 @@ export function ProspectForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(handle)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(handle)} className="flex min-h-0 flex-1 flex-col" noValidate>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="grid gap-2">
         <Label htmlFor="business_name">
           Business name <span className="text-destructive">*</span>
@@ -256,8 +257,9 @@ export function ProspectForm({
           {...register("notes")}
         />
       </div>
+      </div>
 
-      <div className="flex items-center justify-end gap-2 pt-2">
+      <div className="-mx-4 -mb-4 mt-2 flex items-center justify-end gap-2 rounded-b-xl border-t bg-muted/50 px-4 py-3">
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             Cancel
