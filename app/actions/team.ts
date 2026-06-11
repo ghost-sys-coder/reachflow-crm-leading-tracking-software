@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { sendMail } from "@/lib/email/mailer"
 import { inviteEmailHtml } from "@/lib/email/templates/invite"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
@@ -106,7 +107,10 @@ export async function removeMember(
   if (!ctx) return fail(error)
   if (ctx.role !== "admin") return fail("Only admins can remove members")
 
-  const { error: dbError } = await ctx.supabase
+  // SELECT RLS restricts ctx.supabase to the caller's own row, making other
+  // members' rows invisible to DELETE. Use the service-role client after the
+  // admin check has already passed.
+  const { error: dbError } = await createAdminClient()
     .from("organization_members")
     .delete()
     .eq("id", memberId)
@@ -128,7 +132,10 @@ export async function updateMemberRole(
   if (!ctx) return fail(error)
   if (ctx.role !== "admin") return fail("Only admins can change member roles")
 
-  const { error: dbError } = await ctx.supabase
+  // SELECT RLS restricts ctx.supabase to the caller's own row, making other
+  // members' rows invisible to UPDATE. Use the service-role client after the
+  // admin check has already passed.
+  const { error: dbError } = await createAdminClient()
     .from("organization_members")
     .update({ role: parsed.data.role })
     .eq("id", memberId)
