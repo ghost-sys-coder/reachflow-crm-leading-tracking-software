@@ -13,6 +13,7 @@ import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspects } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
+import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
 import type { Platform, ProspectStatus } from "@/db/schema"
@@ -88,12 +89,6 @@ function filterProspects(
   })
 }
 
-function buildIndustrySuggestions(all: Prospect[]): string[] {
-  const set = new Set<string>()
-  for (const p of all) if (p.industry) set.add(p.industry)
-  return Array.from(set).sort()
-}
-
 function attachTags(prospects: Prospect[], _allTags: Tag[]): ProspectWithTags[] {
   return prospects.map((p) => ({ ...p, tags: [] }))
 }
@@ -109,12 +104,14 @@ export default async function ProspectsPage({
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
     getTeamMembers(),
     getAuthedOrgClient(),
+    getOrgIndustries(),
+    getOrgCustomPlatforms(),
   ])
 
   const all = allResult.data ?? []
@@ -123,7 +120,8 @@ export default async function ProspectsPage({
   const agencyReady = Boolean(orgResult.data?.agency_name)
   const currentUserId = orgCtxResult.ctx?.userId ?? ""
   const isAdmin = orgCtxResult.ctx?.role === "admin"
-  const industrySuggestions = buildIndustrySuggestions(all)
+  const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
+  const customPlatforms = (platformsResult.data ?? []).map((p) => p.name)
   const stats = computeStats(all)
   const counts = computeCounts(all, currentUserId)
 
@@ -150,7 +148,7 @@ export default async function ProspectsPage({
         <div className="flex items-center gap-2">
           <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
           <ImportProspectsDialog />
-          <AddProspectDialog industrySuggestions={industrySuggestions} />
+          <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} />
         </div>
       </div>
 
@@ -194,7 +192,8 @@ export default async function ProspectsPage({
           description="Capture the business name, platform, and a note. Generate personalized outreach in seconds."
           action={
             <AddProspectDialog
-              industrySuggestions={industrySuggestions}
+              industryOptions={industryOptions}
+              customPlatforms={customPlatforms}
               triggerLabel="Add your first prospect"
             />
           }

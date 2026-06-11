@@ -153,10 +153,6 @@ export const prospects = pgTable(
     index("prospects_org_created_idx").on(table.org_id, table.created_at),
     index("prospects_assigned_to_idx").on(table.assigned_to),
     check(
-      "prospects_platform_valid",
-      sql`${table.platform} IN ('instagram', 'email', 'facebook', 'linkedin', 'twitter', 'other')`,
-    ),
-    check(
       "prospects_status_valid",
       sql`${table.status} IN ('sent', 'waiting', 'replied', 'booked', 'closed', 'dead')`,
     ),
@@ -393,6 +389,38 @@ export const activityLog = pgTable(
       "activity_log_action_valid",
       sql`${table.action} IN ('prospect_created','status_changed','assignee_changed','note_updated','prospect_updated','message_saved','outreach_sent')`,
     ),
+  ],
+)
+
+export const orgIndustries = pgTable(
+  "org_industries",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("org_industries_org_idx").on(table.org_id),
+    unique("org_industries_org_name_unique").on(table.org_id, table.name),
+  ],
+)
+
+export const orgCustomPlatforms = pgTable(
+  "org_custom_platforms",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("org_custom_platforms_org_idx").on(table.org_id),
+    unique("org_custom_platforms_org_name_unique").on(table.org_id, table.name),
   ],
 )
 

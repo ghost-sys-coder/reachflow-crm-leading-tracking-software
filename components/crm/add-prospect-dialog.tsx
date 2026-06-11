@@ -17,12 +17,14 @@ import { createProspect } from "@/app/actions/prospects"
 import type { ProspectCreateInput } from "@/lib/validation/schemas"
 
 export function AddProspectDialog({
-  industrySuggestions,
+  industryOptions,
+  customPlatforms,
   triggerLabel = "Add prospect",
   variant = "default",
   size = "sm",
 }: {
-  industrySuggestions?: string[]
+  industryOptions?: string[]
+  customPlatforms?: string[]
   triggerLabel?: string
   variant?: React.ComponentProps<typeof Button>["variant"]
   size?: React.ComponentProps<typeof Button>["size"]
@@ -51,7 +53,8 @@ export function AddProspectDialog({
           </DialogDescription>
         </DialogHeader>
         <ProspectForm
-          industrySuggestions={industrySuggestions}
+          industryOptions={industryOptions}
+          customPlatforms={customPlatforms}
           submitLabel="Add prospect"
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}

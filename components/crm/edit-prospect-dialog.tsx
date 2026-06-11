@@ -16,12 +16,14 @@ export function EditProspectDialog({
   prospect,
   open,
   onOpenChange,
-  industrySuggestions,
+  industryOptions,
+  customPlatforms,
 }: {
   prospect: Prospect
   open: boolean
   onOpenChange: (open: boolean) => void
-  industrySuggestions?: string[]
+  industryOptions?: string[]
+  customPlatforms?: string[]
 }) {
   async function handleSubmit(values: ProspectCreateInput) {
     const result = await updateProspect(prospect.id, values)
@@ -38,7 +40,8 @@ export function EditProspectDialog({
         </DialogHeader>
         <ProspectForm
           prospect={prospect}
-          industrySuggestions={industrySuggestions}
+          industryOptions={industryOptions}
+          customPlatforms={customPlatforms}
           submitLabel="Save changes"
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}

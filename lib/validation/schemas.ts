@@ -13,7 +13,8 @@ export { MEMBER_ROLES, MESSAGE_TYPES, PLATFORMS, PROSPECT_STATUSES, THEMES }
 
 export const memberRoleSchema = z.enum(MEMBER_ROLES)
 
-export const platformSchema = z.enum(PLATFORMS)
+// Still validates standard platforms; extended to accept custom org-defined values
+export const platformSchema = z.string().trim().min(1, "Platform is required").max(50)
 export const prospectStatusSchema = z.enum(PROSPECT_STATUSES)
 export const messageTypeSchema = z.enum(MESSAGE_TYPES)
 export const themeSchema = z.enum(THEMES)

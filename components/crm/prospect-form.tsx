@@ -34,6 +34,11 @@ const COUNTRY_OPTIONS = COUNTRIES.map((c) => ({
   hint: c.code,
 }))
 
+const STANDARD_PLATFORM_OPTIONS = PLATFORMS.map((p) => ({
+  value: p,
+  label: PLATFORM_LABELS[p],
+}))
+
 type FormValues = {
   business_name: string
   platform: ProspectCreateInput["platform"]
@@ -63,13 +68,15 @@ function prospectToFormValues(prospect?: Prospect): FormValues {
 
 export function ProspectForm({
   prospect,
-  industrySuggestions = [],
+  industryOptions = [],
+  customPlatforms = [],
   submitLabel = "Save",
   onSubmit,
   onCancel,
 }: {
   prospect?: Prospect
-  industrySuggestions?: string[]
+  industryOptions?: string[]
+  customPlatforms?: string[]
   submitLabel?: string
   onSubmit: (values: ProspectCreateInput) => Promise<{ error: string | null }>
   onCancel?: () => void
@@ -90,7 +97,18 @@ export function ProspectForm({
     formState: { errors, isSubmitting },
   } = form
 
-  const industryListId = React.useId()
+  const platformOptions = React.useMemo(() => {
+    if (!customPlatforms.length) return STANDARD_PLATFORM_OPTIONS
+    return [
+      ...STANDARD_PLATFORM_OPTIONS,
+      ...customPlatforms.map((p) => ({ value: p, label: p, hint: "Custom" })),
+    ]
+  }, [customPlatforms])
+
+  const industryComboOptions = React.useMemo(
+    () => industryOptions.map((i) => ({ value: i, label: i })),
+    [industryOptions],
+  )
 
   async function handle(values: FormValues) {
     const result = await onSubmit(values as ProspectCreateInput)
@@ -128,20 +146,18 @@ export function ProspectForm({
             control={control}
             name="platform"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="platform" className="w-full">
-                  <SelectValue placeholder="Pick a platform" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLATFORMS.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {PLATFORM_LABELS[p]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={platformOptions}
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Pick a platform"
+                searchPlaceholder="Search platforms…"
+              />
             )}
           />
+          {errors.platform && (
+            <p className="text-xs text-destructive">{errors.platform.message}</p>
+          )}
         </div>
 
         <div className="grid gap-2">
@@ -179,17 +195,19 @@ export function ProspectForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="industry">Industry</Label>
-          <Input
-            id="industry"
-            list={industryListId}
-            placeholder="Trades, Healthcare, Retail..."
-            {...register("industry")}
+          <Controller
+            control={control}
+            name="industry"
+            render={({ field }) => (
+              <Combobox
+                options={industryComboOptions}
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Select an industry…"
+                searchPlaceholder="Search industries…"
+              />
+            )}
           />
-          <datalist id={industryListId}>
-            {industrySuggestions.map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
         </div>
 
         <div className="grid gap-2">

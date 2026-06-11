@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Calendar, Clock, ExternalLink, Globe, Mail, MapPin, Pencil } from "lucide-react"
+import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteProspectButton } from "@/components/crm/delete-prospect-button"
 import { EditProspectDialog } from "@/components/crm/edit-prospect-dialog"
 import { GeneratorPanel } from "@/components/crm/generator-panel"
-import { PlatformIcon, PLATFORM_LABELS } from "@/components/crm/platform-icon"
+import { getPlatformLabel, PlatformIcon } from "@/components/crm/platform-icon"
 import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { ActivityTimeline } from "@/components/crm/activity-timeline"
 import { ProspectSequenceSection } from "@/components/sequences/prospect-sequence-section"
@@ -27,7 +27,7 @@ import { TagManager } from "@/components/crm/tag-manager"
 import { updateProspectStatus } from "@/app/actions/prospects"
 import { AssigneePicker } from "@/components/crm/assignee-picker"
 import { cn } from "@/lib/utils"
-import type { Platform, ProspectStatus } from "@/db/schema"
+import type { ProspectStatus } from "@/db/schema"
 import type { ProspectWithDetail, Tag, TeamMember } from "@/types/database"
 
 const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
@@ -44,14 +44,16 @@ function formatDateTime(value: string | Date | null) {
 export function ProspectDetailPanel({
   prospect,
   allTags,
-  industrySuggestions,
+  industryOptions,
+  customPlatforms,
   agencyReady,
   teamMembers,
   isAdmin,
 }: {
   prospect: ProspectWithDetail | null
   allTags: Tag[]
-  industrySuggestions: string[]
+  industryOptions?: string[]
+  customPlatforms?: string[]
   agencyReady: boolean
   teamMembers: TeamMember[]
   isAdmin: boolean
@@ -86,7 +88,7 @@ export function ProspectDetailPanel({
       <Sheet open={open} onOpenChange={handleOpenChange}>
         <SheetContent
           side="right"
-          className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
+          className="flex w-full flex-col gap-0 p-0"
         >
           {prospect ? (
             <DetailBody
@@ -114,7 +116,8 @@ export function ProspectDetailPanel({
           prospect={prospect}
           open={editOpen}
           onOpenChange={setEditOpen}
-          industrySuggestions={industrySuggestions}
+          industryOptions={industryOptions}
+          customPlatforms={customPlatforms}
         />
       )}
     </>
@@ -142,7 +145,7 @@ function DetailBody({
   teamMembers: TeamMember[]
   isAdmin: boolean
 }) {
-  const platform = prospect.platform as Platform
+  const platform = prospect.platform
   const status = prospect.status as ProspectStatus
   const isEmailPlatform = platform === "email"
 
@@ -162,9 +165,6 @@ function DetailBody({
               {prospect.industry && <span className="text-xs">{prospect.industry}</span>}
               {prospect.location && (
                 <span className="text-xs text-muted-foreground">· {prospect.location}</span>
-              )}
-              {prospect.country && (
-                <span className="text-xs text-muted-foreground">· {prospect.country}</span>
               )}
             </SheetDescription>
           </div>
@@ -231,7 +231,7 @@ function DetailBody({
           <dl className="grid gap-2 text-sm">
             <InfoRow
               icon={PlatformIconSlot(platform)}
-              label={PLATFORM_LABELS[platform]}
+              label={getPlatformLabel(platform)}
               value={prospect.handle}
               linkHref={isEmailPlatform && prospect.handle ? `mailto:${prospect.handle}` : null}
             />
@@ -248,13 +248,6 @@ function DetailBody({
                 icon={<MapPin className="size-3.5" />}
                 label="Location"
                 value={prospect.location}
-              />
-            )}
-            {prospect.country && (
-              <InfoRow
-                icon={<Globe className="size-3.5" />}
-                label="Country"
-                value={prospect.country}
               />
             )}
           </dl>
@@ -367,7 +360,7 @@ function DetailBody({
   )
 }
 
-function PlatformIconSlot(platform: Platform) {
+function PlatformIconSlot(platform: string) {
   if (platform === "email") return <Mail className="size-3.5" />
   return <PlatformIcon platform={platform} />
 }

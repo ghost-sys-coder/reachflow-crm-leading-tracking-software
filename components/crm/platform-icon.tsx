@@ -5,6 +5,8 @@ import type { Platform } from "@/db/schema"
 
 type IconComponent = (props: React.SVGProps<SVGSVGElement>) => React.JSX.Element
 
+const GlobeIcon = Globe as unknown as IconComponent
+
 //lucide v1 removed the brand icons (Twitter, Instagram, Facebook,
 //Linkedin). We hand-roll minimal marks that match the lucide
 //stroke style so the CRM keeps consistent iconography.
@@ -52,29 +54,37 @@ const XMark = makeIcon(
   </>,
 )
 
-const PLATFORM_META: Record<Platform, { label: string; icon: IconComponent }> = {
+const PLATFORM_META: Record<string, { label: string; icon: IconComponent }> = {
   instagram: { label: "Instagram", icon: InstagramIcon },
   email: { label: "Email", icon: AtSign as unknown as IconComponent },
   facebook: { label: "Facebook", icon: FacebookIcon },
   linkedin: { label: "LinkedIn", icon: LinkedInIcon },
   twitter: { label: "X / Twitter", icon: XMark },
-  other: { label: "Other", icon: Globe as unknown as IconComponent },
+  other: { label: "Other", icon: GlobeIcon },
+}
+
+function resolveMeta(platform: string) {
+  return PLATFORM_META[platform] ?? { label: platform, icon: GlobeIcon }
 }
 
 export const PLATFORM_LABELS = Object.fromEntries(
   Object.entries(PLATFORM_META).map(([k, v]) => [k, v.label]),
 ) as Record<Platform, string>
 
+export function getPlatformLabel(platform: string): string {
+  return PLATFORM_META[platform]?.label ?? platform
+}
+
 export function PlatformIcon({
   platform,
   className,
   withLabel = false,
 }: {
-  platform: Platform
+  platform: string
   className?: string
   withLabel?: boolean
 }) {
-  const meta = PLATFORM_META[platform]
+  const meta = resolveMeta(platform)
   const Icon = meta.icon
 
   if (!withLabel) {

@@ -1,8 +1,9 @@
-import { Bell, BookTemplate, Brush, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users } from "lucide-react"
+import { Bell, BookTemplate, Brush, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users, Wrench } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { WhiteLabelSection } from "@/components/settings/white-label-section"
 import { AppearanceSection } from "@/components/settings/appearance-section"
+import { CustomFieldsSection } from "@/components/settings/custom-fields-section"
 import { NotificationsSection } from "@/components/settings/notifications-section"
 import { ProfileForm } from "@/components/settings/profile-form"
 import { TagsSection } from "@/components/settings/tags-section"
@@ -22,6 +23,7 @@ import { getTemplates } from "@/app/actions/templates"
 import { getUserTags } from "@/app/actions/tags"
 import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
 import { getSequences } from "@/app/actions/sequences"
+import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
@@ -84,10 +86,11 @@ const NAV_ITEMS = [
   { value: "templates",     label: "Templates",     icon: BookTemplate  },
   { value: "sequences",     label: "Sequences",     icon: ListOrdered   },
   { value: "team",          label: "Team",          icon: Users         },
+  { value: "fields",        label: "Fields",        icon: Wrench        },
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx] =
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult] =
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -97,6 +100,8 @@ export default async function SettingsPage() {
       getTemplates(),
       getSequences(),
       getAuthedOrgClient(),
+      getOrgIndustries(),
+      getOrgCustomPlatforms(),
     ])
 
   const profile = profileResult.data ?? null
@@ -109,6 +114,8 @@ export default async function SettingsPage() {
   const savedTheme = (profile?.theme_preference ?? "default") as Theme
   const currentUserId = orgCtx.ctx?.userId ?? ""
   const currentUserRole = (orgCtx.ctx?.role ?? "viewer") as MemberRole
+  const industries = industriesResult.data ?? []
+  const customPlatforms = platformsResult.data ?? []
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -298,6 +305,29 @@ export default async function SettingsPage() {
                   currentUserId={currentUserId}
                   currentUserRole={currentUserRole}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="fields">
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Industries &amp; platforms</CardTitle>
+                <CardDescription>
+                  Define the industries and platforms your team uses when creating prospects.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-5">
+                {currentUserRole === "admin" ? (
+                  <CustomFieldsSection
+                    initialIndustries={industries}
+                    initialCustomPlatforms={customPlatforms}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Only workspace admins can manage industries and platforms.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
