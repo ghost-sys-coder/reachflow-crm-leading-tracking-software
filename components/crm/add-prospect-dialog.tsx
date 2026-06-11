@@ -45,7 +45,7 @@ export function AddProspectDialog({
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add prospect</DialogTitle>
           <DialogDescription>
