@@ -1,4 +1,6 @@
 import { KpiCards } from "@/components/analytics/kpi-cards"
+import { CountryChart } from "@/components/analytics/country-chart"
+import { CountryConversionTable } from "@/components/analytics/country-table"
 import { PeriodPicker } from "@/components/analytics/period-picker"
 import { PlatformChart } from "@/components/analytics/platform-chart"
 import { StatusFunnel } from "@/components/analytics/status-funnel"
@@ -49,6 +51,16 @@ export default async function AnalyticsPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <StatusFunnel data={data} />
         <PlatformChart data={data} />
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Geographic reach
+        </h3>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CountryChart data={data} />
+          <CountryConversionTable data={data} />
+        </div>
       </div>
 
       <WeeklyChart data={data} />

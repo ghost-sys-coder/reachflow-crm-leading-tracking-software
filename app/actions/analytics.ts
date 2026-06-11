@@ -29,6 +29,15 @@ export type TeamStat = {
   bookingRate: number
 }
 
+export type CountryStat = {
+  country: string
+  count: number
+  replied: number
+  booked: number
+  replyRate: number
+  bookingRate: number
+}
+
 export type AnalyticsData = {
   period: PeriodKey
   total: number
@@ -39,6 +48,8 @@ export type AnalyticsData = {
   platformStats: PlatformStat[]
   weeklyActivity: WeekActivity[]
   teamStats: TeamStat[]
+  countryStats: CountryStat[]
+  countryCoverage: number
 }
 
 function getWeekStart(date: Date): Date {
@@ -105,6 +116,28 @@ export async function getAnalytics(period: PeriodKey = "30d"): Promise<ActionRes
     .filter((s) => s.count > 0)
     .sort((a, b) => b.count - a.count)
 
+  // Country stats
+  const countryMap = new Map<string, { count: number; replied: number; booked: number }>()
+  for (const p of filtered) {
+    if (!p.country) continue
+    const entry = countryMap.get(p.country) ?? { count: 0, replied: 0, booked: 0 }
+    entry.count++
+    if (p.status === "replied" || p.status === "booked") entry.replied++
+    if (p.status === "booked") entry.booked++
+    countryMap.set(p.country, entry)
+  }
+  const countryStats: CountryStat[] = Array.from(countryMap.entries())
+    .map(([country, e]) => ({
+      country,
+      count: e.count,
+      replied: e.replied,
+      booked: e.booked,
+      replyRate: e.count === 0 ? 0 : e.replied / e.count,
+      bookingRate: e.count === 0 ? 0 : e.booked / e.count,
+    }))
+    .sort((a, b) => b.count - a.count)
+  const countryCoverage = total === 0 ? 0 : filtered.filter((p) => p.country).length / total
+
   // Weekly activity — always last 12 weeks regardless of period
   const weeklyActivity: WeekActivity[] = []
   for (let i = 11; i >= 0; i--) {
@@ -151,5 +184,7 @@ export async function getAnalytics(period: PeriodKey = "30d"): Promise<ActionRes
     platformStats,
     weeklyActivity,
     teamStats,
+    countryStats,
+    countryCoverage,
   })
 }
