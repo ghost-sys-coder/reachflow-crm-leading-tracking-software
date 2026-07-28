@@ -17,6 +17,7 @@ import {
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
+import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import {
   PLATFORMS,
@@ -136,7 +137,7 @@ export default async function PipelinePage({
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
@@ -144,6 +145,7 @@ export default async function PipelinePage({
     getAuthedOrgClient(),
     getOrgIndustries(),
     getOrgCustomPlatforms(),
+    getCampaignOptions(),
   ])
 
   const all = allResult.data ?? []
@@ -154,6 +156,7 @@ export default async function PipelinePage({
   const isAdmin = orgCtxResult.ctx?.role === "admin"
   const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
   const customPlatforms = (platformsResult.data ?? []).map((p) => p.name)
+  const campaignOptions = campaignsResult.data ?? []
   const stats = computeStats(all)
   const counts = computeCounts(all, currentUserId)
 
@@ -184,7 +187,7 @@ export default async function PipelinePage({
         </div>
         <div className="flex items-center gap-2">
           <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
-          <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} />
+          <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} campaignOptions={campaignOptions} />
         </div>
       </div>
 
@@ -225,7 +228,7 @@ export default async function PipelinePage({
         <EmptyState
           title="Add your first prospect"
           description="Capture the business name, platform, and a note. Generate personalized outreach in seconds."
-          action={<AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} triggerLabel="Add your first prospect" />}
+          action={<AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} campaignOptions={campaignOptions} triggerLabel="Add your first prospect" />}
         />
       )}
 
@@ -234,6 +237,7 @@ export default async function PipelinePage({
         allTags={allTags}
         industryOptions={industryOptions}
         customPlatforms={customPlatforms}
+        campaignOptions={campaignOptions}
         agencyReady={agencyReady}
         teamMembers={teamMembers}
         isAdmin={isAdmin}

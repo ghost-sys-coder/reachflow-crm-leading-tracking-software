@@ -15,16 +15,21 @@ import {
 import { ProspectForm } from "@/components/crm/prospect-form"
 import { createProspect } from "@/app/actions/prospects"
 import type { ProspectCreateInput } from "@/lib/validation/schemas"
+import type { CampaignOption } from "@/components/campaigns/campaign-picker"
 
 export function AddProspectDialog({
   industryOptions,
   customPlatforms,
+  campaignOptions,
+  initialCampaignIds,
   triggerLabel = "Add prospect",
   variant = "default",
   size = "sm",
 }: {
   industryOptions?: string[]
   customPlatforms?: string[]
+  campaignOptions?: CampaignOption[]
+  initialCampaignIds?: string[]
   triggerLabel?: string
   variant?: React.ComponentProps<typeof Button>["variant"]
   size?: React.ComponentProps<typeof Button>["size"]
@@ -55,6 +60,8 @@ export function AddProspectDialog({
         <ProspectForm
           industryOptions={industryOptions}
           customPlatforms={customPlatforms}
+          campaignOptions={campaignOptions}
+          initialCampaignIds={initialCampaignIds}
           submitLabel="Add prospect"
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}

@@ -12,6 +12,7 @@ import { PROSPECT_STATUS_LABELS } from "@/components/crm/status-badge"
 import { updateProspectStatus } from "@/app/actions/prospects"
 import type { ProspectStatus } from "@/db/schema"
 import type { ProspectWithDetail } from "@/types/database"
+import type { CampaignOption } from "@/components/campaigns/campaign-picker"
 
 const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
 
@@ -19,10 +20,12 @@ export function ProspectDetailActions({
   prospect,
   industryOptions,
   customPlatforms,
+  campaignOptions,
 }: {
   prospect: ProspectWithDetail
   industryOptions?: string[]
   customPlatforms?: string[]
+  campaignOptions?: CampaignOption[]
 }) {
   const router = useRouter()
   const [editOpen, setEditOpen] = React.useState(false)
@@ -79,6 +82,7 @@ export function ProspectDetailActions({
         onOpenChange={setEditOpen}
         industryOptions={industryOptions}
         customPlatforms={customPlatforms}
+        campaignOptions={campaignOptions}
       />
     </>
   )

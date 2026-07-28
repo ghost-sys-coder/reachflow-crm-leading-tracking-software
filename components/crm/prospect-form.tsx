@@ -20,6 +20,10 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { PLATFORM_LABELS } from "@/components/crm/platform-icon"
 import { PROSPECT_STATUS_LABELS } from "@/components/crm/status-badge"
+import {
+  CampaignPicker,
+  type CampaignOption,
+} from "@/components/campaigns/campaign-picker"
 import { COUNTRIES } from "@/lib/constants/countries"
 import {
   PLATFORMS,
@@ -28,6 +32,10 @@ import {
   type ProspectCreateInput,
 } from "@/lib/validation/schemas"
 import type { Prospect } from "@/types/database"
+
+type ProspectFormProspect = Prospect & {
+  campaigns?: CampaignOption[]
+}
 
 type CountryOption = {
   name: string
@@ -68,9 +76,10 @@ type FormValues = {
   status: ProspectCreateInput["status"]
   notes?: string
   follow_up_at?: Date
+  campaign_ids?: string[]
 }
 
-function prospectToFormValues(prospect?: Prospect): FormValues {
+function prospectToFormValues(prospect?: ProspectFormProspect): FormValues {
   return {
     business_name: prospect?.business_name ?? "",
     platform: (prospect?.platform ?? "instagram") as FormValues["platform"],
@@ -82,6 +91,7 @@ function prospectToFormValues(prospect?: Prospect): FormValues {
     website_url: prospect?.website_url ?? undefined,
     status: (prospect?.status ?? "sent") as FormValues["status"],
     notes: prospect?.notes ?? undefined,
+    campaign_ids: prospect?.campaigns?.map((campaign) => campaign.id) ?? [],
   }
 }
 
@@ -89,13 +99,17 @@ export function ProspectForm({
   prospect,
   industryOptions = [],
   customPlatforms = [],
+  campaignOptions = [],
+  initialCampaignIds = [],
   submitLabel = "Save",
   onSubmit,
   onCancel,
 }: {
-  prospect?: Prospect
+  prospect?: ProspectFormProspect
   industryOptions?: string[]
   customPlatforms?: string[]
+  campaignOptions?: CampaignOption[]
+  initialCampaignIds?: string[]
   submitLabel?: string
   onSubmit: (values: ProspectCreateInput) => Promise<{ error: string | null }>
   onCancel?: () => void
@@ -106,7 +120,10 @@ export function ProspectForm({
     //canonical payload shape handed to onSubmit.
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(prospectCreateSchema) as any,
-    defaultValues: prospectToFormValues(prospect),
+    defaultValues: {
+      ...prospectToFormValues(prospect),
+      campaign_ids: prospect?.campaigns?.map((campaign) => campaign.id) ?? initialCampaignIds,
+    },
   })
 
   const {
@@ -348,6 +365,24 @@ export function ProspectForm({
         {errors.phone_number && (
           <p className="text-xs text-destructive">{errors.phone_number.message}</p>
         )}
+      </div>
+
+      <div className="grid gap-2">
+        <Label>Campaigns</Label>
+        <Controller
+          control={control}
+          name="campaign_ids"
+          render={({ field }) => (
+            <CampaignPicker
+              options={campaignOptions}
+              value={field.value ?? []}
+              onChange={field.onChange}
+            />
+          )}
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Optional. A prospect can belong to more than one campaign.
+        </p>
       </div>
 
       <div className="grid gap-2">

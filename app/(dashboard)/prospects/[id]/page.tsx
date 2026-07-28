@@ -24,6 +24,7 @@ import { getProspectById } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
+import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { cn } from "@/lib/utils"
 import type { Platform, ProspectStatus } from "@/db/schema"
@@ -42,7 +43,7 @@ export default async function ProspectDetailPage({
 }) {
   const { id } = await params
 
-  const [prospectResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult] =
+  const [prospectResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult] =
     await Promise.all([
       getProspectById(id),
       getUserTags(),
@@ -51,6 +52,7 @@ export default async function ProspectDetailPage({
       getAuthedOrgClient(),
       getOrgIndustries(),
       getOrgCustomPlatforms(),
+      getCampaignOptions(),
     ])
 
   if (prospectResult.error || !prospectResult.data) notFound()
@@ -60,6 +62,7 @@ export default async function ProspectDetailPage({
   const teamMembers: TeamMember[] = membersResult.data ?? []
   const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
   const customPlatforms = (platformsResult.data ?? []).map((p) => p.name)
+  const campaignOptions = campaignsResult.data ?? []
   const agencyReady = Boolean(orgResult.data?.agency_name)
   const isAdmin = orgCtxResult.ctx?.role === "admin"
   const assignee = teamMembers.find((m) => m.user_id === prospect.assigned_to)
@@ -127,6 +130,7 @@ export default async function ProspectDetailPage({
           prospect={prospect}
           industryOptions={industryOptions}
           customPlatforms={customPlatforms}
+          campaignOptions={campaignOptions}
         />
       </section>
 
@@ -182,6 +186,31 @@ export default async function ProspectDetailPage({
                 />
               )}
             </dl>
+          </section>
+
+          <Separator />
+
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Campaigns
+            </h3>
+            {prospect.campaigns?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {prospect.campaigns.map((campaign) => (
+                  <Link
+                    key={campaign.id}
+                    href={`/campaigns/${campaign.id}`}
+                    className="rounded-md border bg-muted/50 px-2.5 py-1.5 text-sm hover:bg-muted"
+                  >
+                    {campaign.name}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                This prospect is not attached to a campaign.
+              </p>
+            )}
           </section>
 
           <Separator />

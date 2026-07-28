@@ -18,6 +18,7 @@ import { NotificationsBell } from "@/components/shared/notifications-bell"
 const PAGE_TITLES: Array<{ match: RegExp; title: string }> = [
   { match: /^\/pipeline/, title: "Pipeline" },
   { match: /^\/prospects/, title: "Prospects" },
+  { match: /^\/campaigns/, title: "Campaigns" },
   { match: /^\/messages/, title: "Messages" },
   { match: /^\/activity/, title: "Activity Log" },
   { match: /^\/settings/, title: "Settings" },
