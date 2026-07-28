@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import {
+  CAMPAIGN_STATUSES,
   MEMBER_ROLES,
   MESSAGE_TYPES,
   PLATFORMS,
@@ -9,7 +10,7 @@ import {
 } from "@/db/schema"
 
 //re-export enums so callers import one place
-export { MEMBER_ROLES, MESSAGE_TYPES, PLATFORMS, PROSPECT_STATUSES, THEMES }
+export { CAMPAIGN_STATUSES, MEMBER_ROLES, MESSAGE_TYPES, PLATFORMS, PROSPECT_STATUSES, THEMES }
 
 export const memberRoleSchema = z.enum(MEMBER_ROLES)
 
@@ -44,6 +45,7 @@ export const prospectCreateSchema = z.object({
   status: prospectStatusSchema.default("sent"),
   notes: optionalTrimmedString(2000),
   follow_up_at: z.coerce.date().optional(),
+  campaign_ids: z.array(z.string().uuid()).max(50).optional(),
 })
 
 export const prospectUpdateSchema = prospectCreateSchema.partial()
@@ -62,6 +64,33 @@ export const messageCreateSchema = z.object({
 export const tagCreateSchema = z.object({
   name: z.string().trim().min(1).max(50),
   color: z.string().trim().max(30).default("gray"),
+})
+
+const campaignBaseSchema = z.object({
+  name: z.string().trim().min(1, "Campaign name is required").max(150),
+  description: optionalTrimmedString(1000),
+  status: z.enum(CAMPAIGN_STATUSES).default("draft"),
+  channel: optionalTrimmedString(50),
+  goal: optionalTrimmedString(500),
+  budget_cents: z.number().int().min(0).nullable().optional(),
+  currency: z.string().trim().toUpperCase().length(3).default("USD"),
+  owner_id: z.string().uuid().nullable().optional(),
+  start_at: z.coerce.date().nullable().optional(),
+  end_at: z.coerce.date().nullable().optional(),
+})
+
+export const campaignSchema = campaignBaseSchema
+  .refine(
+    (data) => !data.start_at || !data.end_at || data.end_at >= data.start_at,
+    { message: "End date must be on or after the start date", path: ["end_at"] },
+  )
+
+export const campaignUpdateSchema = campaignBaseSchema.partial().refine(
+  (data) => !data.start_at || !data.end_at || data.end_at >= data.start_at,
+  { message: "End date must be on or after the start date", path: ["end_at"] },
+)
+export const campaignMembershipSchema = z.object({
+  prospect_ids: z.array(z.string().uuid()).min(1).max(500),
 })
 
 export const profileUpdateSchema = z.object({
@@ -118,6 +147,8 @@ export type ProspectUpdateInput = z.infer<typeof prospectUpdateSchema>
 export type ProspectStatusUpdateInput = z.infer<typeof prospectStatusUpdateSchema>
 export type MessageCreateInput = z.infer<typeof messageCreateSchema>
 export type TagCreateInput = z.infer<typeof tagCreateSchema>
+export type CampaignInput = z.infer<typeof campaignSchema>
+export type CampaignUpdateInput = z.infer<typeof campaignUpdateSchema>
 export const orgUpdateSchema = agencyProfileUpdateSchema
 
 export const whiteLabelSchema = z.object({

@@ -20,6 +20,7 @@ const authUsers = authSchema.table("users", {
 
 export const PLATFORMS = ["instagram", "email", "facebook", "linkedin", "twitter", "other"] as const
 export const PROSPECT_STATUSES = ["sent", "waiting", "replied", "booked", "closed", "dead"] as const
+export const CAMPAIGN_STATUSES = ["draft", "active", "paused", "completed", "archived"] as const
 export const MESSAGE_TYPES = ["instagram_dm", "cold_email", "follow_up", "custom"] as const
 export const THEMES = ["default", "midnight", "sunset"] as const
 export const MEMBER_ROLES = ["admin", "editor", "viewer"] as const
@@ -36,6 +37,7 @@ export const ACTIVITY_ACTIONS = [
 
 export type Platform = (typeof PLATFORMS)[number]
 export type ProspectStatus = (typeof PROSPECT_STATUSES)[number]
+export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number]
 export type MessageType = (typeof MESSAGE_TYPES)[number]
 export type ThemePreference = (typeof THEMES)[number]
 export type MemberRole = (typeof MEMBER_ROLES)[number]
@@ -157,6 +159,58 @@ export const prospects = pgTable(
       "prospects_status_valid",
       sql`${table.status} IN ('sent', 'waiting', 'replied', 'booked', 'closed', 'dead')`,
     ),
+  ],
+)
+
+export const campaigns = pgTable(
+  "campaigns",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    description: text(),
+    status: text().notNull().default("draft"),
+    channel: text(),
+    goal: text(),
+    budget_cents: integer(),
+    currency: text().notNull().default("USD"),
+    owner_id: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    start_at: timestamp({ withTimezone: true }),
+    end_at: timestamp({ withTimezone: true }),
+    created_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("campaigns_org_idx").on(table.org_id),
+    index("campaigns_org_status_idx").on(table.org_id, table.status),
+    index("campaigns_owner_idx").on(table.owner_id),
+    check(
+      "campaigns_status_valid",
+      sql`${table.status} IN ('draft', 'active', 'paused', 'completed', 'archived')`,
+    ),
+    check("campaigns_budget_nonnegative", sql`${table.budget_cents} IS NULL OR ${table.budget_cents} >= 0`),
+    check("campaigns_dates_valid", sql`${table.end_at} IS NULL OR ${table.start_at} IS NULL OR ${table.end_at} >= ${table.start_at}`),
+  ],
+)
+
+export const campaignProspects = pgTable(
+  "campaign_prospects",
+  {
+    campaign_id: uuid()
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    prospect_id: uuid()
+      .notNull()
+      .references(() => prospects.id, { onDelete: "cascade" }),
+    added_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    added_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.campaign_id, table.prospect_id] }),
+    index("campaign_prospects_prospect_idx").on(table.prospect_id),
   ],
 )
 
@@ -431,6 +485,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMembers),
   invites: many(organizationInvites),
   prospects: many(prospects),
+  campaigns: many(campaigns),
   messages: many(messages),
   tags: many(tags),
   generation_logs: many(generationLogs),
@@ -466,6 +521,30 @@ export const prospectsRelations = relations(prospects, ({ one, many }) => ({
   }),
   messages: many(messages),
   prospect_tags: many(prospectTags),
+  campaign_prospects: many(campaignProspects),
+}))
+
+export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [campaigns.org_id],
+    references: [organizations.id],
+  }),
+  owner: one(profiles, {
+    fields: [campaigns.owner_id],
+    references: [profiles.id],
+  }),
+  campaign_prospects: many(campaignProspects),
+}))
+
+export const campaignProspectsRelations = relations(campaignProspects, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignProspects.campaign_id],
+    references: [campaigns.id],
+  }),
+  prospect: one(prospects, {
+    fields: [campaignProspects.prospect_id],
+    references: [prospects.id],
+  }),
 }))
 
 export const messagesRelations = relations(messages, ({ one }) => ({

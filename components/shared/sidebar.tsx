@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   BarChart3,
   LayoutGrid,
+  Megaphone,
   MessagesSquare,
   Palette,
   ScrollText,
@@ -26,6 +27,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Pipeline",      href: "/pipeline",      icon: LayoutGrid    },
   { label: "Prospects",     href: "/prospects",     icon: Users         },
+  { label: "Campaigns",     href: "/campaigns",     icon: Megaphone     },
   { label: "Analytics",     href: "/analytics",     icon: BarChart3     },
   { label: "Messages",      href: "/messages",      icon: MessagesSquare },
   { label: "Activity",      href: "/activity",      icon: ScrollText    },

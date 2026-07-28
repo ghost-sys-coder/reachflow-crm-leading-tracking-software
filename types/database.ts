@@ -1,5 +1,7 @@
 import type {
   activityLog,
+  campaignProspects,
+  campaigns,
   messageTemplates,
   messages,
   notifications,
@@ -47,6 +49,11 @@ export type TeamMember = {
 export type Prospect = typeof prospects.$inferSelect
 export type NewProspect = typeof prospects.$inferInsert
 
+export type Campaign = typeof campaigns.$inferSelect
+export type NewCampaign = typeof campaigns.$inferInsert
+export type CampaignProspect = typeof campaignProspects.$inferSelect
+export type NewCampaignProspect = typeof campaignProspects.$inferInsert
+
 export type Message = typeof messages.$inferSelect
 export type NewMessage = typeof messages.$inferInsert
 
@@ -67,6 +74,18 @@ export type ProspectWithTags = Prospect & {
 export type ProspectWithDetail = Prospect & {
   tags: Tag[]
   messages: Message[]
+  campaigns?: Array<Pick<Campaign, "id" | "name" | "status">>
+}
+
+export type CampaignWithMetrics = Campaign & {
+  prospect_count: number
+  replied_count: number
+  booked_count: number
+  closed_count: number
+}
+
+export type CampaignWithProspects = CampaignWithMetrics & {
+  prospects: Prospect[]
 }
 
 export type MessageWithProspect = Message & {

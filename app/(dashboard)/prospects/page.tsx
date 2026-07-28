@@ -14,6 +14,7 @@ import { getProspects } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
+import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
 import type { Platform, ProspectStatus } from "@/db/schema"
@@ -104,7 +105,7 @@ export default async function ProspectsPage({
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
@@ -112,6 +113,7 @@ export default async function ProspectsPage({
     getAuthedOrgClient(),
     getOrgIndustries(),
     getOrgCustomPlatforms(),
+    getCampaignOptions(),
   ])
 
   const all = allResult.data ?? []
@@ -122,6 +124,7 @@ export default async function ProspectsPage({
   const isAdmin = orgCtxResult.ctx?.role === "admin"
   const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
   const customPlatforms = (platformsResult.data ?? []).map((p) => p.name)
+  const campaignOptions = campaignsResult.data ?? []
   const stats = computeStats(all)
   const counts = computeCounts(all, currentUserId)
 
@@ -148,7 +151,7 @@ export default async function ProspectsPage({
         <div className="flex items-center gap-2">
           <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
           <ImportProspectsDialog />
-          <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} />
+          <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} campaignOptions={campaignOptions} />
         </div>
       </div>
 
@@ -194,6 +197,7 @@ export default async function ProspectsPage({
             <AddProspectDialog
               industryOptions={industryOptions}
               customPlatforms={customPlatforms}
+              campaignOptions={campaignOptions}
               triggerLabel="Add your first prospect"
             />
           }

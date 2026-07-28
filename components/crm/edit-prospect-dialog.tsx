@@ -11,6 +11,7 @@ import { ProspectForm } from "@/components/crm/prospect-form"
 import { updateProspect } from "@/app/actions/prospects"
 import type { ProspectCreateInput } from "@/lib/validation/schemas"
 import type { Prospect } from "@/types/database"
+import type { CampaignOption } from "@/components/campaigns/campaign-picker"
 
 export function EditProspectDialog({
   prospect,
@@ -18,12 +19,14 @@ export function EditProspectDialog({
   onOpenChange,
   industryOptions,
   customPlatforms,
+  campaignOptions,
 }: {
-  prospect: Prospect
+  prospect: Prospect & { campaigns?: CampaignOption[] }
   open: boolean
   onOpenChange: (open: boolean) => void
   industryOptions?: string[]
   customPlatforms?: string[]
+  campaignOptions?: CampaignOption[]
 }) {
   async function handleSubmit(values: ProspectCreateInput) {
     const result = await updateProspect(prospect.id, values)
@@ -42,6 +45,7 @@ export function EditProspectDialog({
           prospect={prospect}
           industryOptions={industryOptions}
           customPlatforms={customPlatforms}
+          campaignOptions={campaignOptions}
           submitLabel="Save changes"
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}

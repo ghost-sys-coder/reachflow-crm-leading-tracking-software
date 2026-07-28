@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import type { OrgContext } from "@/lib/auth/org"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { toCsv } from "@/lib/csv/generate"
 import { normalizeCountry } from "@/lib/constants/countries"
@@ -34,6 +35,26 @@ import type {
 function revalidateProspectViews() {
   revalidatePath("/pipeline")
   revalidatePath("/prospects", "layout")
+  revalidatePath("/campaigns", "layout")
+}
+
+async function validateCampaignIds(
+  campaignIds: string[],
+  orgId: string,
+  supabase: OrgContext["supabase"],
+) {
+  const uniqueIds = [...new Set(campaignIds)]
+  if (!uniqueIds.length) return { ids: uniqueIds, error: null }
+  const { data, error } = await supabase
+    .from("campaigns")
+    .select("id")
+    .in("id", uniqueIds)
+    .eq("org_id", orgId)
+  if (error) return { ids: uniqueIds, error: error.message }
+  if ((data ?? []).length !== uniqueIds.length) {
+    return { ids: uniqueIds, error: "One or more selected campaigns are unavailable" }
+  }
+  return { ids: uniqueIds, error: null }
 }
 
 export async function createProspect(
@@ -46,13 +67,30 @@ export async function createProspect(
   if (!ctx) return fail(orgError)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
 
+  const { campaign_ids = [], ...prospectData } = parsed.data
+  const campaignCheck = await validateCampaignIds(campaign_ids, ctx.orgId, ctx.supabase)
+  if (campaignCheck.error) return fail(campaignCheck.error)
+
   const { data, error: insertError } = await ctx.supabase
     .from("prospects")
-    .insert({ ...parsed.data, org_id: ctx.orgId })
+    .insert({ ...prospectData, org_id: ctx.orgId })
     .select()
     .single()
 
   if (insertError) return fail(insertError.message)
+  if (campaignCheck.ids.length) {
+    const { error: membershipError } = await ctx.supabase.from("campaign_prospects").insert(
+      campaignCheck.ids.map((campaignId) => ({
+        campaign_id: campaignId,
+        prospect_id: (data as Prospect).id,
+        added_by: ctx.userId,
+      })),
+    )
+    if (membershipError) {
+      await ctx.supabase.from("prospects").delete().eq("id", (data as Prospect).id)
+      return fail(membershipError.message)
+    }
+  }
   void logActivity({
     orgId: ctx.orgId,
     prospectId: (data as Prospect).id,
@@ -71,23 +109,50 @@ export async function updateProspect(
   const parsed = prospectUpdateSchema.safeParse(input)
   if (!parsed.success) return fail(zodErrorMessage(parsed.error))
 
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error: orgError } = await getAuthedOrgClient()
+  if (!ctx) return fail(orgError)
+  if (ctx.role === "viewer") return fail("Insufficient permissions")
 
-  const { data, error } = await supabase
+  const { campaign_ids, ...prospectData } = parsed.data
+  const campaignCheck = campaign_ids
+    ? await validateCampaignIds(campaign_ids, ctx.orgId, ctx.supabase)
+    : null
+  if (campaignCheck?.error) return fail(campaignCheck.error)
+
+  const { data, error } = await ctx.supabase
     .from("prospects")
-    .update(parsed.data)
+    .update(prospectData)
     .eq("id", id)
+    .eq("org_id", ctx.orgId)
     .select()
     .single()
 
   if (error) return fail(error.message)
-  const updatedKeys = Object.keys(parsed.data)
+  if (campaignCheck) {
+    if (campaignCheck.ids.length) {
+      const { error: addError } = await ctx.supabase.from("campaign_prospects").upsert(
+        campaignCheck.ids.map((campaignId) => ({
+          campaign_id: campaignId,
+          prospect_id: id,
+          added_by: ctx.userId,
+        })),
+        { onConflict: "campaign_id,prospect_id", ignoreDuplicates: true },
+      )
+      if (addError) return fail(addError.message)
+    }
+
+    let removeQuery = ctx.supabase.from("campaign_prospects").delete().eq("prospect_id", id)
+    if (campaignCheck.ids.length) removeQuery = removeQuery.not("campaign_id", "in", `(${campaignCheck.ids.join(",")})`)
+    const { error: removeError } = await removeQuery
+    if (removeError) return fail(removeError.message)
+  }
+
+  const updatedKeys = Object.keys(prospectData)
   const isNotesOnly = updatedKeys.length === 1 && updatedKeys[0] === "notes"
   void logActivity({
     orgId: (data as Prospect).org_id,
     prospectId: id,
-    userId: user.id,
+    userId: ctx.userId,
     action: isNotesOnly ? "note_updated" : "prospect_updated",
   })
   revalidateProspectViews()
@@ -490,6 +555,9 @@ export async function getProspectById(
       messages (*),
       prospect_tags (
         tag:tags (*)
+      ),
+      campaign_prospects (
+        campaign:campaigns (id, name, status)
       )
       `,
     )
@@ -500,8 +568,11 @@ export async function getProspectById(
   if (!data) return ok(null)
 
   type ProspectTagJoin = { tag: Tag | null }
-  const { prospect_tags, ...rest } = data as typeof data & {
+  const { prospect_tags, campaign_prospects, ...rest } = data as typeof data & {
     prospect_tags: ProspectTagJoin[] | null
+    campaign_prospects: Array<{
+      campaign: { id: string; name: string; status: string } | null
+    }> | null
   }
 
   const tags: Tag[] = []
@@ -509,5 +580,9 @@ export async function getProspectById(
     if (row.tag) tags.push(row.tag)
   }
 
-  return ok({ ...rest, tags } as ProspectWithDetail)
+  const campaigns = (campaign_prospects ?? [])
+    .map((row: { campaign: { id: string; name: string; status: string } | null }) => row.campaign)
+    .filter(Boolean) as Array<{ id: string; name: string; status: string }>
+
+  return ok({ ...rest, tags, campaigns } as ProspectWithDetail)
 }

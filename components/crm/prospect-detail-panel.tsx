@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil, Phone } from "lucide-react"
 import { toast } from "sonner"
@@ -29,6 +30,7 @@ import { AssigneePicker } from "@/components/crm/assignee-picker"
 import { cn } from "@/lib/utils"
 import type { ProspectStatus } from "@/db/schema"
 import type { ProspectWithDetail, Tag, TeamMember } from "@/types/database"
+import type { CampaignOption } from "@/components/campaigns/campaign-picker"
 
 const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
 
@@ -46,6 +48,7 @@ export function ProspectDetailPanel({
   allTags,
   industryOptions,
   customPlatforms,
+  campaignOptions,
   agencyReady,
   teamMembers,
   isAdmin,
@@ -54,6 +57,7 @@ export function ProspectDetailPanel({
   allTags: Tag[]
   industryOptions?: string[]
   customPlatforms?: string[]
+  campaignOptions?: CampaignOption[]
   agencyReady: boolean
   teamMembers: TeamMember[]
   isAdmin: boolean
@@ -118,6 +122,7 @@ export function ProspectDetailPanel({
           onOpenChange={setEditOpen}
           industryOptions={industryOptions}
           customPlatforms={customPlatforms}
+          campaignOptions={campaignOptions}
         />
       )}
     </>
@@ -259,6 +264,29 @@ function DetailBody({
               />
             )}
           </dl>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            Campaigns
+          </h3>
+          {prospect.campaigns?.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {prospect.campaigns.map((campaign) => (
+                <Link
+                  key={campaign.id}
+                  href={`/campaigns/${campaign.id}`}
+                  className="rounded-md border bg-muted/50 px-2 py-1 text-xs hover:bg-muted"
+                >
+                  {campaign.name}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Not attached to a campaign.</p>
+          )}
         </section>
 
         <Separator />
