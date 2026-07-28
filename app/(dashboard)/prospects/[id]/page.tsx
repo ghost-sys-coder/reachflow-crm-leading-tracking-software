@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Mail,
   MapPin,
+  Phone,
 } from "lucide-react"
 
 import { Separator } from "@/components/ui/separator"
@@ -157,6 +158,14 @@ export default async function ProspectDetailPage({
                     : null
                 }
               />
+              {prospect.phone_number && (
+                <InfoRow
+                  icon={<Phone className="size-3.5" />}
+                  label="Phone"
+                  value={prospect.phone_number}
+                  linkHref={`tel:${prospect.phone_number}`}
+                />
+              )}
               {prospect.website_url && (
                 <InfoRow
                   icon={<ExternalLink className="size-3.5" />}

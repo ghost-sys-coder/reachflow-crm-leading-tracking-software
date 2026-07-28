@@ -36,6 +36,7 @@ export const prospectCreateSchema = z.object({
   business_name: z.string().trim().min(1, "Business name is required").max(200),
   platform: platformSchema,
   handle: optionalTrimmedString(200),
+  phone_number: optionalTrimmedString(30),
   industry: optionalTrimmedString(100),
   location: optionalTrimmedString(200),
   country: optionalTrimmedString(100),

@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
+import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -28,11 +29,27 @@ import {
 } from "@/lib/validation/schemas"
 import type { Prospect } from "@/types/database"
 
-const COUNTRY_OPTIONS = COUNTRIES.map((c) => ({
-  value: c.name,
-  label: `${c.flag} ${c.name}`,
-  hint: c.code,
+type CountryOption = {
+  name: string
+  code: string
+  flag: string
+  dialingCode: string | null
+  phoneExample: string | null
+}
+
+const FALLBACK_COUNTRIES: CountryOption[] = COUNTRIES.map((c) => ({
+  ...c,
+  dialingCode: null,
+  phoneExample: null,
 }))
+
+function toCountryOptions(countries: CountryOption[]) {
+  return countries.map((c) => ({
+    value: c.name,
+    label: `${c.flag} ${c.name}`,
+    hint: c.dialingCode ? `${c.code} · ${c.dialingCode}` : c.code,
+  }))
+}
 
 const STANDARD_PLATFORM_OPTIONS = PLATFORMS.map((p) => ({
   value: p,
@@ -43,6 +60,7 @@ type FormValues = {
   business_name: string
   platform: ProspectCreateInput["platform"]
   handle?: string
+  phone_number?: string
   industry?: string
   location?: string
   country?: string
@@ -57,6 +75,7 @@ function prospectToFormValues(prospect?: Prospect): FormValues {
     business_name: prospect?.business_name ?? "",
     platform: (prospect?.platform ?? "instagram") as FormValues["platform"],
     handle: prospect?.handle ?? undefined,
+    phone_number: prospect?.phone_number ?? undefined,
     industry: prospect?.industry ?? undefined,
     location: prospect?.location ?? undefined,
     country: prospect?.country ?? undefined,
@@ -94,8 +113,48 @@ export function ProspectForm({
     register,
     handleSubmit,
     control,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = form
+  const [countries, setCountries] = React.useState(FALLBACK_COUNTRIES)
+  const selectedCountryName = useWatch({ control, name: "country" })
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    fetch("/api/countries")
+      .then((response) => {
+        if (!response.ok) throw new Error("Unable to load countries")
+        return response.json() as Promise<CountryOption[]>
+      })
+      .then((data) => {
+        if (cancelled || !Array.isArray(data) || data.length === 0) return
+
+        setCountries(data)
+
+        const selectedCountry = data.find(
+          (country) => country.name === getValues("country"),
+        )
+        const currentPhone = getValues("phone_number")?.trim()
+        if (
+          selectedCountry?.dialingCode &&
+          currentPhone?.startsWith(selectedCountry.dialingCode)
+        ) {
+          setValue(
+            "phone_number",
+            currentPhone.slice(selectedCountry.dialingCode.length).trimStart(),
+          )
+        }
+      })
+      .catch(() => {
+        // The bundled list remains available if the countries API is unreachable.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getValues, setValue])
 
   const platformOptions = React.useMemo(() => {
     if (!customPlatforms.length) return STANDARD_PLATFORM_OPTIONS
@@ -109,9 +168,39 @@ export function ProspectForm({
     () => industryOptions.map((i) => ({ value: i, label: i })),
     [industryOptions],
   )
+  const countryOptions = React.useMemo(() => toCountryOptions(countries), [countries])
+  const selectedCountry = countries.find(
+    (country) => country.name === selectedCountryName,
+  )
+
+  function normalizePhoneNumber(value: string | undefined): string | undefined {
+    const raw = value?.trim()
+    if (!raw) return undefined
+
+    const countryCode = selectedCountry?.code as CountryCode | undefined
+    const dialingCode = selectedCountry?.dialingCode
+    const digits = raw.replace(/\D/g, "")
+    const dialingDigits = dialingCode?.replace(/\D/g, "")
+    const internationalInput =
+      raw.startsWith("+") || (dialingDigits && digits.startsWith(dialingDigits))
+        ? `+${digits}`
+        : raw
+
+    const parsed = parsePhoneNumberFromString(internationalInput, countryCode)
+    if (parsed) return parsed.number
+
+    if (dialingCode && dialingDigits && !digits.startsWith(dialingDigits)) {
+      return `${dialingCode}${digits.replace(/^0+/, "")}`
+    }
+
+    return raw
+  }
 
   async function handle(values: FormValues) {
-    const result = await onSubmit(values as ProspectCreateInput)
+    const result = await onSubmit({
+      ...values,
+      phone_number: normalizePhoneNumber(values.phone_number),
+    } as ProspectCreateInput)
     if (result.error) {
       toast.error(result.error)
       return
@@ -224,7 +313,7 @@ export function ProspectForm({
           name="country"
           render={({ field }) => (
             <Combobox
-              options={COUNTRY_OPTIONS}
+              options={countryOptions}
               value={field.value}
               onChange={field.onChange}
               placeholder="Select a country…"
@@ -232,6 +321,33 @@ export function ProspectForm({
             />
           )}
         />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="phone_number">Phone number</Label>
+        <div className="flex">
+          <div
+            className="flex h-8 min-w-16 items-center justify-center rounded-l-lg border border-r-0 border-input bg-muted px-2.5 text-sm text-muted-foreground"
+            aria-label="Country dialing code"
+          >
+            {selectedCountry?.dialingCode ?? "—"}
+          </div>
+          <Input
+            id="phone_number"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            placeholder={
+              selectedCountry?.phoneExample ?? "Select a country, then enter the number"
+            }
+            className="rounded-l-none"
+            {...register("phone_number")}
+            aria-invalid={!!errors.phone_number}
+          />
+        </div>
+        {errors.phone_number && (
+          <p className="text-xs text-destructive">{errors.phone_number.message}</p>
+        )}
       </div>
 
       <div className="grid gap-2">

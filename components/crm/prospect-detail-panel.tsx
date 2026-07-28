@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil } from "lucide-react"
+import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil, Phone } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -235,6 +235,14 @@ function DetailBody({
               value={prospect.handle}
               linkHref={isEmailPlatform && prospect.handle ? `mailto:${prospect.handle}` : null}
             />
+            {prospect.phone_number && (
+              <InfoRow
+                icon={<Phone className="size-3.5" />}
+                label="Phone"
+                value={prospect.phone_number}
+                linkHref={`tel:${prospect.phone_number}`}
+              />
+            )}
             {prospect.website_url && (
               <InfoRow
                 icon={<ExternalLink className="size-3.5" />}

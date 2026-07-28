@@ -135,6 +135,7 @@ export const prospects = pgTable(
     business_name: text().notNull(),
     platform: text().notNull(),
     handle: text(),
+    phone_number: text(),
     industry: text(),
     location: text(),
     country: text(),
