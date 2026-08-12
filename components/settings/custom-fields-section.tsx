@@ -32,7 +32,8 @@ const STANDARD_PLATFORM_LABELS: Record<string, string> = {
   email:     "Email",
   facebook:  "Facebook",
   linkedin:  "LinkedIn",
-  twitter:   "X / Twitter",
+  x:         "X",
+  call:      "Call",
   other:     "Other",
 }
 

@@ -1,4 +1,4 @@
-import { AtSign, Globe } from "lucide-react"
+import { AtSign, Globe, Phone } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { Platform } from "@/db/schema"
@@ -12,20 +12,22 @@ const GlobeIcon = Globe as unknown as IconComponent
 //stroke style so the CRM keeps consistent iconography.
 const makeIcon =
   (children: React.ReactNode, { fill = false }: { fill?: boolean } = {}): IconComponent =>
-  (props) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill={fill ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      {children}
-    </svg>
-  )
+  function BrandIcon(props) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill={fill ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        {children}
+      </svg>
+    )
+  }
 
 const InstagramIcon = makeIcon(
   <>
@@ -59,7 +61,8 @@ const PLATFORM_META: Record<string, { label: string; icon: IconComponent }> = {
   email: { label: "Email", icon: AtSign as unknown as IconComponent },
   facebook: { label: "Facebook", icon: FacebookIcon },
   linkedin: { label: "LinkedIn", icon: LinkedInIcon },
-  twitter: { label: "X / Twitter", icon: XMark },
+  x: { label: "X", icon: XMark },
+  call: { label: "Call", icon: Phone as unknown as IconComponent },
   other: { label: "Other", icon: GlobeIcon },
 }
 

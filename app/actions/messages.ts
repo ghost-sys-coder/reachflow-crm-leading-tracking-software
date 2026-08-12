@@ -43,6 +43,43 @@ export async function saveMessage(
   return ok(data as Message)
 }
 
+export async function recordSentOutreach(
+  input: MessageCreateInput,
+): Promise<ActionResult<Message>> {
+  const parsed = messageCreateSchema.safeParse(input)
+  if (!parsed.success) return fail(zodErrorMessage(parsed.error))
+
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  if (ctx.role === "viewer") return fail("Insufficient permissions")
+
+  const sentAt = new Date().toISOString()
+  const { data, error: insertError } = await ctx.supabase
+    .from("messages")
+    .insert({
+      ...parsed.data,
+      user_id: ctx.userId,
+      org_id: ctx.orgId,
+      was_sent: true,
+      sent_at: sentAt,
+    })
+    .select()
+    .single()
+  if (insertError) return fail(insertError.message)
+
+  await ctx.supabase
+    .from("prospects")
+    .update({ last_contacted_at: sentAt })
+    .eq("id", parsed.data.prospect_id)
+    .eq("org_id", ctx.orgId)
+
+  void logActivity({ orgId: ctx.orgId, prospectId: parsed.data.prospect_id, userId: ctx.userId, action: "outreach_sent", newValue: parsed.data.message_type })
+  revalidatePath("/prospects", "layout")
+  revalidatePath("/pipeline")
+  revalidatePath("/messages")
+  return ok(data as Message)
+}
+
 export async function markMessageAsSent(id: string): Promise<ActionResult<Message>> {
   const { supabase, user } = await getAuthedClient()
   if (!user) return fail("Not authenticated")

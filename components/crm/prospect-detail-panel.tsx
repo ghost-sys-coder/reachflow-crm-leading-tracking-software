@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteProspectButton } from "@/components/crm/delete-prospect-button"
 import { EditProspectDialog } from "@/components/crm/edit-prospect-dialog"
 import { GeneratorPanel } from "@/components/crm/generator-panel"
+import { OutreachComposer } from "@/components/crm/outreach-composer"
 import { getPlatformLabel, PlatformIcon } from "@/components/crm/platform-icon"
 import { ProspectNotes } from "@/components/crm/prospect-notes"
 import { ActivityTimeline } from "@/components/crm/activity-timeline"
@@ -168,8 +169,8 @@ function DetailBody({
             <SheetDescription className="flex flex-wrap items-center gap-2">
               <StatusBadge status={status} />
               {prospect.industry && <span className="text-xs">{prospect.industry}</span>}
-              {prospect.location && (
-                <span className="text-xs text-muted-foreground">· {prospect.location}</span>
+              {(prospect.location || prospect.state || prospect.country) && (
+                <span className="text-xs text-muted-foreground">· {[prospect.location, prospect.state, prospect.country].filter(Boolean).join(", ")}</span>
               )}
             </SheetDescription>
           </div>
@@ -256,11 +257,11 @@ function DetailBody({
                 linkHref={prospect.website_url}
               />
             )}
-            {prospect.location && (
+            {(prospect.location || prospect.state || prospect.country) && (
               <InfoRow
                 icon={<MapPin className="size-3.5" />}
                 label="Location"
-                value={prospect.location}
+                value={[prospect.location, prospect.state, prospect.country].filter(Boolean).join(", ")}
               />
             )}
           </dl>
@@ -375,13 +376,14 @@ function DetailBody({
 
         <section className="space-y-3">
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-            Messages
+            Outreach history
           </h3>
+          <OutreachComposer prospectId={prospect.id} platform={prospect.platform} />
           <GeneratorPanel
             prospectId={prospect.id}
             messages={[...prospect.messages].sort(
               (a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+                new Date(a.sent_at ?? a.created_at).getTime() - new Date(b.sent_at ?? b.created_at).getTime(),
             )}
             agencyReady={agencyReady}
             prospect={{

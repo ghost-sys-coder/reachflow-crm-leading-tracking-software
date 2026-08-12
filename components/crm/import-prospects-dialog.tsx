@@ -29,11 +29,12 @@ const SKIP = "__skip__"
 
 const IMPORT_FIELDS = [
   { key: "business_name", label: "Business name", required: true },
-  { key: "platform",      label: "Platform",       required: true,  hint: "instagram · email · facebook · linkedin · twitter · other" },
+  { key: "platform",      label: "Platform",       required: true,  hint: "instagram · email · facebook · linkedin · x · call · other" },
   { key: "handle",        label: "Handle",          required: false },
   { key: "industry",      label: "Industry",        required: false },
-  { key: "location",      label: "Location",        required: false },
   { key: "country",       label: "Country",         required: false, hint: "Full name or ISO code (e.g. United States, US)" },
+  { key: "state",         label: "State / province", required: false },
+  { key: "location",      label: "Location",        required: false },
   { key: "website_url",   label: "Website URL",     required: false },
   { key: "status",        label: "Status",          required: false, hint: "sent · waiting · replied · booked · closed · dead" },
   { key: "notes",         label: "Notes",           required: false },
@@ -52,9 +53,9 @@ type ParsedFile = {
 type Step = "idle" | "mapping" | "importing" | "done"
 
 const CSV_TEMPLATE = [
-  "business_name,platform,handle,industry,location,country,website_url,status,notes",
-  "Acme Corp,instagram,@acmecorp,Marketing,New York,United States,https://acme.com,sent,Found via referral",
-  "Beta Studio,linkedin,betastudio,Design,Toronto,Canada,,waiting,",
+  "business_name,platform,handle,industry,country,state,location,website_url,status,notes",
+  "Acme Corp,instagram,@acmecorp,Marketing,United States,New York,New York City,https://acme.com,sent,Found via referral",
+  "Beta Studio,linkedin,betastudio,Design,Canada,Ontario,Toronto,,waiting,",
 ].join("\r\n")
 
 const TEMPLATE_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(CSV_TEMPLATE)}`

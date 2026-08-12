@@ -1,120 +1,33 @@
 import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+import { Check } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Reveal } from "@/components/landing/reveal"
 
-type Plan = {
-  name: string
-  description: string
-  price: string
-  period: string | null
-  features: string[]
-  cta: string
-  ctaHref: string
-  highlighted: boolean
-}
-
-const PLANS: Plan[] = [
-  {
-    name: "Starter",
-    description: "Perfect for individuals and small startups.",
-    price: "$49",
-    period: "/mo",
-    features: ["500 leads/mo", "Basic automation", "Email support"],
-    cta: "Get Started",
-    ctaHref: "/sign-up",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    description: "Advanced features for growing teams.",
-    price: "$129",
-    period: "/mo",
-    features: [
-      "2,500 leads/mo",
-      "Multi-channel sequences",
-      "CRM integration",
-      "Priority support",
-    ],
-    cta: "Start Free Trial",
-    ctaHref: "/sign-up",
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    description: "Dedicated solutions for large-scale operations.",
-    price: "Custom",
-    period: null,
-    features: [
-      "Unlimited leads",
-      "Dedicated account manager",
-      "Custom API access",
-      "White-labeling",
-    ],
-    cta: "Contact Sales",
-    ctaHref: "#contact",
-    highlighted: false,
-  },
+const PLANS = [
+  { name: "Starter", price: "$49", note: "For a focused solo operator", features: ["500 prospects / month", "Core outreach pipeline", "Message history", "Email support"] },
+  { name: "Pro", price: "$129", note: "For teams building momentum", featured: true, features: ["2,500 prospects / month", "Multi-channel sequences", "Team assignments", "Priority support"] },
+  { name: "Enterprise", price: "Let’s talk", note: "For larger outreach operations", features: ["Unlimited prospects", "Dedicated onboarding", "Custom integrations", "White-label controls"] },
 ]
 
 export function LandingPricing() {
   return (
-    <section id="pricing" className="bg-muted/20 py-20">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-            Transparent Pricing for Every Stage
-          </h2>
-          <p className="mx-auto max-w-xl text-muted-foreground">
-            Choose the plan that fits your agency&apos;s growth trajectory. No hidden fees.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-3">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative flex flex-col rounded-2xl border bg-card p-8 transition-all ${
-                plan.highlighted
-                  ? "z-10 scale-[1.05] border-2 border-primary shadow-xl shadow-primary/10"
-                  : "border-border hover:border-primary/30"
-              }`}
-            >
-              {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
-                  Most Popular
-                </div>
-              )}
-
-              <div className="mb-8">
-                <h3 className="mb-2 text-lg font-bold">{plan.name}</h3>
-                <p className="mb-6 text-sm text-muted-foreground">{plan.description}</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold">{plan.price}</span>
-                  {plan.period && (
-                    <span className="text-muted-foreground">{plan.period}</span>
-                  )}
-                </div>
-              </div>
-
-              <ul className="mb-8 flex-1 space-y-4">
-                {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-2 text-sm text-muted-foreground"
-                  >
-                    <CheckCircle2 className="size-5 shrink-0 text-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <Link href={plan.ctaHref}>
-                <Button className="w-full" variant={plan.highlighted ? "default" : "outline"}>
-                  {plan.cta}
-                </Button>
-              </Link>
-            </div>
+    <section id="pricing" className="border-b border-[#e8e8e4] bg-[#fbfbf8] py-28 text-[#171715] sm:py-36">
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+        <Reveal className="grid gap-8 border-b border-[#dcdcd6] pb-14 lg:grid-cols-2">
+          <h2 className="max-w-xl text-balance font-[Georgia,serif] text-4xl leading-[1.02] font-semibold tracking-[-0.045em] sm:text-6xl">Simple pricing for a serious outreach process.</h2>
+          <p className="max-w-md self-end text-base leading-7 text-[#696963] lg:justify-self-end">Start small, keep the full history, and move up when your team needs more volume.</p>
+        </Reveal>
+        <div className="grid lg:grid-cols-3">
+          {PLANS.map((plan, index) => (
+            <Reveal key={plan.name} delay={index * .06} className="h-full">
+              <article className={`flex h-full flex-col border-b border-[#dcdcd6] py-10 lg:border-b-0 lg:p-10 ${index ? "lg:border-l" : "lg:pl-0"}`}>
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">{plan.name}</h3>{plan.featured && <span className="bg-[#171715] px-2 py-1 text-[9px] tracking-wider text-white uppercase">Recommended</span>}</div>
+                <p className="mt-8 font-mono text-3xl tracking-[-0.05em]">{plan.price}</p>
+                <p className="mt-3 min-h-10 text-xs text-[#777770]">{plan.note}</p>
+                <ul className="mt-9 flex-1 space-y-4 border-t border-[#e4e4df] pt-7">{plan.features.map(feature => <li key={feature} className="flex gap-3 text-sm text-[#555550]"><Check className="mt-0.5 size-3.5 text-[#356df3]" />{feature}</li>)}</ul>
+                <Link href="/sign-up" className={`mt-10 inline-flex h-10 items-center justify-center border px-5 text-sm font-medium transition ${plan.featured ? "border-[#171715] bg-[#171715] text-white hover:border-[#356df3] hover:bg-[#356df3]" : "border-[#cfcfc8] hover:border-[#171715]"}`}>{plan.name === "Enterprise" ? "Contact us" : "Get started"}</Link>
+              </article>
+            </Reveal>
           ))}
         </div>
       </div>

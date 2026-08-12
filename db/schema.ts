@@ -18,10 +18,19 @@ const authUsers = authSchema.table("users", {
   id: uuid("id").primaryKey(),
 })
 
-export const PLATFORMS = ["instagram", "email", "facebook", "linkedin", "twitter", "other"] as const
+export const PLATFORMS = ["instagram", "email", "facebook", "linkedin", "x", "call", "other"] as const
 export const PROSPECT_STATUSES = ["sent", "waiting", "replied", "booked", "closed", "dead"] as const
 export const CAMPAIGN_STATUSES = ["draft", "active", "paused", "completed", "archived"] as const
-export const MESSAGE_TYPES = ["instagram_dm", "cold_email", "follow_up", "custom"] as const
+export const MESSAGE_TYPES = [
+  "instagram_dm",
+  "cold_email",
+  "facebook_message",
+  "linkedin_message",
+  "x_message",
+  "call_note",
+  "follow_up",
+  "custom",
+] as const
 export const THEMES = ["default", "midnight", "sunset"] as const
 export const MEMBER_ROLES = ["admin", "editor", "viewer"] as const
 export const NOTIFICATION_TYPES = ["prospect_assigned", "status_changed", "follow_up_due"] as const
@@ -140,6 +149,7 @@ export const prospects = pgTable(
     phone_number: text(),
     industry: text(),
     location: text(),
+    state: text(),
     country: text(),
     website_url: text(),
     status: text().notNull().default("sent"),
@@ -240,7 +250,7 @@ export const messages = pgTable(
     index("messages_user_idx").on(table.user_id),
     check(
       "messages_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -281,7 +291,7 @@ export const messageTemplates = pgTable(
     index("message_templates_org_idx").on(table.org_id),
     check(
       "message_templates_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -304,7 +314,7 @@ export const generationLogs = pgTable(
     index("generation_logs_org_created_idx").on(table.org_id, table.created_at),
     check(
       "generation_logs_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -378,7 +388,7 @@ export const sequenceSteps = pgTable(
   (table) => [
     index("sequence_steps_seq_idx").on(table.sequence_id),
     unique("sequence_steps_seq_step_uq").on(table.sequence_id, table.step_number),
-    check("sequence_steps_type_valid", sql`${table.message_type} IN ('instagram_dm','cold_email','follow_up','custom')`),
+    check("sequence_steps_type_valid", sql`${table.message_type} IN ('instagram_dm','cold_email','facebook_message','linkedin_message','x_message','call_note','follow_up','custom')`),
     check("sequence_steps_delay_check", sql`${table.delay_days} >= 0`),
     check("sequence_steps_step_check", sql`${table.step_number} >= 1`),
   ],

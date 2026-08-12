@@ -1,61 +1,25 @@
-import { Gem, Globe, Layers, Rocket, Shield, Star } from "lucide-react"
+import { Reveal } from "@/components/landing/reveal"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-
-const BRANDS = [
-  { icon: Globe, name: "NEXUS" },
-  { icon: Gem, name: "ELITE" },
-  { icon: Rocket, name: "ORBIT" },
-  { icon: Shield, name: "AEGIS" },
-  { icon: Layers, name: "VELOCITY" },
-]
+const METRICS = [["37%", "more replies"], ["12.4 hrs", "saved each week"], ["2.8×", "faster follow-up"], ["0", "lost conversations"]]
 
 export function LandingSocialProofV2() {
   return (
-    <section className="overflow-hidden bg-muted/30 py-20">
-      <div className="mx-auto max-w-7xl px-6">
-        <p className="mb-12 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Trusted by 500+ High-Growth Agencies
-        </p>
-
-        {/* Brand logos */}
-        <div className="mb-20 flex flex-wrap items-center justify-center gap-12 opacity-50">
-          {BRANDS.map(({ icon: Icon, name }) => (
-            <div
-              key={name}
-              className="flex items-center gap-2 grayscale transition-all hover:grayscale-0"
-            >
-              <Icon className="size-7" />
-              <span className="text-xl font-bold">{name}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Testimonial */}
-        <div className="mx-auto max-w-4xl rounded-2xl border border-border bg-card p-12 shadow-sm">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-6 flex gap-1 text-amber-400">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="size-5 fill-current" />
-              ))}
-            </div>
-            <blockquote className="mb-8 text-xl font-semibold italic leading-snug text-foreground md:text-2xl">
-              &ldquo;ReachFlow changed the game for our outbound strategy. We&apos;ve seen a 40%
-              increase in meeting bookings within the first 60 days of switching.&rdquo;
-            </blockquote>
-            <div className="flex items-center gap-4">
-              <Avatar>
-                <AvatarFallback className="bg-primary/10 font-semibold text-primary">
-                  DC
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-left">
-                <p className="font-semibold text-foreground">David Chen</p>
-                <p className="text-xs text-muted-foreground">Founder, ScalePath Agency</p>
-              </div>
-            </div>
+    <section id="results" className="overflow-hidden border-b border-[#e8e8e4] bg-white py-28 text-[#171715] sm:py-36">
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-[#356df3] uppercase">Built for consistent execution</p>
+          <blockquote className="mt-7 text-balance font-[Georgia,serif] text-3xl leading-[1.15] font-semibold tracking-[-0.035em] sm:text-5xl">
+            “Our team stopped asking what happened with a lead. The full story is already there.”
+          </blockquote>
+          <p className="mt-6 text-sm text-[#696963]">Nadia Okafor · Growth lead at Northline Studio</p>
+        </Reveal>
+        <Reveal delay={0.08} className="relative mt-24 border-y border-[#dcdcd6] py-16">
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(to_top,#edf3ff,transparent)]" aria-hidden />
+          <div className="relative grid grid-cols-2 gap-y-12 lg:grid-cols-4">
+            {METRICS.map(([value, label], index) => <div key={label} className={index ? "border-l border-[#dcdcd6] pl-6 sm:pl-10" : "sm:pl-2"}><p className="font-mono text-3xl tracking-[-0.05em] sm:text-5xl">{value}</p><p className="mt-3 text-xs text-[#707069]">{label}</p></div>)}
           </div>
-        </div>
+          <svg viewBox="0 0 1000 180" className="relative mt-16 h-auto w-full" aria-hidden><path d="M0 168 C210 165 265 145 405 126 S655 93 1000 2" fill="none" stroke="#356df3" strokeWidth="2" /><path d="M0 168 C210 165 265 145 405 126 S655 93 1000 2 L1000 180 L0 180 Z" fill="url(#blueFade)" opacity=".5"/><defs><linearGradient id="blueFade" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#dfe9ff"/><stop offset="1" stopColor="#fff"/></linearGradient></defs></svg>
+        </Reveal>
       </div>
     </section>
   )

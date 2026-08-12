@@ -1,75 +1,39 @@
-import { CheckCircle2, Inbox, RefreshCcw, TrendingUp } from "lucide-react"
+import { ArrowUpRight, MessagesSquare, Radar, Workflow } from "lucide-react"
 
-type Feature = {
-  icon: React.ElementType
-  colorClass: string
-  title: string
-  body: string
-  bullets: string[]
-}
+import { Reveal } from "@/components/landing/reveal"
 
-const FEATURES: Feature[] = [
-  {
-    icon: RefreshCcw,
-    colorClass:
-      "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground",
-    title: "Automated Sequences",
-    body: "Design multi-channel outreach workflows that adapt based on lead behavior. Higher response rates, zero manual work.",
-    bullets: ["A/B testing functionality", "Conditional logic branching"],
-  },
-  {
-    icon: TrendingUp,
-    colorClass:
-      "bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white",
-    title: "Smart Lead Tracking",
-    body: "See every email open, link click, and document view in real-time. Know exactly when your leads are ready to talk.",
-    bullets: ["Real-time intent scoring", "IP-based company tracking"],
-  },
-  {
-    icon: Inbox,
-    colorClass:
-      "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white",
-    title: "Integrated Inbox",
-    body: "Manage all replies from every campaign in one unified, distraction-free dashboard. Stop switching tabs.",
-    bullets: ["Unified lead history", "One-click CRM sync"],
-  },
+const FEATURES = [
+  { icon: Workflow, number: "01", title: "Build the workflow once", body: "Move prospects through a clear pipeline and schedule the next touch without rebuilding your process every week." },
+  { icon: Radar, number: "02", title: "Know who needs attention", body: "See every prospect, status, owner, location, and last contact date before a warm lead goes quiet." },
+  { icon: MessagesSquare, number: "03", title: "Keep the whole conversation", body: "Record email, Instagram, LinkedIn, Facebook, X, calls, and custom outreach in one chronological history." },
 ]
 
 export function LandingFeaturesV2() {
   return (
-    <section id="features" className="bg-background py-20">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-            Engineered for High-Performance Teams
-          </h2>
-          <p className="mx-auto max-w-xl text-muted-foreground">
-            Everything you need to automate your outreach without losing the human touch.
+    <section id="features" className="border-b border-[#e8e8e4] bg-[#fbfbf8] py-28 text-[#171715] sm:py-36">
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+        <Reveal className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-[#356df3] uppercase">Everything in one place</p>
+            <h2 className="mt-5 max-w-md text-balance font-[Georgia,serif] text-4xl leading-[1.02] font-semibold tracking-[-0.04em] sm:text-6xl">
+              A quieter way to run outbound.
+            </h2>
+          </div>
+          <p className="max-w-xl self-end text-base leading-7 text-[#666660] sm:text-lg">
+            Replace scattered spreadsheets, message drafts, and follow-up reminders with a workspace your whole team can understand at a glance.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, colorClass, title, body, bullets }) => (
-            <div
-              key={title}
-              className="group rounded-xl border border-border bg-card p-10 transition-all hover:border-primary/50"
-            >
-              <div
-                className={`mb-6 flex size-12 items-center justify-center rounded-lg transition-colors ${colorClass}`}
-              >
-                <Icon className="size-6" />
-              </div>
-              <h3 className="mb-3 text-lg font-semibold">{title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
-              <ul className="mt-6 space-y-3">
-                {bullets.map((bullet) => (
-                  <li key={bullet} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="size-4 shrink-0 text-green-500" />
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="mt-20 border-t border-[#dcdcd6]">
+          {FEATURES.map(({ icon: Icon, number, title, body }, index) => (
+            <Reveal key={title} delay={index * 0.06}>
+              <article className="group grid gap-6 border-b border-[#dcdcd6] py-10 sm:grid-cols-[5rem_4rem_1fr_1fr] sm:items-start sm:gap-8">
+                <span className="font-mono text-xs text-[#92928b]">{number}</span>
+                <Icon className="size-6 stroke-[1.5] text-[#356df3]" />
+                <h3 className="text-xl font-semibold tracking-[-0.025em] sm:text-2xl">{title}</h3>
+                <div className="flex gap-6"><p className="max-w-md text-sm leading-6 text-[#696963]">{body}</p><ArrowUpRight className="mt-1 size-4 shrink-0 text-[#9b9b94] transition group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#356df3]" /></div>
+              </article>
+            </Reveal>
           ))}
         </div>
       </div>

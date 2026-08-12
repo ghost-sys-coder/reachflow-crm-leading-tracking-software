@@ -15,7 +15,6 @@ import { createNotification } from "@/app/actions/notifications"
 import { logActivity } from "@/lib/activity/log"
 import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
-  PLATFORMS,
   PROSPECT_STATUSES,
   prospectCreateSchema,
   prospectStatusUpdateSchema,
@@ -67,7 +66,7 @@ export async function createProspect(
   if (!ctx) return fail(orgError)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
 
-  const { campaign_ids = [], ...prospectData } = parsed.data
+  const { campaign_ids = [], initial_message, ...prospectData } = parsed.data
   const campaignCheck = await validateCampaignIds(campaign_ids, ctx.orgId, ctx.supabase)
   if (campaignCheck.error) return fail(campaignCheck.error)
 
@@ -91,6 +90,25 @@ export async function createProspect(
       return fail(membershipError.message)
     }
   }
+  if (initial_message) {
+    const sentAt = new Date().toISOString()
+    const messageType = messageTypeForPlatform(prospectData.platform)
+    const { error: messageError } = await ctx.supabase.from("messages").insert({
+      org_id: ctx.orgId,
+      prospect_id: (data as Prospect).id,
+      user_id: ctx.userId,
+      message_type: messageType,
+      content: initial_message,
+      was_sent: true,
+      sent_at: sentAt,
+    })
+    if (messageError) {
+      await ctx.supabase.from("prospects").delete().eq("id", (data as Prospect).id)
+      return fail(messageError.message)
+    }
+    await ctx.supabase.from("prospects").update({ last_contacted_at: sentAt }).eq("id", (data as Prospect).id)
+    void logActivity({ orgId: ctx.orgId, prospectId: (data as Prospect).id, userId: ctx.userId, action: "outreach_sent", newValue: messageType })
+  }
   void logActivity({
     orgId: ctx.orgId,
     prospectId: (data as Prospect).id,
@@ -100,6 +118,17 @@ export async function createProspect(
   })
   revalidateProspectViews()
   return ok(data as Prospect)
+}
+
+function messageTypeForPlatform(platform: string) {
+  return ({
+    instagram: "instagram_dm",
+    email: "cold_email",
+    facebook: "facebook_message",
+    linkedin: "linkedin_message",
+    x: "x_message",
+    call: "call_note",
+  } as Record<string, string>)[platform] ?? "custom"
 }
 
 export async function updateProspect(
@@ -405,6 +434,7 @@ export type CsvImportRow = {
   handle?: string
   industry?: string
   location?: string
+  state?: string
   country?: string
   website_url?: string
   status?: string
@@ -423,7 +453,8 @@ function normalizePlatform(raw: string | undefined): string {
     ig: "instagram", instagram: "instagram",
     fb: "facebook", facebook: "facebook",
     li: "linkedin", linkedin: "linkedin",
-    tw: "twitter", twitter: "twitter",
+    tw: "x", twitter: "x", x: "x",
+    call: "call", phone: "call",
     email: "email", mail: "email",
     other: "other",
   }
@@ -457,6 +488,7 @@ export async function importProspects(
       handle: raw.handle || undefined,
       industry: raw.industry || undefined,
       location: raw.location || undefined,
+      state: raw.state || undefined,
       country: normalizeCountry(raw.country),
       website_url: raw.website_url || undefined,
       status: normalizeStatus(raw.status),
@@ -522,12 +554,14 @@ export async function exportProspects(filters: ExportFilters): Promise<ActionRes
     v ? new Date(v).toISOString().split("T")[0] : null
 
   const csv = toCsv(
-    ["Business name", "Platform", "Handle", "Industry", "Location", "Website", "Status", "Notes", "Follow up", "Last contacted", "Added on"],
+    ["Business name", "Platform", "Handle", "Industry", "Country", "State", "Location", "Website", "Status", "Notes", "Follow up", "Last contacted", "Added on"],
     rows.map((p) => [
       p.business_name,
       p.platform,
       p.handle,
       p.industry,
+      p.country,
+      p.state,
       p.location,
       p.website_url,
       p.status,

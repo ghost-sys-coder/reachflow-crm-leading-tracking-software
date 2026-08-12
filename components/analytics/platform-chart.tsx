@@ -6,7 +6,8 @@ const PLATFORM_LABELS: Record<string, string> = {
   email:     "Email",
   facebook:  "Facebook",
   linkedin:  "LinkedIn",
-  twitter:   "Twitter",
+  x:         "X",
+  call:      "Call",
   other:     "Other",
 }
 

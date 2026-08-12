@@ -45,8 +45,8 @@ const STATUS_STYLES: Record<Prospect["status"], string> = {
 
 export function PipelinePreview() {
   return (
-    <div className="relative w-full max-w-xl animate-slide-up">
-      <div className="absolute -top-4 -right-4 z-10 hidden w-60 rounded-lg border border-border bg-card p-3 shadow-lg md:block">
+    <div className="relative mx-auto w-full max-w-3xl">
+      <div className="absolute -top-4 -right-4 z-10 hidden w-60 border border-[#dcdcd6] bg-white p-3 shadow-[0_12px_30px_rgba(28,28,24,.09)] md:block">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Sparkles className="size-3 text-primary" />
           AI generated
@@ -57,7 +57,7 @@ export function PipelinePreview() {
         </p>
       </div>
 
-      <div className="relative rounded-xl border border-border bg-card p-4 shadow-xl">
+      <div className="relative border border-[#e0e0da] bg-white p-4 shadow-[0_18px_50px_rgba(28,28,24,.08)]">
         <header className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold">Pipeline</p>

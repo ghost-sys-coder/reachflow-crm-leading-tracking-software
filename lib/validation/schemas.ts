@@ -33,13 +33,14 @@ const optionalUrl = z
   .optional()
   .transform((v) => (v === "" ? undefined : v))
 
-export const prospectCreateSchema = z.object({
+const prospectFieldsSchema = z.object({
   business_name: z.string().trim().min(1, "Business name is required").max(200),
   platform: platformSchema,
   handle: optionalTrimmedString(200),
   phone_number: optionalTrimmedString(30),
   industry: optionalTrimmedString(100),
   location: optionalTrimmedString(200),
+  state: optionalTrimmedString(100),
   country: optionalTrimmedString(100),
   website_url: optionalUrl,
   status: prospectStatusSchema.default("sent"),
@@ -48,7 +49,11 @@ export const prospectCreateSchema = z.object({
   campaign_ids: z.array(z.string().uuid()).max(50).optional(),
 })
 
-export const prospectUpdateSchema = prospectCreateSchema.partial()
+export const prospectCreateSchema = prospectFieldsSchema.extend({
+  initial_message: optionalTrimmedString(5000),
+})
+
+export const prospectUpdateSchema = prospectFieldsSchema.partial()
 
 export const prospectStatusUpdateSchema = z.object({
   status: prospectStatusSchema,
@@ -111,9 +116,11 @@ export const agencyProfileUpdateSchema = z.object({
     .transform((v) => (v && v.length > 0 ? v : undefined)),
 })
 
+const generatableMessageTypeSchema = z.enum(["instagram_dm", "cold_email", "follow_up", "custom"])
+
 export const generateMessageSchema = z.object({
   prospectId: z.string().uuid(),
-  messageType: messageTypeSchema,
+  messageType: generatableMessageTypeSchema,
   customInstructions: z.string().trim().max(2000).optional(),
 })
 

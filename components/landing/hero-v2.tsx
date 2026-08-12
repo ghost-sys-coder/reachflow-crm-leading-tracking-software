@@ -1,88 +1,43 @@
 import Link from "next/link"
-import { PlayCircle, Zap } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { PipelinePreview } from "@/components/landing/pipeline-preview"
+import { Reveal } from "@/components/landing/reveal"
 
 export function LandingHeroV2() {
   return (
-    <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-gray-950 py-24 text-white">
-      {/* Grid dot pattern */}
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-40"
-        style={{
-          backgroundImage: "radial-gradient(rgba(79, 70, 229, 0.15) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-      {/* Ambient glow – top right */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-1/4 -right-1/4 h-full w-full rounded-full"
-        style={{
-          filter: "blur(100px)",
-          background:
-            "radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(138,76,252,0.1) 50%, transparent 100%)",
-        }}
-      />
-      {/* Ambient glow – bottom left */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-1/4 -left-1/4 h-full w-full rounded-full"
-        style={{
-          filter: "blur(100px)",
-          background:
-            "radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(138,76,252,0.1) 50%, transparent 100%)",
-        }}
-      />
+    <section className="overflow-hidden border-b border-[#e8e8e4] bg-[#fbfbf8] pt-24 text-[#171715] sm:pt-32">
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+        <Reveal className="mx-auto max-w-4xl text-center">
+          <p className="mb-6 text-[11px] font-semibold tracking-[0.2em] text-[#6b6b65] uppercase">
+            Outreach operations for ambitious agencies
+          </p>
+          <h1 className="text-balance font-[Georgia,serif] text-[3.25rem] leading-[0.96] font-semibold tracking-[-0.055em] sm:text-7xl lg:text-[5.7rem]">
+            Turn cold outreach into a repeatable growth system.
+          </h1>
+          <p className="mx-auto mt-7 max-w-2xl text-pretty text-base leading-7 text-[#62625c] sm:text-lg">
+            ReachFlow keeps prospecting, personalized messages, follow-ups, and every conversation in one calm workspace.
+          </p>
+          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href="/sign-up" className="inline-flex h-11 items-center gap-2 bg-[#171715] px-6 text-sm font-medium text-white transition hover:bg-[#356df3] active:translate-y-px">
+              Start for free <ArrowRight className="size-4" />
+            </Link>
+            <Link href="#features" className="text-sm font-medium text-[#353532] underline decoration-[#b8b8b2] underline-offset-4 transition hover:decoration-[#171715]">
+              See how it works
+            </Link>
+          </div>
+        </Reveal>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 text-center">
-        {/* Announcement badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-4 py-2 backdrop-blur-sm">
-          <Zap className="size-3.5 text-indigo-300" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
-            New: AI Sequence Optimization
-          </span>
-        </div>
-
-        {/* Headline */}
-        <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold tracking-tight md:text-[64px] md:leading-18">
-          Turn <span className="text-violet-400">Cold Leads</span> into Warm Conversations.
-        </h1>
-
-        {/* Subtext */}
-        <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-gray-400 md:text-xl">
-          The only outbound platform that combines high-performance automation with deep technical
-          lead tracking to scale your agency&apos;s revenue.
-        </p>
-
-        {/* CTAs */}
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/sign-up">
-            <Button size="lg" className="w-full px-8 shadow-lg shadow-primary/20 sm:w-auto">
-              Start Your Free Trial
-            </Button>
-          </Link>
-          <Link href="#features">
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full border-white/20 bg-white/5 px-8 text-white backdrop-blur-sm hover:bg-white/10 hover:text-white sm:w-auto"
-            >
-              <PlayCircle className="size-4" />
-              Watch Demo
-            </Button>
-          </Link>
-        </div>
-
-        {/* Dashboard mockup */}
-        <div className="group relative mt-20">
-          <div className="absolute -inset-1 rounded-xl bg-linear-to-r from-primary to-secondary opacity-25 blur transition duration-1000 group-hover:opacity-40" />
-          <div className="relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gray-900 p-8 shadow-2xl">
+        <Reveal delay={0.12} className="relative mx-auto mt-20 max-w-5xl pb-1 sm:mt-24">
+          <div className="absolute inset-x-[8%] bottom-0 h-36 bg-[#dfe9ff] blur-3xl" aria-hidden />
+          <div className="relative border border-[#deded8] bg-white p-3 shadow-[0_30px_80px_rgba(28,28,24,0.12)] sm:p-7">
+            <div className="mb-5 flex items-center justify-between border-b border-[#ecece8] pb-4">
+              <div className="flex gap-1.5"><span className="size-2 rounded-full bg-[#dadad4]" /><span className="size-2 rounded-full bg-[#dadad4]" /><span className="size-2 rounded-full bg-[#dadad4]" /></div>
+              <span className="font-mono text-[10px] tracking-wider text-[#8a8a83] uppercase">Live pipeline</span>
+            </div>
             <PipelinePreview />
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )

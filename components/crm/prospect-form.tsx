@@ -71,12 +71,14 @@ type FormValues = {
   phone_number?: string
   industry?: string
   location?: string
+  state?: string
   country?: string
   website_url?: string
   status: ProspectCreateInput["status"]
   notes?: string
   follow_up_at?: Date
   campaign_ids?: string[]
+  initial_message?: string
 }
 
 function prospectToFormValues(prospect?: ProspectFormProspect): FormValues {
@@ -87,6 +89,7 @@ function prospectToFormValues(prospect?: ProspectFormProspect): FormValues {
     phone_number: prospect?.phone_number ?? undefined,
     industry: prospect?.industry ?? undefined,
     location: prospect?.location ?? undefined,
+    state: prospect?.state ?? undefined,
     country: prospect?.country ?? undefined,
     website_url: prospect?.website_url ?? undefined,
     status: (prospect?.status ?? "sent") as FormValues["status"],
@@ -136,6 +139,7 @@ export function ProspectForm({
   } = form
   const [countries, setCountries] = React.useState(FALLBACK_COUNTRIES)
   const selectedCountryName = useWatch({ control, name: "country" })
+  const selectedPlatform = useWatch({ control, name: "platform" })
 
   React.useEffect(() => {
     let cancelled = false
@@ -244,7 +248,7 @@ export function ProspectForm({
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-2">
         <div className="grid gap-2">
           <Label htmlFor="platform">
             Platform <span className="text-destructive">*</span>
@@ -317,10 +321,6 @@ export function ProspectForm({
           />
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="location">Location</Label>
-          <Input id="location" placeholder="Tucson, AZ" {...register("location")} />
-        </div>
       </div>
 
       <div className="grid gap-2">
@@ -338,6 +338,17 @@ export function ProspectForm({
             />
           )}
         />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-2">
+          <Label htmlFor="state">State / province</Label>
+          <Input id="state" placeholder="Optional" {...register("state")} />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="location">Location</Label>
+          <Input id="location" placeholder="City or locality" {...register("location")} />
+        </div>
       </div>
 
       <div className="grid gap-2">
@@ -408,6 +419,22 @@ export function ProspectForm({
           {...register("notes")}
         />
       </div>
+      {!prospect && (
+        <div className="grid gap-2">
+          <Label htmlFor="initial_message">
+            {selectedPlatform === "call" ? "Initial call notes" : "Initial sent message"}
+          </Label>
+          <Textarea
+            id="initial_message"
+            rows={4}
+            placeholder="Optional. Record the outreach already sent to this prospect."
+            {...register("initial_message")}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Saved as the first completed outreach entry.
+          </p>
+        </div>
+      )}
       </div>
 
       <div className="-mx-4 -mb-4 mt-2 flex items-center justify-end gap-2 rounded-b-xl border-t bg-muted/50 px-4 py-3">
