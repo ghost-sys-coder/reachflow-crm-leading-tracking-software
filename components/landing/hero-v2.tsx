@@ -1,12 +1,12 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
-import { PipelinePreview } from "@/components/landing/pipeline-preview"
+import { ProductPreviewStack } from "@/components/landing/product-preview-stack"
 import { Reveal } from "@/components/landing/reveal"
 
 export function LandingHeroV2() {
   return (
-    <section className="overflow-hidden border-b border-[#e8e8e4] bg-[#fbfbf8] pt-24 text-[#171715] sm:pt-32">
+    <section className="overflow-x-clip border-b border-[#e8e8e4] bg-[#fbfbf8] pt-24 text-[#171715] sm:pt-32">
       <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
         <Reveal className="mx-auto max-w-4xl text-center">
           <p className="mb-6 text-[11px] font-semibold tracking-[0.2em] text-[#6b6b65] uppercase">
@@ -28,16 +28,7 @@ export function LandingHeroV2() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.12} className="relative mx-auto mt-20 max-w-5xl pb-1 sm:mt-24">
-          <div className="absolute inset-x-[8%] bottom-0 h-36 bg-[#dfe9ff] blur-3xl" aria-hidden />
-          <div className="relative border border-[#deded8] bg-white p-3 shadow-[0_30px_80px_rgba(28,28,24,0.12)] sm:p-7">
-            <div className="mb-5 flex items-center justify-between border-b border-[#ecece8] pb-4">
-              <div className="flex gap-1.5"><span className="size-2 rounded-full bg-[#dadad4]" /><span className="size-2 rounded-full bg-[#dadad4]" /><span className="size-2 rounded-full bg-[#dadad4]" /></div>
-              <span className="font-mono text-[10px] tracking-wider text-[#8a8a83] uppercase">Live pipeline</span>
-            </div>
-            <PipelinePreview />
-          </div>
-        </Reveal>
+        <ProductPreviewStack />
       </div>
     </section>
   )
