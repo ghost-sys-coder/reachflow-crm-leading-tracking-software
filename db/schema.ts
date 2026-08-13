@@ -489,6 +489,26 @@ export const orgCustomPlatforms = pgTable(
   ],
 )
 
+export const roadmapFeatureProgress = pgTable(
+  "roadmap_feature_progress",
+  {
+    feature_key: text().primaryKey(),
+    is_completed: boolean().notNull().default(false),
+    implementation_notes: text().notNull().default(""),
+    completed_at: timestamp({ withTimezone: true }),
+    completed_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    completed_by_email: text(),
+    notes_updated_at: timestamp({ withTimezone: true }),
+    notes_updated_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+    notes_updated_by_email: text(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("roadmap_feature_progress_completed_idx").on(table.is_completed),
+  ],
+)
+
 // relations
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({

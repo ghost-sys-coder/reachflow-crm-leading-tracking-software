@@ -13,6 +13,7 @@ import type {
   prospectSequenceSteps,
   prospectTags,
   prospects,
+  roadmapFeatureProgress,
   sequences,
   sequenceSteps,
   tags,
@@ -97,6 +98,9 @@ export type NewNotification = typeof notifications.$inferInsert
 
 export type ActivityLog = typeof activityLog.$inferSelect
 export type NewActivityLog = typeof activityLog.$inferInsert
+
+export type RoadmapFeatureProgress = typeof roadmapFeatureProgress.$inferSelect
+export type NewRoadmapFeatureProgress = typeof roadmapFeatureProgress.$inferInsert
 
 export type Sequence = typeof sequences.$inferSelect
 export type NewSequence = typeof sequences.$inferInsert

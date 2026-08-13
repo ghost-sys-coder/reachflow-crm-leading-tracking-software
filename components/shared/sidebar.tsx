@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   BarChart3,
   LayoutGrid,
+  Map,
   Megaphone,
   MessagesSquare,
   Palette,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { isRoadmapAuthorizedEmail } from "@/lib/roadmap/access"
 import { BrandMark } from "@/components/shared/brand-mark"
 
 type NavItem = {
@@ -50,6 +52,9 @@ export function SidebarNav({
 }) {
   const pathname = usePathname()
   const initials = (userName ?? userEmail).slice(0, 2).toUpperCase()
+  const navItems: NavItem[] = isRoadmapAuthorizedEmail(userEmail)
+    ? [...NAV_ITEMS, { label: "Roadmap", href: "/roadmap", icon: Map }]
+    : NAV_ITEMS
 
   return (
     <div className="flex h-full flex-col gap-6 border-r border-border bg-card">
@@ -60,7 +65,7 @@ export function SidebarNav({
       </div>
 
       <nav className="flex-1 space-y-0.5 px-2" aria-label="Primary">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = item.match
             ? item.match(pathname)
             : pathname === item.href || pathname.startsWith(`${item.href}/`)
