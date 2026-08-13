@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation"
 import {
   BarChart3,
   CalendarCheck,
+  CircleDollarSign,
+  Gauge,
   LayoutGrid,
   Map,
   Megaphone,
@@ -52,6 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Pipeline", href: "/pipeline", icon: LayoutGrid },
       { label: "Prospects", href: "/prospects", icon: Users },
       { label: "Campaigns", href: "/campaigns", icon: Megaphone },
+      { label: "Deals", href: "/deals", icon: CircleDollarSign },
     ],
   },
   {
@@ -67,6 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Design system", href: "/design-system", icon: Palette },
       { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Lead scoring", href: "/scoring", icon: Gauge },
     ],
   },
 ]
