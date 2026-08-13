@@ -25,6 +25,7 @@ import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms, getCustomFieldDefinitions, getProspectCustomFieldValues } from "@/app/actions/custom-fields"
 import { ProspectCustomFields } from "@/components/crm/prospect-custom-fields"
+import { ProspectRevenueIntelligence } from "@/components/crm/prospect-revenue-intelligence"
 import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { cn } from "@/lib/utils"
@@ -61,6 +62,10 @@ export default async function ProspectDetailPage({
   if (prospectResult.error || !prospectResult.data) notFound()
 
   const prospect = prospectResult.data
+  const revenueData = orgCtxResult.ctx ? await Promise.all([
+    orgCtxResult.ctx.supabase.from("prospect_attributions").select("*").eq("prospect_id", id).eq("org_id", orgCtxResult.ctx.orgId).order("captured_at", { ascending: false }),
+    orgCtxResult.ctx.supabase.from("prospect_scores").select("score,band,breakdown,calculated_at").eq("prospect_id", id).eq("org_id", orgCtxResult.ctx.orgId).maybeSingle(),
+  ]) : null
   const allTags = tagsResult.data ?? []
   const teamMembers: TeamMember[] = membersResult.data ?? []
   const industryOptions = (industriesResult.data ?? []).map((i) => i.name)
@@ -253,6 +258,15 @@ export default async function ProspectDetailPage({
 
         {/* Right column */}
         <div className="space-y-8">
+          <ProspectRevenueIntelligence
+            prospectId={prospect.id}
+            attributions={(revenueData?.[0].data ?? []) as Parameters<typeof ProspectRevenueIntelligence>[0]["attributions"]}
+            score={(revenueData?.[1].data ?? null) as Parameters<typeof ProspectRevenueIntelligence>[0]["score"]}
+            canEdit={orgCtxResult.ctx?.role !== "viewer"}
+          />
+
+          <Separator />
+
           {/* Assignment */}
           <section className="space-y-3">
             <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">

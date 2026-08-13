@@ -13,6 +13,7 @@ import { prospectAssignedEmailHtml } from "@/lib/email/templates/prospect-assign
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { createNotification } from "@/app/actions/notifications"
 import { logActivity } from "@/lib/activity/log"
+import { recalculateProspectScore } from "@/lib/scoring/calculate"
 import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
   PROSPECT_STATUSES,
@@ -116,6 +117,7 @@ export async function createProspect(
     action: "prospect_created",
     newValue: (data as Prospect).business_name,
   })
+  await recalculateProspectScore(ctx, (data as Prospect).id)
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -184,6 +186,7 @@ export async function updateProspect(
     userId: ctx.userId,
     action: isNotesOnly ? "note_updated" : "prospect_updated",
   })
+  await recalculateProspectScore(ctx, id)
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -260,6 +263,7 @@ export async function updateProspectStatus(
   if (parsed.data.status === "replied" || parsed.data.status === "booked") {
     void cancelActiveSequencesForProspect(id)
   }
+  await recalculateProspectScore(ctx, id)
 
   revalidateProspectViews()
   return ok(data as Prospect)

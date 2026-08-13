@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { recalculateOrganizationScores, recalculateProspectScore } from "@/lib/scoring/calculate"
 
 export async function createDeal(formData: FormData): Promise<void> {
   const { ctx, error } = await getAuthedOrgClient()
@@ -35,7 +36,13 @@ export async function addAttribution(formData: FormData): Promise<void> {
   const { ctx } = await getAuthedOrgClient(); if (!ctx || ctx.role === "viewer") return
   const prospectId=String(formData.get("prospect_id")); const sourceName=String(formData.get("source_name")??"").trim(); if(!sourceName)return
   const { error: e }=await ctx.supabase.from("prospect_attributions").insert({org_id:ctx.orgId,prospect_id:prospectId,provider:String(formData.get("provider")??"manual"),source_name:sourceName,campaign_name:String(formData.get("campaign_name")??"")||null,utm_source:String(formData.get("utm_source")??"")||null,utm_medium:String(formData.get("utm_medium")??"")||null,utm_campaign:String(formData.get("utm_campaign")??"")||null,landing_page:String(formData.get("landing_page")??"")||null,created_by:ctx.userId})
-  if(!e) revalidatePath(`/prospects/${prospectId}`)
+  if(!e) { await recalculateProspectScore(ctx, prospectId); revalidatePath(`/prospects/${prospectId}`); revalidatePath("/prospects") }
+}
+
+export async function recalculateScore(formData: FormData): Promise<void> {
+  const {ctx}=await getAuthedOrgClient(); if(!ctx||ctx.role==="viewer")return
+  const prospectId=String(formData.get("prospect_id")??""); if(!prospectId)return
+  await recalculateProspectScore(ctx,prospectId); revalidatePath(`/prospects/${prospectId}`); revalidatePath("/prospects")
 }
 
 export async function createScoringRule(formData: FormData): Promise<void> {
@@ -44,5 +51,5 @@ export async function createScoringRule(formData: FormData): Promise<void> {
   if(!model){const result=await ctx.supabase.from("lead_score_models").insert({org_id:ctx.orgId,created_by:ctx.userId}).select("id").single();model=result.data}
   if(!model)return
   const points=Number(formData.get("points")); const {error:e}=await ctx.supabase.from("lead_score_rules").insert({org_id:ctx.orgId,model_id:model.id,name:String(formData.get("name")),field:String(formData.get("field")),operator:String(formData.get("operator")),comparison_value:String(formData.get("comparison_value")??"")||null,points})
-  if(!e) revalidatePath("/scoring")
+  if(!e) { await recalculateOrganizationScores(ctx); revalidatePath("/scoring"); revalidatePath("/prospects", "layout") }
 }
