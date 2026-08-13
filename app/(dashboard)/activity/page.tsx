@@ -119,10 +119,10 @@ export default async function ActivityPage() {
           No activity recorded yet. Actions on prospects will appear here.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-xl border border-border/70 bg-card shadow-[0_18px_45px_-34px_oklch(0.25_0.04_260/0.5)]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/50">
+              <tr className="border-b border-border/70">
                 <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase">
                   Action
                 </th>

@@ -143,7 +143,7 @@ export default async function ProspectsPage({
   const hasFilters = Boolean(status || platform || search || assignedToMe)
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 max-w-full space-y-6 overflow-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Prospects</h2>
@@ -151,7 +151,7 @@ export default async function ProspectsPage({
             Every contact in your outreach pipeline.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <ExportProspectsButton filters={{ status, platform, search, assignedToMe }} />
           <ImportProspectsDialog />
           <AddProspectDialog industryOptions={industryOptions} customPlatforms={customPlatforms} campaignOptions={campaignOptions} />
@@ -172,6 +172,7 @@ export default async function ProspectsPage({
             activeAssignedToMe={assignedToMe}
           />
 
+          <div className="w-full min-w-0 max-w-full overflow-hidden">
           <Suspense fallback={<ProspectListSkeleton />}>
             {prospects.length === 0 ? (
               <EmptyState
@@ -188,6 +189,7 @@ export default async function ProspectsPage({
               />
             )}
           </Suspense>
+          </div>
 
           <p className="text-center text-xs text-muted-foreground">
             Showing {prospects.length} of {all.length} prospects

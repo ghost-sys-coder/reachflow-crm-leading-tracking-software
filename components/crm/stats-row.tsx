@@ -24,14 +24,14 @@ export function StatsRow({ total, replyRate, booked, thisWeek }: StatsRowProps) 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((s) => (
-        <Card key={s.label} size="sm">
-          <CardContent className="flex items-center justify-between">
+        <Card key={s.label} size="sm" data-dashboard-stat>
+          <CardContent className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className="pt-1 text-2xl font-semibold tracking-tight">{s.value}</p>
+              <p className="pt-1 text-3xl font-semibold tracking-tight tabular-nums">{s.value}</p>
             </div>
-            <span className="inline-flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <s.icon className="size-4" />
+            <span className="dashboard-stat-icon inline-flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+              <s.icon className="size-5" />
             </span>
           </CardContent>
         </Card>

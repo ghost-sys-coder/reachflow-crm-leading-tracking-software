@@ -36,15 +36,15 @@ export function KpiCards({ data }: { data: AnalyticsData }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {kpis.map((k) => (
-        <Card key={k.label} size="sm">
+        <Card key={k.label} size="sm" data-dashboard-stat>
           <CardContent className="flex items-start justify-between">
             <div>
               <p className="text-xs text-muted-foreground">{k.label}</p>
-              <p className="pt-1 text-2xl font-semibold tracking-tight">{k.value}</p>
+              <p className="pt-1 text-3xl font-semibold tracking-tight tabular-nums">{k.value}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{k.sub}</p>
             </div>
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <k.icon className="size-4" />
+            <span className="dashboard-stat-icon inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+              <k.icon className="size-5" />
             </span>
           </CardContent>
         </Card>

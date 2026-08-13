@@ -48,7 +48,7 @@ export function Topbar({
   const title = resolveTitle(pathname, orgName)
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
       <Sheet>
         <SheetTrigger asChild>
           <Button
@@ -71,7 +71,7 @@ export function Topbar({
         </SheetContent>
       </Sheet>
 
-      <h1 className="text-sm font-medium">{title}</h1>
+      <div><p className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">Workspace</p><h1 className="mt-0.5 text-base font-semibold tracking-tight">{title}</h1></div>
 
       <div className="ml-auto flex items-center gap-2">
         <ThemeSwitcher />

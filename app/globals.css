@@ -299,3 +299,78 @@
     opacity: 0.15;
   }
 }
+
+@layer components {
+  .dashboard-shell {
+    background-image:
+      radial-gradient(circle at 78% 0%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 26rem),
+      linear-gradient(145deg, color-mix(in oklab, var(--muted) 72%, var(--background)), var(--background));
+  }
+
+  .dashboard-shell [data-slot="card"] {
+    border: 1px solid color-mix(in oklab, var(--border) 74%, transparent);
+    box-shadow:
+      0 1px 1px color-mix(in oklab, var(--foreground) 4%, transparent),
+      0 16px 38px -30px color-mix(in oklab, var(--foreground) 38%, transparent);
+  }
+
+  .dashboard-shell [data-slot="card"]:hover {
+    border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+    box-shadow:
+      0 1px 1px color-mix(in oklab, var(--foreground) 4%, transparent),
+      0 22px 48px -32px color-mix(in oklab, var(--foreground) 46%, transparent);
+  }
+
+  .dashboard-shell [data-dashboard-stat] {
+    position: relative;
+    isolation: isolate;
+    min-height: 6.5rem;
+  }
+
+  .dashboard-shell [data-dashboard-stat]::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background: radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 48%);
+    pointer-events: none;
+  }
+
+  .dashboard-shell table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .dashboard-shell table thead {
+    background: color-mix(in oklab, var(--muted) 68%, var(--card));
+  }
+
+  .dashboard-shell table thead th {
+    height: 3.25rem;
+    color: color-mix(in oklab, var(--muted-foreground) 88%, var(--foreground));
+  }
+
+  .dashboard-shell table tbody tr {
+    background: var(--card);
+    transition: background-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .dashboard-shell table tbody tr:hover {
+    position: relative;
+    z-index: 1;
+    background: color-mix(in oklab, var(--primary) 4%, var(--card));
+    box-shadow: inset 3px 0 0 color-mix(in oklab, var(--primary) 76%, transparent);
+  }
+
+  .dashboard-shell table tbody td {
+    height: 4rem;
+  }
+
+  .dashboard-shell table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 0.75rem;
+  }
+
+  .dashboard-shell table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 0.75rem;
+  }
+}

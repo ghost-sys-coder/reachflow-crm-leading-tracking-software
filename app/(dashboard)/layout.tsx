@@ -50,22 +50,22 @@ export default async function DashboardLayout({
           }
         `}</style>
       )}
-      <div className="flex h-dvh overflow-hidden">
+      <div className="dashboard-shell flex h-dvh gap-3 overflow-hidden bg-muted/45 p-3 lg:gap-4 lg:p-4">
         <DesktopSidebar
           userEmail={userEmail}
           userName={userName}
           orgName={orgName ?? undefined}
           orgLogoUrl={orgLogoUrl ?? undefined}
         />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex w-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
           <Topbar
             userEmail={userEmail}
             userName={userName}
             orgName={orgName ?? undefined}
             orgLogoUrl={orgLogoUrl ?? undefined}
           />
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
+          <main id="main-content" className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/65">
+            <div className="mx-auto w-full min-w-0 max-w-7xl overflow-hidden p-4 sm:p-6 lg:p-8 xl:p-10">{children}</div>
           </main>
         </div>
       </div>

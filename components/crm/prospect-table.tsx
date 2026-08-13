@@ -92,9 +92,9 @@ export function ProspectTable({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="w-full min-w-0 max-w-full space-y-2 overflow-hidden">
       {isAdmin && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-4 py-2.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/50 px-4 py-2.5">
           <span className="text-sm font-medium">
             {selectedIds.size} selected
           </span>
@@ -130,10 +130,10 @@ export function ProspectTable({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full min-w-160 text-sm">
+      <div className="block w-0 min-w-full max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-xl border border-border/70 bg-card shadow-[0_18px_45px_-34px_oklch(0.25_0.04_260/0.5)] [scrollbar-gutter:stable]">
+        <table className="w-full min-w-[46rem] text-sm lg:min-w-[58rem]">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
+            <tr className="border-b border-border/70">
               {isAdmin && (
                 <th className="w-10 px-3 py-2.5">
                   <input
@@ -239,7 +239,7 @@ function ProspectTableRow({
 
   return (
     <tr
-      className="group/row bg-card transition-colors hover:bg-muted/30 data-[selected=true]:bg-primary/5"
+      className="group/row transition-colors data-[selected=true]:bg-primary/5"
       data-selected={isSelected}
     >
       {isAdmin && (
@@ -262,8 +262,8 @@ function ProspectTableRow({
           href={`/prospects/${prospect.id}`}
           className="flex items-center gap-2.5 focus-visible:outline-none"
         >
-          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
-            <PlatformIcon platform={platform} className="size-3.5" />
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/10">
+            <PlatformIcon platform={platform} className="size-4" />
           </span>
           <span className="truncate font-medium text-foreground group-hover/row:text-primary">
             {prospect.business_name}
