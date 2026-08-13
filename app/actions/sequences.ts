@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { canContactProspect } from "@/lib/compliance/can-contact"
 import { fail, ok } from "@/lib/validation/result"
 import { MESSAGE_TYPES } from "@/db/schema"
 import type {
@@ -139,6 +140,8 @@ export async function enrollProspect(
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx) return fail(error)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
+  const permission = await canContactProspect(ctx, prospectId)
+  if (!permission.allowed) return fail(permission.reason ?? "This prospect cannot be enrolled")
 
   // Block if already active
   const { data: existing } = await ctx.supabase

@@ -6,6 +6,7 @@ import { getAuthedClient } from "@/lib/auth/session"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { logActivity } from "@/lib/activity/log"
+import { canContactProspect } from "@/lib/compliance/can-contact"
 import {
   messageCreateSchema,
   callRecordSchema,
@@ -56,6 +57,8 @@ export async function recordSentOutreach(
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx) return fail(error)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
+  const permission = await canContactProspect(ctx, parsed.data.prospect_id)
+  if (!permission.allowed) return fail(permission.reason ?? "This prospect cannot be contacted")
 
   const sentAt = new Date().toISOString()
   const { data, error: insertError } = await ctx.supabase
@@ -91,6 +94,8 @@ export async function recordCall(input: CallRecordInput): Promise<ActionResult<M
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx) return fail(error)
   if (ctx.role === "viewer") return fail("Insufficient permissions")
+  const permission = await canContactProspect(ctx, parsed.data.prospect_id)
+  if (!permission.allowed) return fail(permission.reason ?? "This prospect cannot be contacted")
 
   const occurredAt = parsed.data.recorded_at?.toISOString() ?? new Date().toISOString()
   const callbackAt = parsed.data.callback_at?.toISOString() ?? null
@@ -189,10 +194,14 @@ function revalidateOutreachViews() {
 }
 
 export async function markMessageAsSent(id: string): Promise<ActionResult<Message>> {
-  const { supabase, user } = await getAuthedClient()
-  if (!user) return fail("Not authenticated")
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  const { data: pending } = await ctx.supabase.from("messages").select("prospect_id").eq("id",id).eq("org_id",ctx.orgId).maybeSingle()
+  if (!pending) return fail("Message not found")
+  const permission = await canContactProspect(ctx,pending.prospect_id)
+  if (!permission.allowed) return fail(permission.reason ?? "This prospect cannot be contacted")
 
-  const { data, error: updateError } = await supabase
+  const { data, error: updateError } = await ctx.supabase
     .from("messages")
     .update({ was_sent: true, sent_at: new Date().toISOString() })
     .eq("id", id)
@@ -203,7 +212,7 @@ export async function markMessageAsSent(id: string): Promise<ActionResult<Messag
 
   //also bump the parent prospect's last_contacted_at
   if (data) {
-    await supabase
+    await ctx.supabase
       .from("prospects")
       .update({ last_contacted_at: new Date().toISOString() })
       .eq("id", data.prospect_id)
@@ -211,7 +220,7 @@ export async function markMessageAsSent(id: string): Promise<ActionResult<Messag
     void logActivity({
       orgId: (data as Message).org_id,
       prospectId: (data as Message).prospect_id,
-      userId: user.id,
+      userId: ctx.userId,
       action: "outreach_sent",
       newValue: (data as Message).message_type,
     })
