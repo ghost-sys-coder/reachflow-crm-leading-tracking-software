@@ -19,6 +19,7 @@ import {
   FileClock,
   DatabaseZap,
   Workflow,
+  Webhook,
   PanelLeftClose,
   PanelLeftOpen,
   Users,
@@ -75,6 +76,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Lead scoring", href: "/scoring", icon: Gauge },
       { label: "Data controls", href: "/data-controls", icon: DatabaseZap },
       { label: "Automations", href: "/automations", icon: Workflow },
+      { label: "Webhooks", href: "/webhooks", icon: Webhook },
     ],
   },
 ]
