@@ -8,6 +8,7 @@ import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { logActivity } from "@/lib/activity/log"
 import { canContactProspect } from "@/lib/compliance/can-contact"
 import { runAutomations } from "@/lib/automation/engine"
+import { publishWebhookEvent } from "@/lib/webhooks/publish"
 import {
   messageCreateSchema,
   callRecordSchema,
@@ -184,6 +185,7 @@ export async function recordReply(input: ReplyRecordInput): Promise<ActionResult
 
   void logActivity({ orgId: ctx.orgId, prospectId: parsed.data.prospect_id, userId: ctx.userId, action: "message_saved", newValue: `reply:${parsed.data.reply_intent}` })
   await runAutomations(ctx, "reply_recorded", parsed.data.prospect_id, `reply_recorded:${(data as Message).id}`)
+  await publishWebhookEvent(ctx,"reply.recorded",parsed.data.prospect_id,{reply:{id:(data as Message).id,intent:parsed.data.reply_intent,message_type:parsed.data.message_type,received_at:receivedAt},prospect_id:parsed.data.prospect_id},`reply.recorded:${(data as Message).id}`)
   revalidateOutreachViews()
   return ok(data as Message)
 }

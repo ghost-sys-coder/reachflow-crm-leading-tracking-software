@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { recalculateOrganizationScores, recalculateProspectScore } from "@/lib/scoring/calculate"
+import { publishWebhookEvent } from "@/lib/webhooks/publish"
 
 export async function createDeal(formData: FormData): Promise<void> {
   const { ctx, error } = await getAuthedOrgClient()
@@ -23,12 +24,13 @@ export async function moveDeal(formData: FormData): Promise<void> {
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx || ctx.role === "viewer") return
   const id = String(formData.get("id")); const stageId = String(formData.get("stage_id")); const reason = String(formData.get("lost_reason") ?? "").trim()
-  const [{ data: deal }, { data: stage }] = await Promise.all([ctx.supabase.from("deals").select("stage_id").eq("id",id).eq("org_id",ctx.orgId).single(),ctx.supabase.from("deal_stages").select("probability,is_closed,is_won").eq("id",stageId).eq("org_id",ctx.orgId).single()])
+  const [{ data: deal }, { data: stage }] = await Promise.all([ctx.supabase.from("deals").select("stage_id,prospect_id,name,value_cents,currency").eq("id",id).eq("org_id",ctx.orgId).single(),ctx.supabase.from("deal_stages").select("probability,is_closed,is_won").eq("id",stageId).eq("org_id",ctx.orgId).single()])
   if (!deal || !stage) return
   if (stage.is_closed && !stage.is_won && !reason) return
   const now = new Date().toISOString()
   const { error: updateError } = await ctx.supabase.from("deals").update({ stage_id: stageId, probability: stage.probability, won_at: stage.is_won ? now : null, lost_at: stage.is_closed && !stage.is_won ? now : null, lost_reason: stage.is_closed && !stage.is_won ? reason : null, updated_at: now }).eq("id",id).eq("org_id",ctx.orgId)
   if (!updateError) await ctx.supabase.from("deal_stage_history").insert({ org_id:ctx.orgId,deal_id:id,from_stage_id:deal.stage_id,to_stage_id:stageId,changed_by:ctx.userId,note:reason||null })
+  if(!updateError&&stage.is_won)await publishWebhookEvent(ctx,"deal.won",id,{deal:{id,name:deal.name,value_cents:deal.value_cents,currency:deal.currency,prospect_id:deal.prospect_id},won_at:now},`deal.won:${id}:${now}`)
   revalidatePath("/deals")
 }
 

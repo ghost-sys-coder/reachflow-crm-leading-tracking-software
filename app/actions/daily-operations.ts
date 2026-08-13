@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { publishWebhookEvent } from "@/lib/webhooks/publish"
 import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import type { ActionResult, Prospect, SavedView, Task } from "@/types/database"
 
@@ -72,7 +73,9 @@ export async function setTaskCompleted(id: string, completed: boolean): Promise<
   const parsed = z.string().uuid().safeParse(id); if (!parsed.success) return fail("Invalid task")
   const { ctx, error } = await getAuthedOrgClient(); if (!ctx) return fail(error); if (ctx.role === "viewer") return fail("Insufficient permissions")
   const { data, error: updateError } = await ctx.supabase.from("tasks").update({ status: completed ? "completed" : "open", completed_at: completed ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", id).eq("org_id", ctx.orgId).select().single()
-  if (updateError) return fail(updateError.message); revalidatePath("/tasks"); revalidatePath("/today"); return ok(data as Task)
+  if (updateError) return fail(updateError.message)
+  if(completed)await publishWebhookEvent(ctx,"task.completed",id,{task:{id,title:(data as Task).title,prospect_id:(data as Task).prospect_id},completed_at:(data as Task).completed_at},`task.completed:${id}:${(data as Task).completed_at}`)
+  revalidatePath("/tasks"); revalidatePath("/today"); return ok(data as Task)
 }
 
 export async function getSavedViews(): Promise<ActionResult<SavedView[]>> {

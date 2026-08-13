@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { encryptSecret, validateWebhookUrl } from "@/lib/webhooks/security"
 import { deliverWebhook } from "@/lib/webhooks/deliver"
+import { WEBHOOK_EVENT_TYPES } from "@/lib/webhooks/events"
 
 export type WebhookActionState = { success: boolean; message: string }
 const denied = (message = "Only workspace administrators can manage webhooks"): WebhookActionState => ({ success: false, message })
@@ -19,7 +20,8 @@ export async function createWebhookEndpoint(_previous: WebhookActionState, form:
   try {
     const url = await validateWebhookUrl(String(form.get("url") ?? ""))
     const secret = randomBytes(32).toString("hex")
-    const { error: insertError } = await ctx.supabase.from("webhook_endpoints").insert({ org_id: ctx.orgId, name, url, secret_ciphertext: encryptSecret(secret), subscribed_events: ["test.ping"], created_by: ctx.userId })
+    const subscriptions = form.getAll("events").map(String).filter(event => WEBHOOK_EVENT_TYPES.includes(event as typeof WEBHOOK_EVENT_TYPES[number]))
+    const { error: insertError } = await ctx.supabase.from("webhook_endpoints").insert({ org_id: ctx.orgId, name, url, secret_ciphertext: encryptSecret(secret), secret_last_four: secret.slice(-4), subscribed_events: ["test.ping",...subscriptions], created_by: ctx.userId })
     if (insertError) return denied(`Could not create endpoint: ${insertError.message}`)
     revalidatePath("/webhooks")
     return { success: true, message: `${name} was created successfully` }
@@ -27,6 +29,10 @@ export async function createWebhookEndpoint(_previous: WebhookActionState, form:
     return denied(cause instanceof Error ? cause.message : "Could not validate this webhook URL")
   }
 }
+
+export async function updateWebhookSubscriptions(_previous: WebhookActionState, form:FormData):Promise<WebhookActionState>{const{ctx,error}=await getAuthedOrgClient();if(!ctx)return denied(error);if(ctx.role!=="admin")return denied();const events=form.getAll("events").map(String).filter(event=>WEBHOOK_EVENT_TYPES.includes(event as typeof WEBHOOK_EVENT_TYPES[number]));const{error:e}=await ctx.supabase.from("webhook_endpoints").update({subscribed_events:["test.ping",...events],updated_at:new Date().toISOString()}).eq("id",String(form.get("id"))).eq("org_id",ctx.orgId);if(e)return denied(e.message);revalidatePath("/webhooks");return{success:true,message:"Event subscriptions updated"}}
+
+export async function rotateWebhookSecret(_previous:WebhookActionState,form:FormData):Promise<WebhookActionState>{const{ctx,error}=await getAuthedOrgClient();if(!ctx)return denied(error);if(ctx.role!=="admin")return denied();const id=String(form.get("id")),{data:endpoint}=await ctx.supabase.from("webhook_endpoints").select("secret_ciphertext").eq("id",id).eq("org_id",ctx.orgId).maybeSingle();if(!endpoint)return denied("Endpoint not found");const secret=randomBytes(32).toString("hex"),{error:e}=await ctx.supabase.from("webhook_endpoints").update({previous_secret_ciphertext:endpoint.secret_ciphertext,previous_secret_expires_at:new Date(Date.now()+24*3600_000).toISOString(),secret_ciphertext:encryptSecret(secret),secret_last_four:secret.slice(-4),updated_at:new Date().toISOString()}).eq("id",id).eq("org_id",ctx.orgId);if(e)return denied(e.message);revalidatePath("/webhooks");return{success:true,message:`Signing secret rotated. New secret: ${secret} — copy it now; it will not be shown again.`}}
 
 export async function sendTestWebhook(_previous: WebhookActionState, form: FormData): Promise<WebhookActionState> {
   const { ctx, error } = await getAuthedOrgClient(); if (!ctx) return denied(error); if (ctx.role !== "admin") return denied()

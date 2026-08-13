@@ -15,6 +15,7 @@ import { createNotification } from "@/app/actions/notifications"
 import { logActivity } from "@/lib/activity/log"
 import { recalculateProspectScore } from "@/lib/scoring/calculate"
 import { runAutomations } from "@/lib/automation/engine"
+import { publishWebhookEvent } from "@/lib/webhooks/publish"
 import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
   PROSPECT_STATUSES,
@@ -120,6 +121,7 @@ export async function createProspect(
   })
   await recalculateProspectScore(ctx, (data as Prospect).id)
   await runAutomations(ctx, "prospect_created", (data as Prospect).id, `prospect_created:${(data as Prospect).id}`)
+  await publishWebhookEvent(ctx,"prospect.created",(data as Prospect).id,{prospect:{id:(data as Prospect).id,business_name:(data as Prospect).business_name,platform:(data as Prospect).platform,status:(data as Prospect).status,industry:(data as Prospect).industry,location:(data as Prospect).location}},`prospect.created:${(data as Prospect).id}`)
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -267,6 +269,8 @@ export async function updateProspectStatus(
   }
   await recalculateProspectScore(ctx, id)
   await runAutomations(ctx, "status_changed", id, `status_changed:${id}:${parsed.data.status}:${Date.now()}`)
+  await publishWebhookEvent(ctx,"prospect.status_changed",id,{prospect:{id,business_name:(data as Prospect).business_name,status:(data as Prospect).status},previous_status:before?.status??null},`prospect.status_changed:${id}:${(data as Prospect).updated_at}`)
+  if(parsed.data.status==="booked")await publishWebhookEvent(ctx,"meeting.booked",id,{prospect:{id,business_name:(data as Prospect).business_name},booked_at:new Date().toISOString()},`meeting.booked:${id}:${(data as Prospect).updated_at}`)
 
   revalidateProspectViews()
   return ok(data as Prospect)
