@@ -105,3 +105,22 @@ export async function triggerSequenceRunner(): Promise<
     return fail(err instanceof Error ? err.message : "Failed to reach sequence-runner endpoint")
   }
 }
+
+export async function triggerWebhookRetry(): Promise<ActionResult<{ processed: number }>> {
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return fail(error)
+  if (ctx.role !== "admin") return fail("Only workspace administrators can run webhook retries")
+  const secret = process.env.CRON_SECRET
+  if (!secret) return fail("CRON_SECRET environment variable is not set")
+  const headersList = await headers()
+  const host = headersList.get("host") ?? "localhost:3000"
+  const proto = host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https"
+  try {
+    const response = await fetch(`${proto}://${host}/api/cron/webhook-retries`, { headers: { authorization: `Bearer ${secret}` }, cache: "no-store" })
+    const json = await response.json() as { processed?: number; error?: string }
+    if (!response.ok) return fail(json.error ?? `Cron request failed (${response.status})`)
+    return ok({ processed: json.processed ?? 0 })
+  } catch (cause) {
+    return fail(cause instanceof Error ? cause.message : "Failed to reach webhook retry endpoint")
+  }
+}

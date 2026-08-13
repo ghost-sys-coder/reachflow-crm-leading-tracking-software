@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 
 import { updateDigestPreference } from "@/app/actions/profile"
-import { triggerFollowUpDigest, triggerSequenceRunner } from "@/app/actions/cron"
+import { triggerFollowUpDigest, triggerSequenceRunner, triggerWebhookRetry } from "@/app/actions/cron"
 import type { Profile } from "@/types/database"
 
 type CronResult = { label: string; detail: string } | null
@@ -18,6 +18,8 @@ export function NotificationsSection({ profile }: { profile: Profile | null }) {
 
   const [seqPending, setSeqPending] = React.useState(false)
   const [seqResult, setSeqResult] = React.useState<CronResult>(null)
+  const [webhookPending, setWebhookPending] = React.useState(false)
+  const [webhookResult, setWebhookResult] = React.useState<CronResult>(null)
 
   async function handleToggle() {
     const next = !enabled
@@ -68,6 +70,21 @@ export function NotificationsSection({ profile }: { profile: Profile | null }) {
           : `${n} step${n !== 1 ? "s" : ""} processed and draft messages created.`
       toast.success("Sequence runner completed.")
       setSeqResult({ label: "Done", detail })
+    }
+  }
+
+  async function handleWebhookRetry() {
+    setWebhookPending(true)
+    setWebhookResult(null)
+    const result = await triggerWebhookRetry()
+    setWebhookPending(false)
+    if (result.error || !result.data) {
+      toast.error(result.error ?? "Unknown error")
+      setWebhookResult({ label: "Failed", detail: result.error ?? "Unknown error" })
+    } else {
+      const n = result.data.processed
+      toast.success("Webhook retry worker completed.")
+      setWebhookResult({ label: "Done", detail: n === 0 ? "No webhook deliveries were due." : `${n} webhook deliver${n === 1 ? "y" : "ies"} processed.` })
     }
   }
 
@@ -169,6 +186,15 @@ export function NotificationsSection({ profile }: { profile: Profile | null }) {
             >
               {seqPending ? "Running…" : "Run now"}
             </button>
+          </div>
+
+          <div className="flex items-start justify-between gap-4 p-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">Webhook retry worker</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Runs every five minutes through Supabase Cron · retries due webhook deliveries</p>
+              {webhookResult && <p className={`mt-1.5 text-[11px] font-medium ${webhookResult.label === "Failed" ? "text-destructive" : "text-success"}`}>{webhookResult.label}: {webhookResult.detail}</p>}
+            </div>
+            <button type="button" disabled={webhookPending} onClick={handleWebhookRetry} className="shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50">{webhookPending ? "Running…" : "Run now"}</button>
           </div>
         </div>
 
