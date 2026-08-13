@@ -130,12 +130,12 @@ export function ProspectTable({
         </div>
       )}
 
-      <div className="block w-0 min-w-full max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-xl border border-border/70 bg-card shadow-[0_18px_45px_-34px_oklch(0.25_0.04_260/0.5)] [scrollbar-gutter:stable]">
-        <table className="w-full min-w-[46rem] text-sm lg:min-w-[58rem]">
+      <div className="block w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-[0_18px_45px_-34px_oklch(0.25_0.04_260/0.5)]">
+        <table className="w-full table-fixed text-sm">
           <thead>
             <tr className="border-b border-border/70">
               {isAdmin && (
-                <th className="w-10 px-3 py-2.5">
+                <th className="w-9 px-2 py-2.5 sm:w-10 sm:px-3">
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -148,25 +148,25 @@ export function ProspectTable({
                   />
                 </th>
               )}
-              <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <th className="w-auto px-3 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase sm:px-4">
                 Business
               </th>
-              <th className="hidden px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase sm:table-cell">
+              <th className="hidden w-28 px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase lg:table-cell">
                 Platform
               </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <th className="w-24 px-2 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase sm:w-28 sm:px-4">
                 Status
               </th>
-              <th className="hidden px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase md:table-cell">
+              <th className="hidden w-40 px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase xl:table-cell">
                 Industry / Location
               </th>
-              <th className="hidden px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase lg:table-cell">
+              <th className="hidden w-36 px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase 2xl:table-cell">
                 Tags
               </th>
-              <th className="hidden px-4 py-2.5 text-right text-[11px] font-semibold tracking-wider text-muted-foreground uppercase xl:table-cell">
+              <th className="hidden w-28 px-4 py-2.5 text-right text-[11px] font-semibold tracking-wider text-muted-foreground uppercase 2xl:table-cell">
                 Last contacted
               </th>
-              <th className="px-4 py-2.5 text-right text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <th className="w-24 px-2 py-2.5 text-right text-[11px] font-semibold tracking-wider text-muted-foreground uppercase sm:w-32 sm:px-4">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -244,7 +244,7 @@ function ProspectTableRow({
     >
       {isAdmin && (
         <td
-          className="w-10 px-3 py-3"
+          className="w-9 px-2 py-3 sm:w-10 sm:px-3"
           onClick={(e) => e.stopPropagation()}
         >
           <input
@@ -257,12 +257,12 @@ function ProspectTableRow({
         </td>
       )}
 
-      <td className="max-w-50 px-4 py-3">
+      <td className="min-w-0 px-3 py-3 sm:px-4">
         <Link
           href={`/prospects/${prospect.id}`}
           className="flex items-center gap-2.5 focus-visible:outline-none"
         >
-          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/10">
+          <span className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/10 sm:inline-flex">
             <PlatformIcon platform={platform} className="size-4" />
           </span>
           <span className="truncate font-medium text-foreground group-hover/row:text-primary">
@@ -272,15 +272,15 @@ function ProspectTableRow({
         </Link>
       </td>
 
-      <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
+      <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
         {PLATFORM_LABELS[platform]}
       </td>
 
-      <td className="px-4 py-3">
+      <td className="overflow-hidden px-2 py-3 sm:px-4">
         <StatusBadge status={prospect.status as Parameters<typeof StatusBadge>[0]["status"]} />
       </td>
 
-      <td className="hidden max-w-45 px-4 py-3 text-muted-foreground md:table-cell">
+      <td className="hidden max-w-40 px-4 py-3 text-muted-foreground xl:table-cell">
         <p className="truncate text-xs">
           {[prospect.industry, prospect.location].filter(Boolean).join(" · ") ||
             prospect.handle ||
@@ -288,7 +288,7 @@ function ProspectTableRow({
         </p>
       </td>
 
-      <td className="hidden px-4 py-3 lg:table-cell">
+      <td className="hidden px-4 py-3 2xl:table-cell">
         {prospect.tags.length === 0 ? (
           <span className="text-xs text-muted-foreground">—</span>
         ) : (
@@ -305,13 +305,13 @@ function ProspectTableRow({
         )}
       </td>
 
-      <td className="hidden px-4 py-3 text-right text-xs text-muted-foreground xl:table-cell">
+      <td className="hidden px-4 py-3 text-right text-xs text-muted-foreground 2xl:table-cell">
         {lastContacted ?? "—"}
       </td>
 
-      <td className="px-4 py-3 text-right">
+      <td className="overflow-hidden px-2 py-3 text-right sm:px-4">
         <div
-          className="flex items-center justify-end gap-1"
+          className="flex min-w-0 items-center justify-end gap-0.5 sm:gap-1"
           onClick={(e) => e.stopPropagation()}
         >
           <GenerateSheet prospect={prospect} agencyReady={agencyReady} />
