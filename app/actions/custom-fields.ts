@@ -35,7 +35,13 @@ export async function getCustomFieldDefinitions(includeArchived = false): Promis
   let query = ctx.supabase.from("custom_field_definitions").select("*").eq("org_id", ctx.orgId)
   if (!includeArchived) query = query.eq("is_archived", false)
   const { data, error: dbError } = await query.order("display_order").order("created_at")
-  return dbError ? fail(dbError.message) : ok((data ?? []) as CustomFieldDefinition[])
+  if (dbError) return fail(dbError.message)
+  return ok((data ?? []).map((definition) => ({
+    ...definition,
+    field_type: definition.field_type === "select" ? "single_select" : definition.field_type,
+    options: Array.isArray(definition.options) ? definition.options : [],
+    validation: definition.validation && typeof definition.validation === "object" ? definition.validation : {},
+  })) as CustomFieldDefinition[])
 }
 
 export async function createCustomFieldDefinition(input: z.infer<typeof definitionSchema>): Promise<ActionResult<CustomFieldDefinition>> {
