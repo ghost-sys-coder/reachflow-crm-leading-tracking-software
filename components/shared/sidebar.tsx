@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   BarChart3,
+  CalendarCheck,
   LayoutGrid,
   Map,
   Megaphone,
@@ -11,6 +12,8 @@ import {
   Palette,
   ScrollText,
   Settings,
+  ListTodo,
+  FileClock,
   Users,
   type LucideIcon,
 } from "lucide-react"
@@ -27,12 +30,15 @@ type NavItem = {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { label: "Today",         href: "/today",         icon: CalendarCheck },
   { label: "Pipeline",      href: "/pipeline",      icon: LayoutGrid    },
   { label: "Prospects",     href: "/prospects",     icon: Users         },
   { label: "Campaigns",     href: "/campaigns",     icon: Megaphone     },
   { label: "Analytics",     href: "/analytics",     icon: BarChart3     },
   { label: "Messages",      href: "/messages",      icon: MessagesSquare },
   { label: "Activity",      href: "/activity",      icon: ScrollText    },
+  { label: "Tasks",         href: "/tasks",         icon: ListTodo      },
+  { label: "Imports",       href: "/imports",       icon: FileClock     },
   { label: "Design system", href: "/design-system", icon: Palette       },
   { label: "Settings",      href: "/settings",      icon: Settings      },
 ]

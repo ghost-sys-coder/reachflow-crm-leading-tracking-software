@@ -442,6 +442,7 @@ export type CsvImportRow = {
 }
 
 export type ImportResult = {
+  batchId: string
   imported: number
   errors: { row: number; reason: string }[]
 }
@@ -469,6 +470,7 @@ function normalizeStatus(raw: string | undefined): string {
 
 export async function importProspects(
   rows: CsvImportRow[],
+  metadata?: { filename?: string; mapping?: Record<string, string> },
 ): Promise<ActionResult<ImportResult>> {
   if (rows.length === 0) return fail("No rows to import")
   if (rows.length > 500) return fail("Maximum 500 rows per import")
@@ -478,7 +480,10 @@ export async function importProspects(
   if (ctx.role === "viewer") return fail("Insufficient permissions")
 
   const errors: { row: number; reason: string }[] = []
-  const valid: Array<{ org_id: string } & Record<string, unknown>> = []
+  const valid: Array<{ rowNumber: number; payload: { org_id: string } & Record<string, unknown> }> = []
+
+  const { data: batch, error: batchError } = await ctx.supabase.from("import_batches").insert({ org_id: ctx.orgId, created_by: ctx.userId, filename: metadata?.filename?.slice(0, 255) || "prospects.csv", mapping: metadata?.mapping ?? {}, total_rows: rows.length }).select().single()
+  if (batchError) return fail(batchError.message)
 
   for (let i = 0; i < rows.length; i++) {
     const raw = rows[i]
@@ -497,22 +502,53 @@ export async function importProspects(
     if (!parsed.success) {
       errors.push({ row: i + 2, reason: zodErrorMessage(parsed.error) })
     } else {
-      valid.push({ ...parsed.data, org_id: ctx.orgId })
+      valid.push({ rowNumber: i + 2, payload: { ...parsed.data, org_id: ctx.orgId } })
     }
   }
 
   if (valid.length > 0) {
     const CHUNK = 100
     for (let i = 0; i < valid.length; i += CHUNK) {
-      const { error: insertError } = await ctx.supabase
+      const { data: insertData, error: insertError } = await ctx.supabase
         .from("prospects")
-        .insert(valid.slice(i, i + CHUNK))
-      if (insertError) return fail(insertError.message)
+        .insert(valid.slice(i, i + CHUNK).map((item) => item.payload))
+        .select()
+      if (insertError) { await ctx.supabase.from("import_batches").update({ status: "failed", errors: [...errors, { row: i + 2, reason: insertError.message }] }).eq("id", batch.id); return fail(insertError.message) }
+      const chunk = valid.slice(i, i + CHUNK)
+      const inserted = insertData ?? []
+      const { error: ledgerError } = await ctx.supabase.from("import_batch_rows").insert(inserted.map((prospect, index) => ({ import_batch_id: batch.id, prospect_id: prospect.id, row_number: chunk[index].rowNumber, operation: "created", snapshot_after: prospect })))
+      if (ledgerError) return fail(ledgerError.message)
     }
     revalidateProspectViews()
   }
 
-  return ok({ imported: valid.length, errors })
+  await ctx.supabase.from("import_batches").update({ imported_rows: valid.length, failed_rows: errors.length, errors, status: "completed", completed_at: new Date().toISOString() }).eq("id", batch.id)
+  return ok({ batchId: batch.id, imported: valid.length, errors })
+}
+
+export async function getImportBatches(): Promise<ActionResult<import("@/types/database").ImportBatch[]>> {
+  const { ctx, error } = await getAuthedOrgClient(); if (!ctx) return fail(error)
+  const { data, error: dbError } = await ctx.supabase.from("import_batches").select("*").eq("org_id", ctx.orgId).order("created_at", { ascending: false })
+  return dbError ? fail(dbError.message) : ok((data ?? []) as import("@/types/database").ImportBatch[])
+}
+
+export async function rollbackImportBatch(batchId: string): Promise<ActionResult<{ deleted: number }>> {
+  const { ctx, error } = await getAuthedOrgClient(); if (!ctx) return fail(error); if (ctx.role !== "admin") return fail("Only admins can roll back imports")
+  const { data: batch, error: batchError } = await ctx.supabase.from("import_batches").select("*").eq("id", batchId).eq("org_id", ctx.orgId).eq("status", "completed").single()
+  if (batchError) return fail(batchError.message)
+  const { data: rows, error: rowsError } = await ctx.supabase.from("import_batch_rows").select("prospect_id, snapshot_after").eq("import_batch_id", batch.id).eq("operation", "created")
+  if (rowsError) return fail(rowsError.message)
+  let deleted = 0
+  for (const row of rows ?? []) {
+    if (!row.prospect_id) continue
+    const snapshot = row.snapshot_after as { updated_at?: string } | null
+    const { data: current } = await ctx.supabase.from("prospects").select("updated_at").eq("id", row.prospect_id).eq("org_id", ctx.orgId).maybeSingle()
+    if (!current || !snapshot?.updated_at || new Date(current.updated_at).getTime() !== new Date(snapshot.updated_at).getTime()) continue
+    const { error: deleteError } = await ctx.supabase.from("prospects").delete().eq("id", row.prospect_id).eq("org_id", ctx.orgId)
+    if (!deleteError) deleted++
+  }
+  await ctx.supabase.from("import_batches").update({ status: "rolled_back", rolled_back_at: new Date().toISOString(), rolled_back_by: ctx.userId }).eq("id", batch.id)
+  revalidateProspectViews(); revalidatePath("/imports"); return ok({ deleted })
 }
 
 export type ExportFilters = {

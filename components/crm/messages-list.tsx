@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { PlatformIcon } from "@/components/crm/platform-icon"
+import { MessageEventMeta } from "@/components/crm/message-event-meta"
 import {
   MESSAGE_TYPE_ICONS,
   MESSAGE_TYPE_LABELS,
@@ -168,6 +169,8 @@ function MessageCard({ message }: { message: MessageWithProspect }) {
       {message.subject && (
         <p className="mt-3 text-sm font-medium">{message.subject}</p>
       )}
+
+      <div className="mt-3"><MessageEventMeta message={message} /></div>
 
       {/* Content preview */}
       <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-foreground/80">

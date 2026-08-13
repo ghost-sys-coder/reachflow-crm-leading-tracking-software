@@ -26,6 +26,8 @@ import {
   type CustomFieldItem,
 } from "@/app/actions/custom-fields"
 import { PLATFORMS } from "@/db/schema"
+import { TypedCustomFields } from "@/components/settings/typed-custom-fields"
+import type { CustomFieldDefinition } from "@/types/database"
 
 const STANDARD_PLATFORM_LABELS: Record<string, string> = {
   instagram: "Instagram",
@@ -142,9 +144,11 @@ function FieldList({
 export function CustomFieldsSection({
   initialIndustries,
   initialCustomPlatforms,
+  initialDefinitions,
 }: {
   initialIndustries: CustomFieldItem[]
   initialCustomPlatforms: CustomFieldItem[]
+  initialDefinitions: CustomFieldDefinition[]
 }) {
   const [industries, setIndustries] = React.useState(initialIndustries)
   const [customPlatforms, setCustomPlatforms] = React.useState(initialCustomPlatforms)
@@ -188,6 +192,9 @@ export function CustomFieldsSection({
 
   return (
     <div className="space-y-6">
+      <TypedCustomFields initialDefinitions={initialDefinitions} />
+
+      <Separator />
       <FieldList
         label="Industries"
         description="Define the industries your team targets. These appear as options in the prospect form."

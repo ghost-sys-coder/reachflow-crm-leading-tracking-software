@@ -4,6 +4,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgSchema,
   pgTable,
   primaryKey,
@@ -31,6 +32,9 @@ export const MESSAGE_TYPES = [
   "follow_up",
   "custom",
 ] as const
+export const MESSAGE_DIRECTIONS = ["outbound", "inbound"] as const
+export const CALL_OUTCOMES = ["connected", "no_answer", "voicemail", "callback_requested", "wrong_number", "disqualified"] as const
+export const REPLY_INTENTS = ["interested", "not_now", "not_interested", "question", "wrong_contact", "disqualified"] as const
 export const THEMES = ["default", "midnight", "sunset"] as const
 export const MEMBER_ROLES = ["admin", "editor", "viewer"] as const
 export const NOTIFICATION_TYPES = ["prospect_assigned", "status_changed", "follow_up_due"] as const
@@ -48,6 +52,9 @@ export type Platform = (typeof PLATFORMS)[number]
 export type ProspectStatus = (typeof PROSPECT_STATUSES)[number]
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number]
 export type MessageType = (typeof MESSAGE_TYPES)[number]
+export type MessageDirection = (typeof MESSAGE_DIRECTIONS)[number]
+export type CallOutcome = (typeof CALL_OUTCOMES)[number]
+export type ReplyIntent = (typeof REPLY_INTENTS)[number]
 export type ThemePreference = (typeof THEMES)[number]
 export type MemberRole = (typeof MEMBER_ROLES)[number]
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
@@ -156,6 +163,8 @@ export const prospects = pgTable(
     notes: text(),
     assigned_to: uuid().references(() => profiles.id, { onDelete: "set null" }),
     follow_up_at: timestamp({ withTimezone: true }),
+    snoozed_until: timestamp({ withTimezone: true }),
+    snooze_reason: text(),
     last_contacted_at: timestamp({ withTimezone: true }),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -240,6 +249,14 @@ export const messages = pgTable(
     message_type: text().notNull(),
     content: text().notNull(),
     subject: text(),
+    direction: text().notNull().default("outbound"),
+    call_outcome: text(),
+    call_duration_seconds: integer(),
+    callback_at: timestamp({ withTimezone: true }),
+    next_action: text(),
+    reply_intent: text(),
+    objection_code: text(),
+    recorded_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     was_sent: boolean().notNull().default(false),
     sent_at: timestamp({ withTimezone: true }),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -248,6 +265,9 @@ export const messages = pgTable(
     index("messages_org_idx").on(table.org_id),
     index("messages_prospect_idx").on(table.prospect_id),
     index("messages_user_idx").on(table.user_id),
+    index("messages_org_direction_recorded_idx").on(table.org_id, table.direction, table.recorded_at),
+    index("messages_org_call_outcome_idx").on(table.org_id, table.call_outcome),
+    index("messages_org_reply_intent_idx").on(table.org_id, table.reply_intent),
     check(
       "messages_type_valid",
       sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
@@ -508,6 +528,95 @@ export const roadmapFeatureProgress = pgTable(
     index("roadmap_feature_progress_completed_idx").on(table.is_completed),
   ],
 )
+
+export const savedViews = pgTable("saved_views", {
+  id: uuid().primaryKey().defaultRandom(),
+  org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  owner_id: uuid().notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  name: text().notNull(),
+  scope: text().notNull().default("private"),
+  entity_type: text().notNull().default("prospects"),
+  filter_version: integer().notNull().default(1),
+  filter_json: jsonb().$type<Record<string, string | boolean>>().notNull().default({}),
+  is_default: boolean().notNull().default(false),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("saved_views_org_idx").on(table.org_id, table.entity_type)])
+
+export const tasks = pgTable("tasks", {
+  id: uuid().primaryKey().defaultRandom(),
+  org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  prospect_id: uuid().references(() => prospects.id, { onDelete: "set null" }),
+  campaign_id: uuid().references(() => campaigns.id, { onDelete: "set null" }),
+  created_by: uuid().notNull().references(() => profiles.id, { onDelete: "restrict" }),
+  assigned_to: uuid().references(() => profiles.id, { onDelete: "set null" }),
+  title: text().notNull(),
+  description: text(),
+  status: text().notNull().default("open"),
+  priority: text().notNull().default("normal"),
+  due_at: timestamp({ withTimezone: true }),
+  completed_at: timestamp({ withTimezone: true }),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("tasks_org_status_due_idx").on(table.org_id, table.status, table.due_at),
+  index("tasks_assignee_status_due_idx").on(table.assigned_to, table.status, table.due_at),
+  index("tasks_prospect_idx").on(table.prospect_id),
+])
+
+export const customFieldDefinitions = pgTable("custom_field_definitions", {
+  id: uuid().primaryKey().defaultRandom(),
+  org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  name: text().notNull(),
+  field_type: text().notNull(),
+  help_text: text(),
+  options: jsonb().$type<string[]>().notNull().default([]),
+  validation: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+  is_required: boolean().notNull().default(false),
+  is_archived: boolean().notNull().default(false),
+  display_order: integer().notNull().default(0),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("custom_field_definitions_org_order_idx").on(table.org_id, table.is_archived, table.display_order)])
+
+export const customFieldValues = pgTable("custom_field_values", {
+  id: uuid().primaryKey().defaultRandom(),
+  org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  prospect_id: uuid().notNull().references(() => prospects.id, { onDelete: "cascade" }),
+  definition_id: uuid().notNull().references(() => customFieldDefinitions.id, { onDelete: "cascade" }),
+  value: jsonb().$type<string | number | boolean>().notNull(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+}, (table) => [unique("custom_field_values_prospect_definition_uq").on(table.prospect_id, table.definition_id), index("custom_field_values_prospect_idx").on(table.prospect_id)])
+
+export const importBatches = pgTable("import_batches", {
+  id: uuid().primaryKey().defaultRandom(),
+  org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  created_by: uuid().notNull().references(() => profiles.id, { onDelete: "restrict" }),
+  filename: text().notNull(),
+  mapping: jsonb().$type<Record<string, string>>().notNull().default({}),
+  total_rows: integer().notNull(),
+  imported_rows: integer().notNull().default(0),
+  failed_rows: integer().notNull().default(0),
+  errors: jsonb().$type<Array<{ row: number; reason: string }>>().notNull().default([]),
+  status: text().notNull().default("processing"),
+  rolled_back_at: timestamp({ withTimezone: true }),
+  rolled_back_by: uuid().references(() => profiles.id, { onDelete: "set null" }),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  completed_at: timestamp({ withTimezone: true }),
+}, (table) => [index("import_batches_org_created_idx").on(table.org_id, table.created_at)])
+
+export const importBatchRows = pgTable("import_batch_rows", {
+  id: uuid().primaryKey().defaultRandom(),
+  import_batch_id: uuid().notNull().references(() => importBatches.id, { onDelete: "cascade" }),
+  prospect_id: uuid().references(() => prospects.id, { onDelete: "set null" }),
+  row_number: integer().notNull(),
+  operation: text().notNull().default("created"),
+  snapshot_before: jsonb().$type<Record<string, unknown>>(),
+  snapshot_after: jsonb().$type<Record<string, unknown>>(),
+  error: text(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+}, (table) => [unique("import_batch_rows_batch_row_uq").on(table.import_batch_id, table.row_number), index("import_batch_rows_batch_idx").on(table.import_batch_id)])
 
 // relations
 

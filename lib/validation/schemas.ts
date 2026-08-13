@@ -4,6 +4,9 @@ import {
   CAMPAIGN_STATUSES,
   MEMBER_ROLES,
   MESSAGE_TYPES,
+  MESSAGE_DIRECTIONS,
+  CALL_OUTCOMES,
+  REPLY_INTENTS,
   PLATFORMS,
   PROSPECT_STATUSES,
   THEMES,
@@ -18,6 +21,9 @@ export const memberRoleSchema = z.enum(MEMBER_ROLES)
 export const platformSchema = z.string().trim().min(1, "Platform is required").max(50)
 export const prospectStatusSchema = z.enum(PROSPECT_STATUSES)
 export const messageTypeSchema = z.enum(MESSAGE_TYPES)
+export const messageDirectionSchema = z.enum(MESSAGE_DIRECTIONS)
+export const callOutcomeSchema = z.enum(CALL_OUTCOMES)
+export const replyIntentSchema = z.enum(REPLY_INTENTS)
 export const themeSchema = z.enum(THEMES)
 
 const optionalTrimmedString = (max: number) =>
@@ -64,6 +70,37 @@ export const messageCreateSchema = z.object({
   message_type: messageTypeSchema,
   content: z.string().trim().min(1).max(5000),
   subject: optionalTrimmedString(200),
+  recorded_at: z.coerce.date().optional(),
+})
+
+export const callRecordSchema = messageCreateSchema.extend({
+  message_type: z.literal("call_note"),
+  call_outcome: callOutcomeSchema,
+  call_duration_seconds: z.number().int().min(0).max(86_400).optional(),
+  callback_at: z.coerce.date().optional(),
+  next_action: optionalTrimmedString(500),
+}).superRefine((value, context) => {
+  if (value.call_outcome === "callback_requested" && !value.callback_at) {
+    context.addIssue({ code: "custom", path: ["callback_at"], message: "A callback date is required" })
+  }
+})
+
+export const replyRecordSchema = z.object({
+  prospect_id: z.string().uuid(),
+  message_type: messageTypeSchema,
+  content: z.string().trim().min(1).max(5000),
+  subject: optionalTrimmedString(200),
+  reply_intent: replyIntentSchema,
+  objection_code: optionalTrimmedString(100),
+  revisit_at: z.coerce.date().optional(),
+  received_at: z.coerce.date().optional(),
+}).superRefine((value, context) => {
+  if (value.reply_intent === "not_now" && !value.revisit_at) {
+    context.addIssue({ code: "custom", path: ["revisit_at"], message: "A revisit date is required" })
+  }
+  if (value.reply_intent === "disqualified" && !value.objection_code) {
+    context.addIssue({ code: "custom", path: ["objection_code"], message: "A disqualification reason is required" })
+  }
 })
 
 export const tagCreateSchema = z.object({
@@ -153,6 +190,8 @@ export type ProspectCreateInput = z.infer<typeof prospectCreateSchema>
 export type ProspectUpdateInput = z.infer<typeof prospectUpdateSchema>
 export type ProspectStatusUpdateInput = z.infer<typeof prospectStatusUpdateSchema>
 export type MessageCreateInput = z.infer<typeof messageCreateSchema>
+export type CallRecordInput = z.infer<typeof callRecordSchema>
+export type ReplyRecordInput = z.infer<typeof replyRecordSchema>
 export type TagCreateInput = z.infer<typeof tagCreateSchema>
 export type CampaignInput = z.infer<typeof campaignSchema>
 export type CampaignUpdateInput = z.infer<typeof campaignUpdateSchema>

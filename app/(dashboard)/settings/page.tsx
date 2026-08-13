@@ -23,7 +23,7 @@ import { getTemplates } from "@/app/actions/templates"
 import { getUserTags } from "@/app/actions/tags"
 import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
 import { getSequences } from "@/app/actions/sequences"
-import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
+import { getOrgIndustries, getOrgCustomPlatforms, getCustomFieldDefinitions } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
@@ -90,7 +90,7 @@ const NAV_ITEMS = [
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult] =
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult, definitionsResult] =
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -102,6 +102,7 @@ export default async function SettingsPage() {
       getAuthedOrgClient(),
       getOrgIndustries(),
       getOrgCustomPlatforms(),
+      getCustomFieldDefinitions(),
     ])
 
   const profile = profileResult.data ?? null
@@ -322,6 +323,7 @@ export default async function SettingsPage() {
                   <CustomFieldsSection
                     initialIndustries={industries}
                     initialCustomPlatforms={customPlatforms}
+                    initialDefinitions={definitionsResult.data ?? []}
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground">

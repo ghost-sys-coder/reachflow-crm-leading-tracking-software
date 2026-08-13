@@ -16,11 +16,14 @@ import { UserMenu } from "@/components/shared/user-menu"
 import { NotificationsBell } from "@/components/shared/notifications-bell"
 
 const PAGE_TITLES: Array<{ match: RegExp; title: string }> = [
+  { match: /^\/today/, title: "Today" },
   { match: /^\/pipeline/, title: "Pipeline" },
   { match: /^\/prospects/, title: "Prospects" },
   { match: /^\/campaigns/, title: "Campaigns" },
   { match: /^\/messages/, title: "Messages" },
   { match: /^\/activity/, title: "Activity Log" },
+  { match: /^\/tasks/, title: "Tasks" },
+  { match: /^\/imports/, title: "Import history" },
   { match: /^\/settings/, title: "Settings" },
   { match: /^\/roadmap/, title: "Implementation roadmap" },
   { match: /^\/design-system/, title: "Design system" },

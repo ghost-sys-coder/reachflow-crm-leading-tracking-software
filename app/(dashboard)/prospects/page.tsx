@@ -16,6 +16,8 @@ import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
 import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { getSavedViews } from "@/app/actions/daily-operations"
+import { SavedViewsBar } from "@/components/crm/saved-views-bar"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
 import type { Platform, ProspectStatus } from "@/db/schema"
 import type { Prospect, ProspectWithTags, Tag, TeamMember } from "@/types/database"
@@ -90,7 +92,7 @@ function filterProspects(
   })
 }
 
-function attachTags(prospects: Prospect[], _allTags: Tag[]): ProspectWithTags[] {
+function attachTags(prospects: Prospect[], _allTags: Tag[]): ProspectWithTags[] { // eslint-disable-line @typescript-eslint/no-unused-vars
   return prospects.map((p) => ({ ...p, tags: [] }))
 }
 
@@ -105,7 +107,7 @@ export default async function ProspectsPage({
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult, savedViewsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
@@ -114,6 +116,7 @@ export default async function ProspectsPage({
     getOrgIndustries(),
     getOrgCustomPlatforms(),
     getCampaignOptions(),
+    getSavedViews(),
   ])
 
   const all = allResult.data ?? []
@@ -156,6 +159,8 @@ export default async function ProspectsPage({
       </div>
 
       <StatsRow {...stats} />
+
+      <SavedViewsBar initialViews={savedViewsResult.data ?? []} filters={{ status: status ?? undefined, platform: platform ?? undefined, q: search || undefined, assigned: assignedToMe ? "me" : undefined }} />
 
       {hasAnyProspects ? (
         <>

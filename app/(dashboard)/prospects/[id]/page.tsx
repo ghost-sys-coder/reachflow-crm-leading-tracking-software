@@ -23,7 +23,8 @@ import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspectById } from "@/app/actions/prospects"
 import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
-import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
+import { getOrgIndustries, getOrgCustomPlatforms, getCustomFieldDefinitions, getProspectCustomFieldValues } from "@/app/actions/custom-fields"
+import { ProspectCustomFields } from "@/components/crm/prospect-custom-fields"
 import { getCampaignOptions } from "@/app/actions/campaigns"
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { cn } from "@/lib/utils"
@@ -43,7 +44,7 @@ export default async function ProspectDetailPage({
 }) {
   const { id } = await params
 
-  const [prospectResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult] =
+  const [prospectResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult, definitionsResult, valuesResult] =
     await Promise.all([
       getProspectById(id),
       getUserTags(),
@@ -53,6 +54,8 @@ export default async function ProspectDetailPage({
       getOrgIndustries(),
       getOrgCustomPlatforms(),
       getCampaignOptions(),
+      getCustomFieldDefinitions(),
+      getProspectCustomFieldValues(id),
     ])
 
   if (prospectResult.error || !prospectResult.data) notFound()
@@ -211,6 +214,13 @@ export default async function ProspectDetailPage({
                 This prospect is not attached to a campaign.
               </p>
             )}
+          </section>
+
+          <Separator />
+
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Qualification fields</h3>
+            <ProspectCustomFields prospectId={prospect.id} definitions={definitionsResult.data ?? []} initialValues={valuesResult.data ?? []} />
           </section>
 
           <Separator />

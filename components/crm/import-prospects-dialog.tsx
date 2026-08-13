@@ -156,7 +156,7 @@ export function ImportProspectsDialog() {
       notes:         applyMapping(row, parsed.headers, mapping, "notes") || undefined,
     }))
 
-    const res = await importProspects(rows)
+    const res = await importProspects(rows, { filename: parsed.name, mapping: Object.fromEntries(Object.entries(mapping).filter((entry): entry is [string, string] => Boolean(entry[1]))) })
     if (res.error) {
       setImportError(res.error)
     } else {

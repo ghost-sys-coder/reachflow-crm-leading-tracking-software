@@ -32,6 +32,7 @@ import {
   MESSAGE_TYPE_ICONS,
   MESSAGE_TYPE_LABELS,
 } from "@/components/crm/message-meta"
+import { MessageEventMeta } from "@/components/crm/message-event-meta"
 import { TemplatePicker } from "@/components/crm/template-picker"
 import { deleteMessage, markMessageAsSent } from "@/app/actions/messages"
 import { cn } from "@/lib/utils"
@@ -490,6 +491,7 @@ function HistoryEntry({
 
       {expanded && (
         <div className="mt-3 space-y-3">
+          <MessageEventMeta message={message} />
           {message.subject && (
             <p className="text-sm font-medium">{message.subject}</p>
           )}

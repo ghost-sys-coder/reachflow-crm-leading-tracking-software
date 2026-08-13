@@ -14,6 +14,12 @@ import type {
   prospectTags,
   prospects,
   roadmapFeatureProgress,
+  savedViews,
+  tasks,
+  customFieldDefinitions,
+  customFieldValues,
+  importBatches,
+  importBatchRows,
   sequences,
   sequenceSteps,
   tags,
@@ -101,6 +107,15 @@ export type NewActivityLog = typeof activityLog.$inferInsert
 
 export type RoadmapFeatureProgress = typeof roadmapFeatureProgress.$inferSelect
 export type NewRoadmapFeatureProgress = typeof roadmapFeatureProgress.$inferInsert
+export type SavedView = typeof savedViews.$inferSelect
+export type NewSavedView = typeof savedViews.$inferInsert
+export type Task = typeof tasks.$inferSelect
+export type NewTask = typeof tasks.$inferInsert
+export type CustomFieldDefinition = typeof customFieldDefinitions.$inferSelect
+export type NewCustomFieldDefinition = typeof customFieldDefinitions.$inferInsert
+export type CustomFieldValue = typeof customFieldValues.$inferSelect
+export type ImportBatch = typeof importBatches.$inferSelect
+export type ImportBatchRow = typeof importBatchRows.$inferSelect
 
 export type Sequence = typeof sequences.$inferSelect
 export type NewSequence = typeof sequences.$inferInsert
