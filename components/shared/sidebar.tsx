@@ -18,6 +18,7 @@ import {
   ListTodo,
   FileClock,
   DatabaseZap,
+  Workflow,
   PanelLeftClose,
   PanelLeftOpen,
   Users,
@@ -73,6 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Settings", href: "/settings", icon: Settings },
       { label: "Lead scoring", href: "/scoring", icon: Gauge },
       { label: "Data controls", href: "/data-controls", icon: DatabaseZap },
+      { label: "Automations", href: "/automations", icon: Workflow },
     ],
   },
 ]

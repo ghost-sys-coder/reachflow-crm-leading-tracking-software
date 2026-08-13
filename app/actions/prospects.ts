@@ -14,6 +14,7 @@ import { fail, ok, zodErrorMessage } from "@/lib/validation/result"
 import { createNotification } from "@/app/actions/notifications"
 import { logActivity } from "@/lib/activity/log"
 import { recalculateProspectScore } from "@/lib/scoring/calculate"
+import { runAutomations } from "@/lib/automation/engine"
 import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
   PROSPECT_STATUSES,
@@ -118,6 +119,7 @@ export async function createProspect(
     newValue: (data as Prospect).business_name,
   })
   await recalculateProspectScore(ctx, (data as Prospect).id)
+  await runAutomations(ctx, "prospect_created", (data as Prospect).id, `prospect_created:${(data as Prospect).id}`)
   revalidateProspectViews()
   return ok(data as Prospect)
 }
@@ -264,6 +266,7 @@ export async function updateProspectStatus(
     void cancelActiveSequencesForProspect(id)
   }
   await recalculateProspectScore(ctx, id)
+  await runAutomations(ctx, "status_changed", id, `status_changed:${id}:${parsed.data.status}:${Date.now()}`)
 
   revalidateProspectViews()
   return ok(data as Prospect)
