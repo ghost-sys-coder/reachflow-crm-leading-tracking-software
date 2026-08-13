@@ -263,6 +263,7 @@ export default async function ProspectDetailPage({
             attributions={(revenueData?.[0].data ?? []) as Parameters<typeof ProspectRevenueIntelligence>[0]["attributions"]}
             score={(revenueData?.[1].data ?? null) as Parameters<typeof ProspectRevenueIntelligence>[0]["score"]}
             canEdit={orgCtxResult.ctx?.role !== "viewer"}
+            campaigns={(prospect.campaigns ?? []).map((campaign) => ({ id: campaign.id, name: campaign.name }))}
           />
 
           <Separator />
