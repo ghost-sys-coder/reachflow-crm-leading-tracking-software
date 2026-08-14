@@ -121,7 +121,24 @@ export async function createProspect(
   })
   await recalculateProspectScore(ctx, (data as Prospect).id)
   await runAutomations(ctx, "prospect_created", (data as Prospect).id, `prospect_created:${(data as Prospect).id}`)
-  await publishWebhookEvent(ctx,"prospect.created",(data as Prospect).id,{prospect:{id:(data as Prospect).id,business_name:(data as Prospect).business_name,platform:(data as Prospect).platform,status:(data as Prospect).status,industry:(data as Prospect).industry,location:(data as Prospect).location}},`prospect.created:${(data as Prospect).id}`)
+  await publishWebhookEvent(
+    ctx,
+    "prospect.created",
+    (data as Prospect).id,
+    {
+      prospect: {
+        id: (data as Prospect).id,
+        business_name: (data as Prospect).business_name,
+        platform: (data as Prospect).platform,
+        status: (data as Prospect).status,
+        industry: (data as Prospect).industry,
+        location: (data as Prospect).location,
+        state: (data as Prospect).state,
+        country: (data as Prospect).country,
+      },
+    },
+    `prospect.created:${(data as Prospect).id}`,
+  )
   revalidateProspectViews()
   return ok(data as Prospect)
 }

@@ -1,11 +1,11 @@
 "use client"
 
 import { useActionState, useEffect } from "react"
-import { LoaderCircle } from "lucide-react"
+import { LoaderCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { createWebhookEndpoint, retryWebhook, rotateWebhookSecret, sendTestWebhook, toggleWebhookEndpoint, updateWebhookSubscriptions, type WebhookActionState } from "@/app/actions/webhooks"
+import { createWebhookEndpoint, deleteWebhookEndpoint, retryWebhook, rotateWebhookSecret, sendTestWebhook, toggleWebhookEndpoint, updateWebhookSubscriptions, type WebhookActionState } from "@/app/actions/webhooks"
 import { WEBHOOK_EVENT_TYPES } from "@/lib/webhooks/events"
 
 const initialState: WebhookActionState = { success:false,message:"" }
@@ -19,3 +19,4 @@ export function ToggleEndpointForm({id,active}:{id:string;active:boolean}){const
 export function RetryDeliveryForm({id}:{id:string}){const[state,action,pending]=useActionState(retryWebhook,initialState);return <form action={action} className="space-y-1"><input type="hidden" name="delivery_id" value={id}/><Button size="sm" variant="outline" disabled={pending}>{pending?<><LoaderCircle className="animate-spin"/>Retrying...</>:"Retry"}</Button><Feedback state={state}/></form>}
 export function SubscriptionForm({id,selected}:{id:string;selected:string[]}){const[state,action,pending]=useActionState(updateWebhookSubscriptions,initialState);return <form action={action} className="space-y-2"><input type="hidden" name="id" value={id}/><EventChecks selected={selected}/><Button size="sm" variant="outline" disabled={pending}>{pending?<><LoaderCircle className="animate-spin"/>Saving...</>:"Save events"}</Button><Feedback state={state}/></form>}
 export function RotateSecretForm({id}:{id:string}){const[state,action,pending]=useActionState(rotateWebhookSecret,initialState);return <form action={action} className="space-y-1"><input type="hidden" name="id" value={id}/><Button size="sm" variant="outline" disabled={pending}>{pending?<><LoaderCircle className="animate-spin"/>Rotating...</>:"Rotate secret"}</Button><Feedback state={state}/></form>}
+export function DeleteEndpointForm({id,name}:{id:string;name:string}){const[state,action,pending]=useActionState(deleteWebhookEndpoint,initialState);return <form action={action} className="space-y-1" onSubmit={event=>{if(!window.confirm(`Delete “${name}”? Its delivery history will also be permanently removed.`))event.preventDefault()}}><input type="hidden" name="id" value={id}/><Button type="submit" size="sm" variant="destructive" disabled={pending} aria-label={`Delete ${name} webhook endpoint`}>{pending?<><LoaderCircle className="animate-spin"/>Deleting...</>:<><Trash2/>Delete</>}</Button><Feedback state={state}/></form>}

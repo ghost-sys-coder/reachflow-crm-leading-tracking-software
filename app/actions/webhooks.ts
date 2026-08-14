@@ -57,6 +57,29 @@ export async function toggleWebhookEndpoint(_previous: WebhookActionState, form:
   revalidatePath("/webhooks"); return { success: true, message: active ? "Endpoint enabled" : "Endpoint disabled" }
 }
 
+export async function deleteWebhookEndpoint(_previous: WebhookActionState, form: FormData): Promise<WebhookActionState> {
+  const { ctx, error } = await getAuthedOrgClient()
+  if (!ctx) return denied(error)
+  if (ctx.role !== "admin") return denied()
+
+  const id = String(form.get("id") ?? "")
+  if (!id) return denied("Webhook endpoint ID is required")
+
+  const { data: deleted, error: deleteError } = await ctx.supabase
+    .from("webhook_endpoints")
+    .delete()
+    .eq("id", id)
+    .eq("org_id", ctx.orgId)
+    .select("id")
+    .maybeSingle()
+
+  if (deleteError) return denied(`Could not delete endpoint: ${deleteError.message}`)
+  if (!deleted) return denied("Webhook endpoint was not found or has already been deleted")
+
+  revalidatePath("/webhooks")
+  return { success: true, message: "Webhook endpoint deleted" }
+}
+
 export async function retryWebhook(_previous: WebhookActionState, form: FormData): Promise<WebhookActionState> {
   const { ctx, error } = await getAuthedOrgClient(); if (!ctx) return denied(error); if (ctx.role !== "admin") return denied()
   const id = String(form.get("delivery_id"))
