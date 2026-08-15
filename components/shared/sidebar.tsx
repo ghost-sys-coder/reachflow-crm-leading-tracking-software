@@ -76,6 +76,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Lead scoring", href: "/scoring", icon: Gauge },
       { label: "Data controls", href: "/data-controls", icon: DatabaseZap },
       { label: "Automations", href: "/automations", icon: Workflow },
+      { label: "Lead sources", href: "/lead-sources", icon: DatabaseZap },
       { label: "Webhooks", href: "/webhooks", icon: Webhook },
     ],
   },
