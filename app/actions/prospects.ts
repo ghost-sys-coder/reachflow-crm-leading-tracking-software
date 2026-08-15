@@ -16,6 +16,7 @@ import { logActivity } from "@/lib/activity/log"
 import { recalculateProspectScore } from "@/lib/scoring/calculate"
 import { runAutomations } from "@/lib/automation/engine"
 import { publishWebhookEvent } from "@/lib/webhooks/publish"
+import { runProspectCreatedLifecycle } from "@/lib/prospects/created-lifecycle"
 import { createAdminClient as _adminClient } from "@/lib/supabase/admin"
 import {
   PROSPECT_STATUSES,
@@ -112,33 +113,7 @@ export async function createProspect(
     await ctx.supabase.from("prospects").update({ last_contacted_at: sentAt }).eq("id", (data as Prospect).id)
     void logActivity({ orgId: ctx.orgId, prospectId: (data as Prospect).id, userId: ctx.userId, action: "outreach_sent", newValue: messageType })
   }
-  void logActivity({
-    orgId: ctx.orgId,
-    prospectId: (data as Prospect).id,
-    userId: ctx.userId,
-    action: "prospect_created",
-    newValue: (data as Prospect).business_name,
-  })
-  await recalculateProspectScore(ctx, (data as Prospect).id)
-  await runAutomations(ctx, "prospect_created", (data as Prospect).id, `prospect_created:${(data as Prospect).id}`)
-  await publishWebhookEvent(
-    ctx,
-    "prospect.created",
-    (data as Prospect).id,
-    {
-      prospect: {
-        id: (data as Prospect).id,
-        business_name: (data as Prospect).business_name,
-        platform: (data as Prospect).platform,
-        status: (data as Prospect).status,
-        industry: (data as Prospect).industry,
-        location: (data as Prospect).location,
-        state: (data as Prospect).state,
-        country: (data as Prospect).country,
-      },
-    },
-    `prospect.created:${(data as Prospect).id}`,
-  )
+  await runProspectCreatedLifecycle(ctx, data as Prospect)
   revalidateProspectViews()
   return ok(data as Prospect)
 }

@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { OrgContext } from "@/lib/auth/org";
+import { runProspectCreatedLifecycle } from "@/lib/prospects/created-lifecycle";
 
 const TARGET_FIELDS = [
   "business_name",
@@ -172,15 +174,20 @@ export async function processIngestionEvent(eventId: string) {
 
   try {
     const lead = normalizeInboundLead(source, event.raw_payload as JsonObject);
-    const match = await findMatch(db, event.org_id, lead);
+    let match = await findMatch(db, event.org_id, lead);
+    if (!match && event.prospect_id) {
+      const { data: eventProspect } = await db.from("prospects").select("*").eq("id", event.prospect_id).eq("org_id", event.org_id).maybeSingle();
+      if (eventProspect) match = { prospect: eventProspect, matchedOn: "ingestion_event" };
+    }
     let prospectId: string;
     let status: "created" | "matched";
     let outcome: string;
 
+    const previouslyCreatedByThisEvent = Boolean(match && event.prospect_id === match.prospect.id && event.outcome === "Created a new prospect");
     if (match) {
       prospectId = match.prospect.id;
-      status = "matched";
-      outcome = `Matched existing prospect by ${match.matchedOn}`;
+      status = previouslyCreatedByThisEvent ? "created" : "matched";
+      outcome = previouslyCreatedByThisEvent ? "Created a new prospect" : `Matched existing prospect by ${match.matchedOn}`;
       const enrichment = Object.fromEntries(
         TARGET_FIELDS.filter(
           (field) =>
@@ -208,6 +215,7 @@ export async function processIngestionEvent(eventId: string) {
       prospectId = prospect.id;
       status = "created";
       outcome = "Created a new prospect";
+      await db.from("ingestion_events").update({ prospect_id: prospectId, normalized_payload: lead, outcome }).eq("id", eventId);
     }
 
     const campaignId = clean(source.default_values?.campaign_id);
@@ -260,6 +268,19 @@ export async function processIngestionEvent(eventId: string) {
         is_original: status === "created",
         created_by: source.created_by,
       });
+
+    if (status === "created") {
+      let actorId = source.created_by;
+      if (!actorId) {
+        const { data: membership } = await db.from("organization_members").select("user_id").eq("org_id", event.org_id).eq("role", "admin").order("created_at").limit(1).maybeSingle();
+        actorId = membership?.user_id ?? null;
+      }
+      if (!actorId) throw new Error("No workspace administrator is available to run prospect-created lifecycle actions");
+      const { data: createdProspect, error: prospectError } = await db.from("prospects").select("id,business_name,platform,status,industry,location,state,country").eq("id", prospectId).eq("org_id", event.org_id).single();
+      if (prospectError || !createdProspect) throw new Error(prospectError?.message ?? "Created prospect could not be reloaded");
+      const lifecycleContext: OrgContext = { supabase: db as unknown as OrgContext["supabase"], userId: actorId, orgId: event.org_id, role: "admin" };
+      await runProspectCreatedLifecycle(lifecycleContext, createdProspect);
+    }
     const now = new Date().toISOString();
     await Promise.all([
       db
