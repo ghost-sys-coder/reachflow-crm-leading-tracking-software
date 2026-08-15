@@ -36,8 +36,9 @@ const FOOTER_GROUPS: Array<{
   {
     heading: "Legal",
     links: [
-      { label: "Terms", href: "#" },
-      { label: "Privacy", href: "#" },
+      { label: "Terms", href: "/terms" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Data deletion", href: "/data-deletion" },
       { label: "DPA", href: "#" },
       { label: "Security", href: "#" },
     ],

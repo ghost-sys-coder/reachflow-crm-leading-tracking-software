@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CheckCircle2, LoaderCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ export function PublicHostedForm({ slug, fields, consentText, submitLabel }: { s
       </div>)}
     </div>
     <div className="absolute -left-[10000px]" aria-hidden="true"><Label htmlFor="company_website">Company website</Label><Input id="company_website" name="company_website" tabIndex={-1} autoComplete="off"/></div>
-    <label className="flex items-start gap-3 rounded-xl border bg-muted/30 p-4 text-sm"><input name="consent" type="checkbox" required disabled={pending} className="mt-0.5 size-4 accent-primary"/><span>{consentText}</span></label>
+    <div className="rounded-xl border bg-muted/30 p-4"><label className="flex items-start gap-3 text-sm"><input name="consent" type="checkbox" required disabled={pending} className="mt-0.5 size-4 accent-primary"/><span>{consentText}</span></label><p className="mt-3 pl-7 text-xs text-muted-foreground">Submitted securely through ReachFlow. Review the <Link className="underline underline-offset-2 hover:text-foreground" href="/privacy" target="_blank">Privacy Policy</Link> or learn how to <Link className="underline underline-offset-2 hover:text-foreground" href="/data-deletion" target="_blank">request deletion</Link>.</p></div>
     {error && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
     <Button className="w-full" size="lg" disabled={pending}>{pending ? <><LoaderCircle className="animate-spin"/>Submitting…</> : <><Send/>{submitLabel}</>}</Button>
   </form>;
