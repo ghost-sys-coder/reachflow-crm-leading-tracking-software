@@ -38,6 +38,7 @@ type LeadSource = {
   id: string;
   org_id: string;
   name: string;
+  source_type: string;
   field_mappings: JsonObject | null;
   default_values: JsonObject | null;
   created_by: string | null;
@@ -262,7 +263,7 @@ export async function processIngestionEvent(eventId: string) {
         org_id: event.org_id,
         prospect_id: prospectId,
         source_id: source.id,
-        provider: "inbound_webhook",
+        provider: source.source_type,
         source_name: source.name,
         external_id: event.external_event_id,
         is_original: status === "created",

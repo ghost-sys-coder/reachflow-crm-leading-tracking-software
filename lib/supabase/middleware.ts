@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 // /invite is intentionally excluded — invite pages are public so that
 // unauthenticated users can see the invite details and sign up / sign in
-const DASHBOARD_PREFIXES = ["/pipeline", "/prospects", "/settings", "/design-system", "/onboarding"]
+const DASHBOARD_PREFIXES = ["/pipeline", "/prospects", "/settings", "/design-system", "/onboarding", "/forms"]
 const AUTH_PATHS = new Set(["/sign-in", "/sign-up", "/forgot-password"])
 
 export async function updateSession(request: NextRequest) {
