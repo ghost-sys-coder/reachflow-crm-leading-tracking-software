@@ -50,7 +50,7 @@ export default async function DashboardLayout({
           }
         `}</style>
       )}
-      <div className="dashboard-shell flex h-dvh gap-3 overflow-hidden bg-muted/45 p-3 lg:gap-4 lg:p-4">
+      <div className="dashboard-shell fixed inset-0 flex h-dvh min-h-0 gap-3 overflow-hidden bg-muted/45 p-3 lg:gap-4 lg:p-4">
         <DesktopSidebar
           userEmail={userEmail}
           userName={userName}

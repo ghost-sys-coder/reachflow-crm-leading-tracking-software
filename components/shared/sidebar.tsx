@@ -194,7 +194,7 @@ export function DesktopSidebar({
   }
 
   return (
-    <aside className={cn("relative hidden shrink-0 transition-[width] duration-200 lg:block", collapsed ? "w-18" : "w-60")}>
+    <aside className={cn("sticky top-0 hidden h-full min-h-0 shrink-0 self-start transition-[width] duration-200 lg:block", collapsed ? "w-18" : "w-60")}>
       <SidebarNav
         userEmail={userEmail}
         userName={userName}
