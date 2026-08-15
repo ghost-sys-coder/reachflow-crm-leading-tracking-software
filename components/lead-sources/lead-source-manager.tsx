@@ -1,61 +1,667 @@
-"use client"
+"use client";
 
-import { useActionState, useEffect, useState } from "react"
-import { AlertTriangle, CheckCircle2, Clipboard, DatabaseZap, LoaderCircle, Play, RotateCw, Trash2 } from "lucide-react"
-import { toast } from "sonner"
-import { createLeadSource, deleteLeadSource, replayIngestionEvent, rotateLeadSourceSecret, testLeadSource, toggleLeadSource, type LeadSourceActionState } from "@/app/actions/lead-sources"
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useActionState, useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clipboard,
+  DatabaseZap,
+  LoaderCircle,
+  Play,
+  RotateCw,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  createLeadSource,
+  deleteLeadSource,
+  replayIngestionEvent,
+  resetLeadSourceMappings,
+  rotateLeadSourceSecret,
+  testLeadSource,
+  toggleLeadSource,
+  type LeadSourceActionState,
+} from "@/app/actions/lead-sources";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-type Option = { id: string; name: string }
-type MemberOption = { user_id: string; profiles: { full_name: string | null }[] | null }
-type Source = { id: string; name: string; is_active: boolean; secret_last_four: string | null; failure_count: number; last_received_at: string | null; last_success_at: string | null; last_failure_at: string | null; created_at: string }
-type Event = { id: string; external_event_id: string; status: string; outcome: string | null; error_message: string | null; prospect_id: string | null; received_at: string; attempt_count: number; lead_sources: { name: string }[] | null }
+type Option = { id: string; name: string };
+type MemberOption = {
+  user_id: string;
+  profiles: { full_name: string | null }[] | null;
+};
+type Source = {
+  id: string;
+  name: string;
+  is_active: boolean;
+  secret_last_four: string | null;
+  failure_count: number;
+  last_received_at: string | null;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  created_at: string;
+};
+type Event = {
+  id: string;
+  external_event_id: string;
+  status: string;
+  outcome: string | null;
+  error_message: string | null;
+  prospect_id: string | null;
+  received_at: string;
+  attempt_count: number;
+  lead_sources: { name: string }[] | null;
+};
 
-const initialState: LeadSourceActionState = { success: false, message: "" }
-const samplePayload = JSON.stringify({ external_event_id: "sample-001", business_name: "Atlas Plumbing & Heating", platform: "instagram", handle: "atlasplumbing", industry: "Plumbing", country: "United States", state: "Florida", location: "Orlando", website_url: "https://atlas.example" }, null, 2)
-const mappings = ["business_name", "platform", "handle", "phone_number", "industry", "location", "state", "country", "website_url", "status", "notes"]
+const initialState: LeadSourceActionState = { success: false, message: "" };
+const samplePayload = JSON.stringify(
+  {
+    external_event_id: "replace-with-a-unique-id",
+    business_name: "Replace with prospect business name",
+    platform: "other",
+    handle: "",
+    industry: "",
+    country: "",
+    state: "",
+    location: "",
+    website_url: "",
+  },
+  null,
+  2,
+);
+const mappings = [
+  "business_name",
+  "platform",
+  "handle",
+  "phone_number",
+  "industry",
+  "location",
+  "state",
+  "country",
+  "website_url",
+  "status",
+  "notes",
+];
 
 function Feedback({ state }: { state: LeadSourceActionState }) {
-  useEffect(() => { if (state.message) (state.success ? toast.success : toast.error)(state.message) }, [state])
-  return state.message ? <p role="status" className={`text-xs ${state.success ? "text-emerald-600" : "text-destructive"}`}>{state.message}</p> : null
+  useEffect(() => {
+    if (state.message)
+      (state.success ? toast.success : toast.error)(state.message);
+  }, [state]);
+  return state.message ? (
+    <p
+      role="status"
+      className={`text-xs ${state.success ? "text-emerald-600" : "text-destructive"}`}
+    >
+      {state.message}
+    </p>
+  ) : null;
 }
 
-function SecretResult({ state, sourceId, appUrl }: { state: LeadSourceActionState; sourceId?: string; appUrl: string }) {
-  if (!state.secret) return null
-  const endpoint = `${appUrl}/api/ingest/v1/${state.sourceId ?? sourceId}`
-  async function copy(value: string, label: string) { await navigator.clipboard.writeText(value); toast.success(`${label} copied`) }
-  return <div className="space-y-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm"><p className="font-medium text-emerald-700 dark:text-emerald-400">Copy these credentials now</p><div className="grid gap-2"><Button type="button" variant="outline" className="justify-between font-mono text-xs" onClick={() => copy(endpoint, "Endpoint URL")}><span className="truncate">{endpoint}</span><Clipboard /></Button><Button type="button" variant="outline" className="justify-between font-mono text-xs" onClick={() => copy(state.secret!, "Signing secret")}><span className="truncate">{state.secret}</span><Clipboard /></Button></div><p className="text-xs text-muted-foreground">The full secret is shown once. Store it in your sender’s secret manager.</p></div>
+function SecretResult({
+  state,
+  sourceId,
+  appUrl,
+}: {
+  state: LeadSourceActionState;
+  sourceId?: string;
+  appUrl: string;
+}) {
+  if (!state.secret) return null;
+  const endpoint = `${appUrl}/api/ingest/v1/${state.sourceId ?? sourceId}`;
+  async function copy(value: string, label: string) {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
+  }
+  return (
+    <div className="space-y-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm">
+      <p className="font-medium text-emerald-700 dark:text-emerald-400">
+        Copy these credentials now
+      </p>
+      <div className="grid gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="justify-between font-mono text-xs"
+          onClick={() => copy(endpoint, "Endpoint URL")}
+        >
+          <span className="truncate">{endpoint}</span>
+          <Clipboard />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="justify-between font-mono text-xs"
+          onClick={() => copy(state.secret!, "Signing secret")}
+        >
+          <span className="truncate">{state.secret}</span>
+          <Clipboard />
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        The full secret is shown once. Store it in your sender’s secret manager.
+      </p>
+    </div>
+  );
 }
 
-function CreateSourceForm({ campaigns, tags, members, appUrl }: { campaigns: Option[]; tags: Option[]; members: MemberOption[]; appUrl: string }) {
-  const [state, action, pending] = useActionState(createLeadSource, initialState)
-  return <Card><CardHeader><CardTitle>Create inbound source</CardTitle></CardHeader><CardContent><form action={action} className="space-y-5"><div className="grid gap-4 md:grid-cols-3"><div className="grid gap-1.5"><Label htmlFor="source-name">Source name</Label><Input id="source-name" name="name" placeholder="Zapier lead intake" required disabled={pending} /></div><div className="grid gap-1.5"><Label htmlFor="default-platform">Default platform</Label><select id="default-platform" name="default_platform" defaultValue="other" className="h-8 rounded-lg border bg-background px-2 text-sm" disabled={pending}>{["instagram","email","facebook","linkedin","x","call","other"].map(value => <option key={value}>{value}</option>)}</select></div><div className="grid gap-1.5"><Label htmlFor="default-status">Default status</Label><select id="default-status" name="default_status" defaultValue="sent" className="h-8 rounded-lg border bg-background px-2 text-sm" disabled={pending}>{["sent","waiting","replied","booked","closed","dead"].map(value => <option key={value}>{value}</option>)}</select></div><div className="grid gap-1.5"><Label>Campaign</Label><select name="default_campaign_id" className="h-8 rounded-lg border bg-background px-2 text-sm" disabled={pending}><option value="">No campaign</option>{campaigns.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></div><div className="grid gap-1.5"><Label>Tag</Label><select name="default_tag_id" className="h-8 rounded-lg border bg-background px-2 text-sm" disabled={pending}><option value="">No tag</option>{tags.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></div><div className="grid gap-1.5"><Label>Assign to</Label><select name="default_assigned_to" className="h-8 rounded-lg border bg-background px-2 text-sm" disabled={pending}><option value="">Unassigned</option>{members.map(x => <option key={x.user_id} value={x.user_id}>{x.profiles?.[0]?.full_name ?? "Team member"}</option>)}</select></div></div><details className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-medium">Advanced field mapping</summary><p className="mt-2 text-xs text-muted-foreground">Enter the incoming JSON path for each ReachFlow field. Dot notation such as company.name is supported.</p><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{mappings.map(field => <div key={field} className="grid gap-1"><Label htmlFor={`map-${field}`} className="text-xs">{field.replaceAll("_", " ")}</Label><Input id={`map-${field}`} name={`map_${field}`} defaultValue={field} disabled={pending} /></div>)}</div></details><Button disabled={pending}>{pending ? <><LoaderCircle className="animate-spin" />Creating source...</> : <><DatabaseZap />Create source</>}</Button><Feedback state={state} /><SecretResult state={state} appUrl={appUrl} /></form></CardContent></Card>
+function CreateSourceForm({
+  campaigns,
+  tags,
+  members,
+  appUrl,
+}: {
+  campaigns: Option[];
+  tags: Option[];
+  members: MemberOption[];
+  appUrl: string;
+}) {
+  const [state, action, pending] = useActionState(
+    createLeadSource,
+    initialState,
+  );
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create inbound source</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form action={action} className="space-y-5">
+          <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+            <p className="font-medium">A source describes where leads come from.</p>
+            <p className="mt-1 text-muted-foreground">Use a name such as “Zapier website leads.” Individual business details belong in each test or incoming JSON payload.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="source-name">Source name</Label>
+              <Input
+                id="source-name"
+                name="name"
+                placeholder="Zapier lead intake"
+                required
+                disabled={pending}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="default-platform">Default platform</Label>
+              <select
+                id="default-platform"
+                name="default_platform"
+                defaultValue="other"
+                className="h-8 rounded-lg border bg-background px-2 text-sm"
+                disabled={pending}
+              >
+                {[
+                  "instagram",
+                  "email",
+                  "facebook",
+                  "linkedin",
+                  "x",
+                  "call",
+                  "other",
+                ].map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="default-status">Default status</Label>
+              <select
+                id="default-status"
+                name="default_status"
+                defaultValue="sent"
+                className="h-8 rounded-lg border bg-background px-2 text-sm"
+                disabled={pending}
+              >
+                {["sent", "waiting", "replied", "booked", "closed", "dead"].map(
+                  (value) => (
+                    <option key={value}>{value}</option>
+                  ),
+                )}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Campaign</Label>
+              <select
+                name="default_campaign_id"
+                className="h-8 rounded-lg border bg-background px-2 text-sm"
+                disabled={pending}
+              >
+                <option value="">No campaign</option>
+                {campaigns.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Tag</Label>
+              <select
+                name="default_tag_id"
+                className="h-8 rounded-lg border bg-background px-2 text-sm"
+                disabled={pending}
+              >
+                <option value="">No tag</option>
+                {tags.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Assign to</Label>
+              <select
+                name="default_assigned_to"
+                className="h-8 rounded-lg border bg-background px-2 text-sm"
+                disabled={pending}
+              >
+                <option value="">Unassigned</option>
+                {members.map((x) => (
+                  <option key={x.user_id} value={x.user_id}>
+                    {x.profiles?.[0]?.full_name ?? "Team member"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <details className="rounded-lg border p-3">
+            <summary className="cursor-pointer text-sm font-medium">
+              Advanced field mapping
+            </summary>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Enter JSON paths, not prospect values. For example, use
+              business_name or lead.business_name. Dot notation is supported.
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {mappings.map((field) => (
+                <div key={field} className="grid gap-1">
+                  <Label htmlFor={`map-${field}`} className="text-xs">
+                    {field.replaceAll("_", " ")}
+                  </Label>
+                  <Input
+                    id={`map-${field}`}
+                    name={`map_${field}`}
+                    defaultValue={field}
+                    disabled={pending}
+                  />
+                </div>
+              ))}
+            </div>
+          </details>
+          <Button disabled={pending}>
+            {pending ? (
+              <>
+                <LoaderCircle className="animate-spin" />
+                Creating source...
+              </>
+            ) : (
+              <>
+                <DatabaseZap />
+                Create source
+              </>
+            )}
+          </Button>
+          <Feedback state={state} />
+          <SecretResult state={state} appUrl={appUrl} />
+        </form>
+      </CardContent>
+    </Card>
+  );
 }
 
 function SourceCard({ source, appUrl }: { source: Source; appUrl: string }) {
-  const [toggleState, toggleAction, togglePending] = useActionState(toggleLeadSource, initialState)
-  const [rotateState, rotateAction, rotatePending] = useActionState(rotateLeadSourceSecret, initialState)
-  const [testState, testAction, testPending] = useActionState(testLeadSource, initialState)
-  const [deleteState, deleteAction, deletePending] = useActionState(deleteLeadSource, initialState)
-  const [payload, setPayload] = useState(samplePayload)
-  const endpoint = `${appUrl}/api/ingest/v1/${source.id}`
-  async function copyEndpoint() { await navigator.clipboard.writeText(endpoint); toast.success("Endpoint URL copied") }
-  return <Card><CardHeader><CardTitle className="flex flex-wrap items-center justify-between gap-2"><span>{source.name}</span><Badge variant={source.is_active ? "secondary" : "outline"}>{source.is_active ? "Active" : "Disabled"}</Badge></CardTitle></CardHeader><CardContent className="space-y-4"><button type="button" onClick={copyEndpoint} className="flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 p-2 text-left font-mono text-xs hover:bg-muted"><span className="truncate">{endpoint}</span><Clipboard className="size-4 shrink-0" /></button><div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground"><span>Secret ending ····{source.secret_last_four ?? "—"}</span><span>Failures: {source.failure_count}</span><span>Last received: {source.last_received_at ? new Date(source.last_received_at).toLocaleString() : "Never"}</span><span>Last success: {source.last_success_at ? new Date(source.last_success_at).toLocaleString() : "Never"}</span></div><div className="flex flex-wrap gap-2"><form action={toggleAction}><input type="hidden" name="id" value={source.id} /><input type="hidden" name="active" value={String(!source.is_active)} /><Button size="sm" variant="outline" disabled={togglePending}>{togglePending ? <LoaderCircle className="animate-spin" /> : source.is_active ? "Disable" : "Enable"}</Button></form><form action={rotateAction}><input type="hidden" name="id" value={source.id} /><Button size="sm" variant="outline" disabled={rotatePending}>{rotatePending ? <LoaderCircle className="animate-spin" /> : <RotateCw />}Rotate secret</Button></form><AlertDialog><AlertDialogTrigger asChild><Button size="sm" variant="destructive"><Trash2 />Delete</Button></AlertDialogTrigger><AlertDialogContent><form action={deleteAction} className="contents"><input type="hidden" name="id" value={source.id} /><AlertDialogHeader><AlertDialogMedia className="bg-destructive/10 text-destructive"><AlertTriangle /></AlertDialogMedia><AlertDialogTitle>Delete {source.name}?</AlertDialogTitle><AlertDialogDescription>Incoming requests will stop immediately.</AlertDialogDescription></AlertDialogHeader><div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm"><p className="font-medium">This action cannot be undone.</p><p className="mt-1 text-muted-foreground">The source credentials and entire ingestion-event history will be permanently removed. Prospects already created remain intact.</p></div><Feedback state={deleteState} /><AlertDialogFooter><AlertDialogCancel disabled={deletePending}>Keep source</AlertDialogCancel><Button type="submit" variant="destructive" disabled={deletePending}>{deletePending ? <><LoaderCircle className="animate-spin" />Deleting...</> : <><Trash2 />Delete permanently</>}</Button></AlertDialogFooter></form></AlertDialogContent></AlertDialog></div><Feedback state={toggleState} /><Feedback state={rotateState} /><SecretResult state={rotateState} sourceId={source.id} appUrl={appUrl} /><div className="space-y-2 border-t pt-4"><Label htmlFor={`payload-${source.id}`}>UI test payload</Label><Textarea id={`payload-${source.id}`} rows={9} value={payload} onChange={event => setPayload(event.target.value)} className="font-mono text-xs" /><form action={testAction}><input type="hidden" name="id" value={source.id} /><input type="hidden" name="payload" value={payload} /><Button size="sm" disabled={testPending}>{testPending ? <><LoaderCircle className="animate-spin" />Processing...</> : <><Play />Create test lead</>}</Button></form><Feedback state={testState} /></div></CardContent></Card>
+  const [toggleState, toggleAction, togglePending] = useActionState(
+    toggleLeadSource,
+    initialState,
+  );
+  const [rotateState, rotateAction, rotatePending] = useActionState(
+    rotateLeadSourceSecret,
+    initialState,
+  );
+  const [resetState, resetAction, resetPending] = useActionState(
+    resetLeadSourceMappings,
+    initialState,
+  );
+  const [testState, testAction, testPending] = useActionState(
+    testLeadSource,
+    initialState,
+  );
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deleteLeadSource,
+    initialState,
+  );
+  const [payload, setPayload] = useState(samplePayload);
+  const endpoint = `${appUrl}/api/ingest/v1/${source.id}`;
+  async function copyEndpoint() {
+    await navigator.clipboard.writeText(endpoint);
+    toast.success("Endpoint URL copied");
+  }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex flex-wrap items-center justify-between gap-2">
+          <span>{source.name}</span>
+          <Badge variant={source.is_active ? "secondary" : "outline"}>
+            {source.is_active ? "Active" : "Disabled"}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <button
+          type="button"
+          onClick={copyEndpoint}
+          className="flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 p-2 text-left font-mono text-xs hover:bg-muted"
+        >
+          <span className="truncate">{endpoint}</span>
+          <Clipboard className="size-4 shrink-0" />
+        </button>
+        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <span>Secret ending ····{source.secret_last_four ?? "—"}</span>
+          <span>Failures: {source.failure_count}</span>
+          <span>
+            Last received:{" "}
+            {source.last_received_at
+              ? new Date(source.last_received_at).toLocaleString()
+              : "Never"}
+          </span>
+          <span>
+            Last success:{" "}
+            {source.last_success_at
+              ? new Date(source.last_success_at).toLocaleString()
+              : "Never"}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <form action={toggleAction}>
+            <input type="hidden" name="id" value={source.id} />
+            <input
+              type="hidden"
+              name="active"
+              value={String(!source.is_active)}
+            />
+            <Button size="sm" variant="outline" disabled={togglePending}>
+              {togglePending ? (
+                <LoaderCircle className="animate-spin" />
+              ) : source.is_active ? (
+                "Disable"
+              ) : (
+                "Enable"
+              )}
+            </Button>
+          </form>
+          <form action={rotateAction}>
+            <input type="hidden" name="id" value={source.id} />
+            <Button size="sm" variant="outline" disabled={rotatePending}>
+              {rotatePending ? (
+                <LoaderCircle className="animate-spin" />
+              ) : (
+                <RotateCw />
+              )}
+              Rotate secret
+            </Button>
+          </form>
+          <form action={resetAction}>
+            <input type="hidden" name="id" value={source.id} />
+            <Button size="sm" variant="outline" disabled={resetPending}>
+              {resetPending ? <LoaderCircle className="animate-spin" /> : <RotateCw />}
+              Reset mappings
+            </Button>
+          </form>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="destructive">
+                <Trash2 />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <form action={deleteAction} className="contents">
+                <input type="hidden" name="id" value={source.id} />
+                <AlertDialogHeader>
+                  <AlertDialogMedia className="bg-destructive/10 text-destructive">
+                    <AlertTriangle />
+                  </AlertDialogMedia>
+                  <AlertDialogTitle>Delete {source.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Incoming requests will stop immediately.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                  <p className="font-medium">This action cannot be undone.</p>
+                  <p className="mt-1 text-muted-foreground">
+                    The source credentials and entire ingestion-event history
+                    will be permanently removed. Prospects already created
+                    remain intact.
+                  </p>
+                </div>
+                <Feedback state={deleteState} />
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deletePending}>
+                    Keep source
+                  </AlertDialogCancel>
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    disabled={deletePending}
+                  >
+                    {deletePending ? (
+                      <>
+                        <LoaderCircle className="animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 />
+                        Delete permanently
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogFooter>
+              </form>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        <Feedback state={toggleState} />
+        <Feedback state={rotateState} />
+        <Feedback state={resetState} />
+        <SecretResult
+          state={rotateState}
+          sourceId={source.id}
+          appUrl={appUrl}
+        />
+        <div className="space-y-2 border-t pt-4">
+          <Label htmlFor={`payload-${source.id}`}>UI test payload</Label>
+          <Textarea
+            id={`payload-${source.id}`}
+            rows={9}
+            value={payload}
+            onChange={(event) => setPayload(event.target.value)}
+            className="font-mono text-xs"
+          />
+          <form action={testAction}>
+            <input type="hidden" name="id" value={source.id} />
+            <input type="hidden" name="payload" value={payload} />
+            <Button size="sm" disabled={testPending}>
+              {testPending ? (
+                <>
+                  <LoaderCircle className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Play />
+                  Create test lead
+                </>
+              )}
+            </Button>
+          </form>
+          <Feedback state={testState} />
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function EventRow({ event }: { event: Event }) {
-  const [state, action, pending] = useActionState(replayIngestionEvent, initialState)
-  const success = event.status === "created" || event.status === "matched"
-  return <div className="grid gap-3 rounded-lg border p-3 lg:grid-cols-[1fr_auto_auto]"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-medium">{event.lead_sources?.[0]?.name}</span><Badge variant={event.status === "failed" ? "destructive" : success ? "secondary" : "outline"}>{event.status}</Badge></div><p className="mt-1 truncate font-mono text-xs text-muted-foreground">{event.external_event_id}</p><p className="mt-1 text-xs text-muted-foreground">{event.outcome ?? event.error_message ?? "Waiting for processing"}</p></div><span className="text-xs text-muted-foreground">{new Date(event.received_at).toLocaleString()} · {event.attempt_count} attempt{event.attempt_count === 1 ? "" : "s"}</span>{event.status === "failed" ? <form action={action}><input type="hidden" name="event_id" value={event.id} /><Button size="sm" variant="outline" disabled={pending}>{pending ? <LoaderCircle className="animate-spin" /> : <RotateCw />}Replay</Button><Feedback state={state} /></form> : <span className="inline-flex items-center gap-1 text-xs text-emerald-600"><CheckCircle2 className="size-4" />Processed</span>}</div>
+  const [state, action, pending] = useActionState(
+    replayIngestionEvent,
+    initialState,
+  );
+  const success = event.status === "created" || event.status === "matched";
+  return (
+    <div className="grid gap-3 rounded-lg border p-3 lg:grid-cols-[1fr_auto_auto]">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{event.lead_sources?.[0]?.name}</span>
+          <Badge
+            variant={
+              event.status === "failed"
+                ? "destructive"
+                : success
+                  ? "secondary"
+                  : "outline"
+            }
+          >
+            {event.status}
+          </Badge>
+        </div>
+        <p className="mt-1 truncate font-mono text-xs text-muted-foreground">
+          {event.external_event_id}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {event.outcome ?? event.error_message ?? "Waiting for processing"}
+        </p>
+      </div>
+      <span className="text-xs text-muted-foreground">
+        {new Date(event.received_at).toLocaleString()} · {event.attempt_count}{" "}
+        attempt{event.attempt_count === 1 ? "" : "s"}
+      </span>
+      {event.status === "failed" ? (
+        <form action={action}>
+          <input type="hidden" name="event_id" value={event.id} />
+          <Button size="sm" variant="outline" disabled={pending}>
+            {pending ? <LoaderCircle className="animate-spin" /> : <RotateCw />}
+            Replay
+          </Button>
+          <Feedback state={state} />
+        </form>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+          <CheckCircle2 className="size-4" />
+          Processed
+        </span>
+      )}
+    </div>
+  );
 }
 
-export function LeadSourceManager({ sources, events, campaigns, tags, members, appUrl }: { sources: Source[]; events: Event[]; campaigns: Option[]; tags: Option[]; members: MemberOption[]; appUrl: string }) {
-  const resolvedAppUrl = appUrl || (typeof window !== "undefined" ? window.location.origin : "")
-  return <div className="space-y-6"><Card><CardHeader><CardTitle>Signed request contract</CardTitle></CardHeader><CardContent className="grid gap-3 text-sm lg:grid-cols-3"><div><p className="font-medium">1. Prepare the body</p><p className="mt-1 text-muted-foreground">Send one JSON object under 64 KB. Provide a stable external event ID for every source record.</p></div><div><p className="font-medium">2. Sign the exact body</p><p className="mt-1 text-muted-foreground">HMAC-SHA256 over <code className="rounded bg-muted px-1">timestamp.rawBody</code> using the one-time source secret.</p></div><div><p className="font-medium">3. Add required headers</p><p className="mt-1 font-mono text-xs text-muted-foreground">x-reachflow-timestamp<br/>x-reachflow-signature: v1=…<br/>x-reachflow-event-id</p></div></CardContent></Card><CreateSourceForm campaigns={campaigns} tags={tags} members={members} appUrl={resolvedAppUrl} /><section><h2 className="mb-3 text-lg font-semibold">Inbound sources</h2><div className="grid gap-4 xl:grid-cols-2">{sources.map(source => <SourceCard key={source.id} source={source} appUrl={resolvedAppUrl} />)}{!sources.length && <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground xl:col-span-2">No inbound sources yet. Create one to receive leads from Zapier or another HTTPS sender.</div>}</div></section><Card><CardHeader><CardTitle>Ingestion event ledger</CardTitle></CardHeader><CardContent className="space-y-2">{events.map(event => <EventRow key={event.id} event={event} />)}{!events.length && <p className="py-10 text-center text-sm text-muted-foreground">No inbound events received yet.</p>}</CardContent></Card></div>
+export function LeadSourceManager({
+  sources,
+  events,
+  campaigns,
+  tags,
+  members,
+  appUrl,
+}: {
+  sources: Source[];
+  events: Event[];
+  campaigns: Option[];
+  tags: Option[];
+  members: MemberOption[];
+  appUrl: string;
+}) {
+  const resolvedAppUrl =
+    appUrl || (typeof window !== "undefined" ? window.location.origin : "");
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Signed request contract</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 text-sm lg:grid-cols-3">
+          <div>
+            <p className="font-medium">1. Prepare the body</p>
+            <p className="mt-1 text-muted-foreground">
+              Send one JSON object under 64 KB. Provide a stable external event
+              ID for every source record.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium">2. Sign the exact body</p>
+            <p className="mt-1 text-muted-foreground">
+              HMAC-SHA256 over{" "}
+              <code className="rounded bg-muted px-1">timestamp.rawBody</code>{" "}
+              using the one-time source secret.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium">3. Add required headers</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">
+              x-reachflow-timestamp
+              <br />
+              x-reachflow-signature: v1=…
+              <br />
+              x-reachflow-event-id
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      <CreateSourceForm
+        campaigns={campaigns}
+        tags={tags}
+        members={members}
+        appUrl={resolvedAppUrl}
+      />
+      <section>
+        <h2 className="mb-3 text-lg font-semibold">Inbound sources</h2>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {sources.map((source) => (
+            <SourceCard
+              key={source.id}
+              source={source}
+              appUrl={resolvedAppUrl}
+            />
+          ))}
+          {!sources.length && (
+            <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground xl:col-span-2">
+              No inbound sources yet. Create one to receive leads from Zapier or
+              another HTTPS sender.
+            </div>
+          )}
+        </div>
+      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ingestion event ledger</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {events.map((event) => (
+            <EventRow key={event.id} event={event} />
+          ))}
+          {!events.length && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              No inbound events received yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
