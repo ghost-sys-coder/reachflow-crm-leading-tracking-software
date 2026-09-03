@@ -1,4 +1,4 @@
-import { Bell, BookTemplate, Brush, ListOrdered, Palette, Shield, Sparkles, Tag, User, Users, Wrench } from "lucide-react"
+import { Bell, BookTemplate, Brush, ListOrdered, Mail, Palette, Shield, Sparkles, Tag, User, Users, Wrench } from "lucide-react"
 
 import { AgencyForm } from "@/components/settings/agency-form"
 import { WhiteLabelSection } from "@/components/settings/white-label-section"
@@ -25,6 +25,8 @@ import { getTeamMembers, getPendingInvites } from "@/app/actions/team"
 import { getSequences } from "@/app/actions/sequences"
 import { getOrgIndustries, getOrgCustomPlatforms, getCustomFieldDefinitions } from "@/app/actions/custom-fields"
 import { getAuthedOrgClient } from "@/lib/auth/org"
+import { getGmailConnection } from "@/app/actions/gmail"
+import { GmailIntegrationSection } from "@/components/settings/gmail-integration-section"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
 
@@ -82,6 +84,7 @@ const NAV_ITEMS = [
   { value: "branding",      label: "Branding",      icon: Brush         },
   { value: "appearance",    label: "Appearance",    icon: Palette       },
   { value: "notifications", label: "Notifications", icon: Bell          },
+  { value: "integrations",  label: "Integrations",  icon: Mail          },
   { value: "tags",          label: "Tags",          icon: Tag           },
   { value: "templates",     label: "Templates",     icon: BookTemplate  },
   { value: "sequences",     label: "Sequences",     icon: ListOrdered   },
@@ -90,7 +93,7 @@ const NAV_ITEMS = [
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult, definitionsResult] =
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult, definitionsResult, gmailResult] =
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -103,6 +106,7 @@ export default async function SettingsPage() {
       getOrgIndustries(),
       getOrgCustomPlatforms(),
       getCustomFieldDefinitions(),
+      getGmailConnection(),
     ])
 
   const profile = profileResult.data ?? null
@@ -240,6 +244,13 @@ export default async function SettingsPage() {
               <CardContent className="pt-5">
                 <NotificationsSection profile={profile} />
               </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations">
+            <Card>
+              <CardHeader className="border-b"><CardTitle>Integrations</CardTitle><CardDescription>Connect the services ReachFlow uses for outreach and workflow automation.</CardDescription></CardHeader>
+              <CardContent className="pt-5"><GmailIntegrationSection connection={gmailResult.data ?? null} canConnect={currentUserRole !== "viewer"} /></CardContent>
             </Card>
           </TabsContent>
 

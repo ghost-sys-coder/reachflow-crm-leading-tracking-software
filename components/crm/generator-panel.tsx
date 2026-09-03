@@ -35,6 +35,7 @@ import {
 import { MessageEventMeta } from "@/components/crm/message-event-meta"
 import { TemplatePicker } from "@/components/crm/template-picker"
 import { deleteMessage, markMessageAsSent } from "@/app/actions/messages"
+import { sendSavedMessageWithGmail } from "@/app/actions/gmail"
 import { cn } from "@/lib/utils"
 import type { MessageType } from "@/db/schema"
 import type { Message } from "@/types/database"
@@ -203,6 +204,16 @@ export function GeneratorPanel({
     router.refresh()
   }
 
+  async function handleSendWithGmail() {
+    if (!current) return
+    const result = await sendSavedMessageWithGmail(current.message.id)
+    if (result.error || !result.data) return toast.error(result.error ?? "Gmail did not return the sent message")
+    const sentMessage = result.data
+    setCurrent((previous) => previous ? { ...previous, message: sentMessage } : previous)
+    toast.success("Email sent through Gmail")
+    router.refresh()
+  }
+
   return (
     <div className="space-y-5">
       {/* Incomplete-profile modal */}
@@ -357,10 +368,10 @@ export function GeneratorPanel({
                 type="button"
                 variant="default"
                 size="xs"
-                onClick={handleMarkSent}
+                onClick={(current.message.message_type === "cold_email" || (current.message.message_type === "follow_up" && prospect?.platform === "email")) ? handleSendWithGmail : handleMarkSent}
               >
                 <Send />
-                Mark as sent
+                {(current.message.message_type === "cold_email" || (current.message.message_type === "follow_up" && prospect?.platform === "email")) ? "Send with Gmail" : "Mark as sent"}
               </Button>
             )}
             {current.message.was_sent && (
@@ -387,6 +398,7 @@ export function GeneratorPanel({
                   key={m.id}
                   message={m}
                   onChanged={() => router.refresh()}
+                  gmailEligible={m.message_type === "cold_email" || (m.message_type === "follow_up" && prospect?.platform === "email")}
                 />
               ))}
           </ul>
@@ -399,9 +411,11 @@ export function GeneratorPanel({
 function HistoryEntry({
   message,
   onChanged,
+  gmailEligible,
 }: {
   message: Message
   onChanged: () => void
+  gmailEligible: boolean
 }) {
   const [expanded, setExpanded] = React.useState(false)
   const [optimisticSent, setOptimisticSent] = React.useState(message.was_sent)
@@ -433,6 +447,19 @@ function HistoryEntry({
         return
       }
       toast.success("Marked as sent")
+      onChanged()
+    })
+  }
+
+  function handleSendWithGmail() {
+    startTransition(async () => {
+      const result = await sendSavedMessageWithGmail(message.id)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      setOptimisticSent(true)
+      toast.success("Email sent through Gmail")
       onChanged()
     })
   }
@@ -519,11 +546,11 @@ function HistoryEntry({
                 type="button"
                 variant="default"
                 size="xs"
-                onClick={handleMarkSent}
+                onClick={gmailEligible ? handleSendWithGmail : handleMarkSent}
                 disabled={isPending}
               >
                 <Send />
-                Mark as sent
+                {gmailEligible ? "Send with Gmail" : "Mark as sent"}
               </Button>
             )}
           </div>

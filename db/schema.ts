@@ -259,6 +259,11 @@ export const messages = pgTable(
     recorded_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     was_sent: boolean().notNull().default(false),
     sent_at: timestamp({ withTimezone: true }),
+    provider: text(),
+    provider_message_id: text(),
+    provider_thread_id: text(),
+    connection_id: uuid(),
+    delivery_status: text(),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -506,6 +511,58 @@ export const orgCustomPlatforms = pgTable(
   (table) => [
     index("org_custom_platforms_org_idx").on(table.org_id),
     unique("org_custom_platforms_org_name_unique").on(table.org_id, table.name),
+  ],
+)
+
+export const gmailConnections = pgTable(
+  "gmail_connections",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    user_id: uuid().notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    google_account_id: text().notNull(),
+    email_address: text().notNull(),
+    access_token_ciphertext: text().notNull(),
+    refresh_token_ciphertext: text().notNull(),
+    granted_scopes: text().array().notNull().default(sql`ARRAY[]::text[]`),
+    status: text().notNull().default("active"),
+    token_expires_at: timestamp({ withTimezone: true }),
+    last_used_at: timestamp({ withTimezone: true }),
+    last_error: text(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("gmail_connections_org_user_uq").on(table.org_id, table.user_id),
+    unique("gmail_connections_google_account_uq").on(table.google_account_id),
+    index("gmail_connections_org_idx").on(table.org_id),
+    check("gmail_connections_status_valid", sql`${table.status} IN ('active','error','revoked')`),
+  ],
+)
+
+export const emailDeliveries = pgTable(
+  "email_deliveries",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    message_id: uuid().notNull().references(() => messages.id, { onDelete: "cascade" }),
+    connection_id: uuid().references(() => gmailConnections.id, { onDelete: "set null" }),
+    provider: text().notNull().default("gmail"),
+    provider_message_id: text(),
+    provider_thread_id: text(),
+    idempotency_key: text().notNull(),
+    status: text().notNull().default("pending"),
+    attempt_count: integer().notNull().default(0),
+    last_error: text(),
+    sent_at: timestamp({ withTimezone: true }),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("email_deliveries_idempotency_uq").on(table.idempotency_key),
+    index("email_deliveries_org_idx").on(table.org_id),
+    index("email_deliveries_message_idx").on(table.message_id),
+    check("email_deliveries_status_valid", sql`${table.status} IN ('pending','sending','sent','failed')`),
   ],
 )
 
