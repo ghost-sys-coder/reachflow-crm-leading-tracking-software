@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, CheckCheck, UserPlus, ArrowRightLeft } from "lucide-react"
+import { Bell, CheckCheck, UserPlus, ArrowRightLeft, Mail } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -26,6 +26,7 @@ function timeAgo(date: string | Date): string {
 
 function NotificationIcon({ type }: { type: Notification["type"] }) {
   if (type === "prospect_assigned") return <UserPlus className="size-3.5 shrink-0 text-primary" />
+  if (type === "gmail_reply") return <Mail className="size-3.5 shrink-0 text-primary" />
   return <ArrowRightLeft className="size-3.5 shrink-0 text-muted-foreground" />
 }
 

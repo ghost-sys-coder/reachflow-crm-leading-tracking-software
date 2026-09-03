@@ -1,5 +1,6 @@
 export const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send"
-export const GOOGLE_IDENTITY_SCOPES = ["openid", "email", GMAIL_SEND_SCOPE]
+export const GMAIL_READ_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
+export const GOOGLE_IDENTITY_SCOPES = ["openid", "email", GMAIL_SEND_SCOPE, GMAIL_READ_SCOPE]
 
 export function getGoogleOAuthConfig() {
   const clientId = process.env.GMAIL_GOOGLE_CLIENT_ID

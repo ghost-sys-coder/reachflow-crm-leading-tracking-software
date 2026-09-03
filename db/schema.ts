@@ -37,7 +37,7 @@ export const CALL_OUTCOMES = ["connected", "no_answer", "voicemail", "callback_r
 export const REPLY_INTENTS = ["interested", "not_now", "not_interested", "question", "wrong_contact", "disqualified"] as const
 export const THEMES = ["default", "midnight", "sunset"] as const
 export const MEMBER_ROLES = ["admin", "editor", "viewer"] as const
-export const NOTIFICATION_TYPES = ["prospect_assigned", "status_changed", "follow_up_due"] as const
+export const NOTIFICATION_TYPES = ["prospect_assigned", "status_changed", "follow_up_due", "gmail_reply"] as const
 export const ACTIVITY_ACTIONS = [
   "prospect_created",
   "status_changed",
@@ -46,6 +46,7 @@ export const ACTIVITY_ACTIONS = [
   "prospect_updated",
   "message_saved",
   "outreach_sent",
+  "reply_received",
 ] as const
 
 export type Platform = (typeof PLATFORMS)[number]
@@ -166,6 +167,7 @@ export const prospects = pgTable(
     snoozed_until: timestamp({ withTimezone: true }),
     snooze_reason: text(),
     last_contacted_at: timestamp({ withTimezone: true }),
+    last_reply_at: timestamp({ withTimezone: true }),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -262,6 +264,16 @@ export const messages = pgTable(
     provider: text(),
     provider_message_id: text(),
     provider_thread_id: text(),
+    internet_message_id: text(),
+    in_reply_to: text(),
+    references_header: text(),
+    sender_email: text(),
+    recipient_emails: text().array(),
+    cc_emails: text().array(),
+    snippet: text(),
+    gmail_label_ids: text().array(),
+    is_read: boolean().notNull().default(true),
+    synced_at: timestamp({ withTimezone: true }),
     connection_id: uuid(),
     delivery_status: text(),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -529,6 +541,10 @@ export const gmailConnections = pgTable(
     token_expires_at: timestamp({ withTimezone: true }),
     last_used_at: timestamp({ withTimezone: true }),
     last_error: text(),
+    history_id: text(),
+    watch_expiration_at: timestamp({ withTimezone: true }),
+    last_synced_at: timestamp({ withTimezone: true }),
+    sync_status: text().notNull().default("idle"),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -537,6 +553,7 @@ export const gmailConnections = pgTable(
     unique("gmail_connections_google_account_uq").on(table.google_account_id),
     index("gmail_connections_org_idx").on(table.org_id),
     check("gmail_connections_status_valid", sql`${table.status} IN ('active','error','revoked')`),
+    check("gmail_connections_sync_status_valid", sql`${table.sync_status} IN ('idle','syncing','error')`),
   ],
 )
 

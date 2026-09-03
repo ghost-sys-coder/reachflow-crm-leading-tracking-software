@@ -23,6 +23,7 @@ const ACTION_LABELS: Record<string, string> = {
   prospect_updated: "Details edited",
   message_saved:    "Draft saved",
   outreach_sent:    "Outreach sent",
+  reply_received:   "Email reply received",
 }
 
 const MESSAGE_TYPE_LABELS: Record<string, string> = {
@@ -42,6 +43,7 @@ function ActionIcon({ action }: { action: string }) {
     case "prospect_updated": return <Pencil className={cls} />
     case "message_saved":    return <MessageSquare className={cls} />
     case "outreach_sent":    return <Send className={cls} />
+    case "reply_received":   return <MessageSquare className={cls} />
     default:                 return <Pencil className={cls} />
   }
 }

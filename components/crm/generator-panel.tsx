@@ -482,7 +482,7 @@ function HistoryEntry({
   const preview = message.content.slice(0, 80) + (message.content.length > 80 ? "..." : "")
 
   return (
-    <li className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+    <li className={cn("rounded-lg border p-3 text-sm", message.direction === "inbound" ? "border-primary/20 bg-primary/5" : "border-border bg-muted/40")}>
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -505,6 +505,9 @@ function HistoryEntry({
               <span className="text-[11px] text-muted-foreground">
                 {formatDateTime(message.sent_at ?? message.created_at)}
               </span>
+              {message.direction === "inbound" && message.sender_email && (
+                <span className="text-[11px] text-muted-foreground">from {message.sender_email}</span>
+              )}
             </span>
             {message.subject && !expanded && (
               <span className="block text-xs font-medium">{message.subject}</span>
@@ -541,7 +544,7 @@ function HistoryEntry({
               <Copy />
               Copy
             </Button>
-            {!optimisticSent && (
+            {!optimisticSent && message.direction !== "inbound" && (
               <Button
                 type="button"
                 variant="default"

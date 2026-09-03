@@ -381,6 +381,11 @@ function DetailBody({
               value={formatDateTime(prospect.last_contacted_at)}
             />
             <InfoRow
+              icon={<Mail className="size-3.5" />}
+              label="Last reply"
+              value={formatDateTime(prospect.last_reply_at)}
+            />
+            <InfoRow
               icon={<Calendar className="size-3.5" />}
               label="Follow up"
               value={formatDateTime(prospect.follow_up_at)}

@@ -13,6 +13,8 @@ export function MessageEventMeta({ message }: { message: Message }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {message.direction === "inbound" && <Badge variant="outline">Inbound</Badge>}
+      {message.direction === "outbound" && message.provider === "gmail" && <Badge variant="outline">Sent with Gmail</Badge>}
+      {message.direction === "inbound" && !message.is_read && <Badge variant="secondary">Unread</Badge>}
       {message.call_outcome && <Badge variant="secondary">{label(message.call_outcome)}</Badge>}
       {duration && <Badge variant="outline">{duration}</Badge>}
       {message.reply_intent && <Badge variant="secondary">{label(message.reply_intent)}</Badge>}
