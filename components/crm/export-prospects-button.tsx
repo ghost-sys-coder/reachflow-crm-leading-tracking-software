@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { exportProspects, type ExportFilters } from "@/app/actions/prospects"
+import { quickActionButtonClassName } from "@/components/crm/quick-action-styles"
 
 export function ExportProspectsButton({ filters }: { filters: ExportFilters }) {
   const [pending, startTransition] = React.useTransition()
@@ -30,7 +31,13 @@ export function ExportProspectsButton({ filters }: { filters: ExportFilters }) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleExport} disabled={pending}>
+    <Button
+      variant="outline"
+      size="sm"
+      className={quickActionButtonClassName}
+      onClick={handleExport}
+      disabled={pending}
+    >
       <Download className="size-4" />
       {pending ? "Exporting…" : "Export CSV"}
     </Button>

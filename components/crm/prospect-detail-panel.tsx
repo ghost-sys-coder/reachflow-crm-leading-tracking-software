@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Calendar, Clock, ExternalLink, Mail, MapPin, Pencil, Phone } from "lucide-react"
+import { Calendar, CalendarCheck2, Clock, Clock3, ExternalLink, Mail, MapPin, MessageCircleReply, Pencil, Phone, UserX } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -32,8 +32,16 @@ import { cn } from "@/lib/utils"
 import type { ProspectStatus } from "@/db/schema"
 import type { ProspectWithDetail, Tag, TeamMember } from "@/types/database"
 import type { CampaignOption } from "@/components/campaigns/campaign-picker"
+import { quickActionButtonClassName } from "@/components/crm/quick-action-styles"
 
-const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
+const QUICK_STATUSES = ["replied", "booked", "waiting", "dead"] as const satisfies readonly ProspectStatus[]
+
+const QUICK_STATUS_ICONS = {
+  replied: MessageCircleReply,
+  booked: CalendarCheck2,
+  waiting: Clock3,
+  dead: UserX,
+} satisfies Record<(typeof QUICK_STATUSES)[number], React.ComponentType<{ className?: string }>>
 
 function formatDateTime(value: string | Date | null) {
   if (!value) return null
@@ -183,26 +191,34 @@ function DetailBody({
             Quick actions
           </h3>
           <div className="flex flex-wrap gap-2">
-            {QUICK_STATUSES.map((s) => (
-              <Button
-                key={s}
-                type="button"
-                variant={status === s ? "default" : "outline"}
-                size="xs"
-                disabled={isPending}
-                onClick={() => quickSetStatus(s)}
-              >
-                Mark as {PROSPECT_STATUS_LABELS[s].toLowerCase()}
-              </Button>
-            ))}
-            <Button type="button" variant="outline" size="xs" onClick={onEdit}>
-              <Pencil />
+            {QUICK_STATUSES.map((s) => {
+              const Icon = QUICK_STATUS_ICONS[s]
+              return (
+                <Button
+                  key={s}
+                  type="button"
+                  variant={status === s ? "default" : "outline"}
+                  size="sm"
+                  className={quickActionButtonClassName}
+                  disabled={isPending}
+                  onClick={() => quickSetStatus(s)}
+                >
+                  <Icon className="size-4" />
+                  Mark as {PROSPECT_STATUS_LABELS[s].toLowerCase()}
+                </Button>
+              )
+            })}
+            <Button type="button" variant="outline" size="sm" className={quickActionButtonClassName} onClick={onEdit}>
+              <Pencil className="size-4" />
               Edit
             </Button>
             <DeleteProspectButton
               prospectId={prospect.id}
               prospectName={prospect.business_name}
               onDeleted={onDeleted}
+              variant="outline"
+              size="sm"
+              className={quickActionButtonClassName}
             />
           </div>
         </section>

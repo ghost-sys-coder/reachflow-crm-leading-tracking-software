@@ -16,6 +16,8 @@ import { ProspectForm } from "@/components/crm/prospect-form"
 import { createProspect } from "@/app/actions/prospects"
 import type { ProspectCreateInput } from "@/lib/validation/schemas"
 import type { CampaignOption } from "@/components/campaigns/campaign-picker"
+import { cn } from "@/lib/utils"
+import { primaryQuickActionButtonClassName } from "@/components/crm/quick-action-styles"
 
 export function AddProspectDialog({
   industryOptions,
@@ -25,6 +27,7 @@ export function AddProspectDialog({
   triggerLabel = "Add prospect",
   variant = "default",
   size = "sm",
+  className,
 }: {
   industryOptions?: string[]
   customPlatforms?: string[]
@@ -33,6 +36,7 @@ export function AddProspectDialog({
   triggerLabel?: string
   variant?: React.ComponentProps<typeof Button>["variant"]
   size?: React.ComponentProps<typeof Button>["size"]
+  className?: string
 }) {
   const [open, setOpen] = React.useState(false)
 
@@ -45,8 +49,8 @@ export function AddProspectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size}>
-          <Plus />
+        <Button variant={variant} size={size} className={cn(primaryQuickActionButtonClassName, className)}>
+          <Plus className="size-4" />
           {triggerLabel}
         </Button>
       </DialogTrigger>

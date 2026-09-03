@@ -24,6 +24,7 @@ import {
 import { importProspects, type CsvImportRow, type ImportResult } from "@/app/actions/prospects"
 import { parseCsv } from "@/lib/csv/parse"
 import { Input } from "../ui/input"
+import { quickActionButtonClassName } from "@/components/crm/quick-action-styles"
 
 const SKIP = "__skip__"
 
@@ -170,7 +171,7 @@ export function ImportProspectsDialog() {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className={quickActionButtonClassName}>
           <Upload className="size-4" />
           Import CSV
         </Button>

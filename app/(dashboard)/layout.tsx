@@ -50,7 +50,7 @@ export default async function DashboardLayout({
           }
         `}</style>
       )}
-      <div className="dashboard-shell fixed inset-0 flex h-dvh min-h-0 gap-3 overflow-hidden bg-muted/45 p-3 lg:gap-4 lg:p-4">
+      <div className="dashboard-shell fixed inset-0 flex h-dvh min-h-0 gap-3 overflow-hidden bg-muted/45 p-0.5 lg:gap-4 lg:p-1">
         <DesktopSidebar
           userEmail={userEmail}
           userName={userName}
@@ -65,7 +65,7 @@ export default async function DashboardLayout({
             orgLogoUrl={orgLogoUrl ?? undefined}
           />
           <main id="main-content" className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-background/65">
-            <div className="mx-auto w-full min-w-0 max-w-7xl overflow-hidden p-4 sm:p-6 lg:p-8 xl:p-10">{children}</div>
+            <div className="mx-auto w-full min-w-0 max-w-7xl overflow-hidden p-1 sm:p-1.5 lg:p-2">{children}</div>
           </main>
         </div>
       </div>

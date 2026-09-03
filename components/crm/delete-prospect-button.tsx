@@ -18,15 +18,22 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { deleteProspect } from "@/app/actions/prospects"
+import { cn } from "@/lib/utils"
 
 export function DeleteProspectButton({
   prospectId,
   prospectName,
   onDeleted,
+  className,
+  variant = "ghost",
+  size = "xs",
 }: {
   prospectId: string
   prospectName: string
   onDeleted?: () => void
+  className?: string
+  variant?: React.ComponentProps<typeof Button>["variant"]
+  size?: React.ComponentProps<typeof Button>["size"]
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -49,8 +56,8 @@ export function DeleteProspectButton({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="xs" className="text-destructive">
-          <Trash2 />
+        <Button variant={variant} size={size} className={cn("text-destructive", className)}>
+          <Trash2 className="size-4" />
           Delete
         </Button>
       </AlertDialogTrigger>

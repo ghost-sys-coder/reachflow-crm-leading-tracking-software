@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Pencil } from "lucide-react"
+import { CalendarCheck2, Clock3, MessageCircleReply, Pencil, UserX } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -13,8 +13,16 @@ import { updateProspectStatus } from "@/app/actions/prospects"
 import type { ProspectStatus } from "@/db/schema"
 import type { ProspectWithDetail } from "@/types/database"
 import type { CampaignOption } from "@/components/campaigns/campaign-picker"
+import { quickActionButtonClassName } from "@/components/crm/quick-action-styles"
 
-const QUICK_STATUSES: ProspectStatus[] = ["replied", "booked", "waiting", "dead"]
+const QUICK_STATUSES = ["replied", "booked", "waiting", "dead"] as const satisfies readonly ProspectStatus[]
+
+const QUICK_STATUS_ICONS = {
+  replied: MessageCircleReply,
+  booked: CalendarCheck2,
+  waiting: Clock3,
+  dead: UserX,
+} satisfies Record<(typeof QUICK_STATUSES)[number], React.ComponentType<{ className?: string }>>
 
 export function ProspectDetailActions({
   prospect,
@@ -48,22 +56,28 @@ export function ProspectDetailActions({
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        {QUICK_STATUSES.map((s) => (
-          <Button
-            key={s}
-            type="button"
-            variant={status === s ? "default" : "outline"}
-            size="xs"
-            disabled={isPending}
-            onClick={() => quickSetStatus(s)}
-          >
-            Mark as {PROSPECT_STATUS_LABELS[s].toLowerCase()}
-          </Button>
-        ))}
+        {QUICK_STATUSES.map((s) => {
+          const Icon = QUICK_STATUS_ICONS[s]
+          return (
+            <Button
+              key={s}
+              type="button"
+              variant={status === s ? "default" : "outline"}
+              size="sm"
+              className={quickActionButtonClassName}
+              disabled={isPending}
+              onClick={() => quickSetStatus(s)}
+            >
+              <Icon className="size-4" />
+              Mark as {PROSPECT_STATUS_LABELS[s].toLowerCase()}
+            </Button>
+          )
+        })}
         <Button
           type="button"
           variant="outline"
-          size="xs"
+          size="sm"
+          className={quickActionButtonClassName}
           onClick={() => setEditOpen(true)}
         >
           <Pencil />
@@ -73,6 +87,9 @@ export function ProspectDetailActions({
           prospectId={prospect.id}
           prospectName={prospect.business_name}
           onDeleted={() => router.push("/prospects")}
+          variant="outline"
+          size="sm"
+          className={quickActionButtonClassName}
         />
       </div>
 
