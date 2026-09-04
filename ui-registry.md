@@ -39,3 +39,103 @@ Last updated: 2026-08-15
 
 **Pattern notes:**
 Integration cards expose operational state before configuration detail. Credentials appear once in a bounded success panel with explicit copy actions. Technical identifiers use monospace, permanent actions use the registered destructive confirmation dialog, and testing happens inside the application rather than through browser-native prompts.
+
+### CRM prospect data table
+
+File: components/crm/prospect-table.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-card`; header `bg-muted/45`; hover `bg-muted/35` |
+| Border | `border border-border/70`; outer `ring-1 ring-foreground/5` |
+| Border radius | Container `rounded-2xl`; metadata pills `rounded-md` |
+| Text — primary | `font-medium text-foreground` |
+| Text — secondary | `text-xs text-muted-foreground` |
+| Spacing | Rows `py-3.5`; compact metadata uses `gap-1` to `gap-2` |
+| Interactive states | Row hover/focus treatment; selected rows `bg-primary/5`; shared Button and Checkbox primitives |
+| Shadow | `shadow-lg shadow-foreground/5` |
+| Accent usage | Primary tint for selection and business-name hover; muted tokens for metadata |
+
+**Pattern notes:**
+Use this treatment for dense CRM record tables: pair the primary identity with one helpful secondary identifier, render compact metadata as pills, and preserve clear row-level hover, focus, and selection feedback.
+
+### CRM pagination controls
+
+File: components/crm/prospect-pagination.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-card`; active page inherits primary Button styling |
+| Border | `border border-border/70` |
+| Border radius | Container `rounded-xl` |
+| Text — primary | `text-sm font-medium` |
+| Text — secondary | `text-xs text-muted-foreground` |
+| Spacing | Container `px-3 py-2.5`; controls `gap-1` to `gap-2` |
+| Interactive states | Shared Button variants; disabled previous/next buttons at boundaries |
+| Shadow | `shadow-sm shadow-foreground/5` |
+| Accent usage | Primary active-page button; muted supporting range text |
+
+**Pattern notes:**
+Keep pagination URL-backed so pages remain linkable and browser navigation works. Preserve active filters in page links, reset to page one when a filter changes, and collapse long ranges with ellipses.
+
+### Campaign performance stat cards
+
+File: app/(dashboard)/campaigns/[id]/page.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | Shared Card background; icon tile `bg-primary/10` |
+| Border | `border-border/70`; outer `ring-1 ring-foreground/5`; icon `ring-1 ring-primary/15` |
+| Border radius | Shared Card radius; icon tile `rounded-xl` |
+| Text — primary | Value `text-3xl font-semibold tracking-tight text-foreground` |
+| Text — secondary | Labels and supporting detail `text-xs text-muted-foreground` |
+| Spacing | Card content `p-5`; content grouping `mt-1` to `mt-2` |
+| Interactive states | None; display-only cards |
+| Shadow | `shadow-lg shadow-foreground/5` |
+| Accent usage | Primary tint reserved for the metric icon tile |
+
+**Pattern notes:**
+Campaign KPI cards pair a prominent value with a short context label and a consistent icon tile. Keep all cards structurally identical so the metric row scans evenly.
+
+### Campaign action bar
+
+File: components/campaigns/campaign-detail-manager.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | Shared Button variants |
+| Border | Shared outline and destructive Button variants |
+| Border radius | Shared Button radius |
+| Text — primary | Shared Button typography |
+| Text — secondary | None |
+| Spacing | Buttons `h-9 gap-2 px-4`; action group `gap-2` |
+| Interactive states | `hover:-translate-y-0.5 hover:shadow-md active:translate-y-0` |
+| Shadow | `shadow-sm shadow-foreground/10` |
+| Accent usage | Destructive token only for campaign deletion |
+
+**Pattern notes:**
+Campaign management actions share identical height, horizontal padding, icon spacing, elevation, and movement. Visual hierarchy continues to come from the existing Button variants.
+
+### CRM prospect drawer cards
+
+File: components/crm/prospect-detail-panel.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | Drawer workspace `bg-muted/20`; content cards `bg-card` |
+| Border | Cards `border`; drawer header `border-b border-border` |
+| Border radius | Cards `rounded-xl` |
+| Text — primary | Section content `text-foreground` |
+| Text — secondary | Labels `text-xs font-semibold tracking-wider text-muted-foreground uppercase` |
+| Spacing | Workspace `p-4 sm:p-6`; cards `p-4`; card content `space-y-2` to `space-y-3` |
+| Interactive states | Shared Button, Select, Input, and Sheet primitives |
+| Shadow | Cards `shadow-sm` |
+| Accent usage | Existing primary and status tokens only |
+
+**Pattern notes:**
+Use full-row cards for information that benefits from horizontal reading space, including Contact, Notes, Quick actions, and Outreach history. Within outreach forms, Channel and Message remain vertically stacked so both controls have an uninterrupted line. Record Reply also stacks Reply Intent, Objection or Reason, and conditional follow-up fields at full width.

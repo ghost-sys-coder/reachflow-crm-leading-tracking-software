@@ -74,7 +74,7 @@ export function OutreachComposer({ prospectId, platform }: { prospectId: string;
         <Button type="button" size="xs" variant={mode === "outreach" ? "default" : "outline"} onClick={() => setMode("outreach")}>Record outreach</Button>
         <Button type="button" size="xs" variant={mode === "reply" ? "default" : "outline"} onClick={() => setMode("reply")}>Record reply</Button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-[11rem_1fr]">
+      <div className="grid gap-3">
         <div className="grid gap-1.5"><Label>Channel</Label><Select value={messageType} onValueChange={(value) => setMessageType(value as MessageType)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{OUTREACH_TYPES.map((type) => <SelectItem key={type} value={type}>{MESSAGE_TYPE_LABELS[type]}</SelectItem>)}</SelectContent></Select></div>
         <div className="grid gap-1.5"><Label htmlFor="outreach-content">{mode === "reply" ? "Prospect's message" : messageType === "call_note" ? "Call notes" : "Message sent"}</Label><Textarea id="outreach-content" rows={3} value={content} onChange={(event) => setContent(event.target.value)} placeholder="Record what was sent or discussed..." /></div>
       </div>
@@ -87,7 +87,7 @@ export function OutreachComposer({ prospectId, platform }: { prospectId: string;
         <div className="grid gap-1.5"><Label htmlFor="next-action">Next action</Label><Input id="next-action" value={nextAction} onChange={(event) => setNextAction(event.target.value)} placeholder="Send proposal, confirm decision maker..." /></div>
       </div>}
 
-      {mode === "reply" && <div className="grid gap-3 sm:grid-cols-2">
+      {mode === "reply" && <div className="grid gap-3">
         <div className="grid gap-1.5"><Label>Reply intent</Label><Select value={replyIntent} onValueChange={(value) => setReplyIntent(value as ReplyIntent)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{REPLY_INTENTS.map((value) => <SelectItem key={value} value={value}>{humanize(value)}</SelectItem>)}</SelectContent></Select></div>
         <div className="grid gap-1.5"><Label htmlFor="objection-code">Objection or reason</Label><Input id="objection-code" value={objectionCode} onChange={(event) => setObjectionCode(event.target.value)} placeholder="Price, timing, authority..." /></div>
         {replyIntent === "not_now" && <div className="grid gap-1.5"><Label htmlFor="revisit-at">Revisit date</Label><Input id="revisit-at" type="datetime-local" value={revisitAt} onChange={(event) => setRevisitAt(event.target.value)} /></div>}

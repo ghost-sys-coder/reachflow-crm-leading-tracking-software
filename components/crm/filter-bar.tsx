@@ -40,6 +40,7 @@ export function FilterBar({
     if (value === null || value === "") params.delete(key)
     else params.set(key, value)
     params.delete("prospect")
+    params.delete("page")
     const qs = params.toString()
     router.push(qs ? `?${qs}` : "?", { scroll: false })
   }

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, CalendarDays, CircleDollarSign, Megaphone, Target, UserRound } from "lucide-react"
+import { ArrowLeft, CalendarCheck2, CalendarDays, CircleDollarSign, Megaphone, MessageCircleReply, Target, TrendingUp, UserRound, UsersRound } from "lucide-react"
 
 import { getCampaignById, getCampaignOptions } from "@/app/actions/campaigns"
 import { getOrgCustomPlatforms, getOrgIndustries } from "@/app/actions/custom-fields"
@@ -19,10 +19,13 @@ function formatMoney(cents: number | null, currency: string) {
 
 export default async function CampaignDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ page?: string }>
 }) {
   const { id } = await params
+  const query = await searchParams
   const [campaignResult, prospectsResult, membersResult, orgResult, optionsResult, industriesResult, platformsResult] =
     await Promise.all([
       getCampaignById(id),
@@ -43,6 +46,17 @@ export default async function CampaignDetailPage({
   const bookingRate = campaign.prospect_count
     ? Math.round((campaign.booked_count / campaign.prospect_count) * 100)
     : 0
+  const pageSize = 10
+  const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1)
+  const totalPages = Math.max(1, Math.ceil(campaign.prospects.length / pageSize))
+  const currentPage = Math.min(requestedPage, totalPages)
+  const displayedProspects = campaign.prospects.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const stats = [
+    { label: "Prospects", value: campaign.prospect_count.toString(), icon: UsersRound, detail: "Attached to campaign" },
+    { label: "Replied", value: campaign.replied_count.toString(), icon: MessageCircleReply, detail: "Active conversations" },
+    { label: "Booked", value: campaign.booked_count.toString(), icon: CalendarCheck2, detail: "Meetings secured" },
+    { label: "Booking rate", value: `${bookingRate}%`, icon: TrendingUp, detail: "Prospects converted" },
+  ]
 
   return (
     <div className="space-y-6">
@@ -62,19 +76,29 @@ export default async function CampaignDetailPage({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Prospects", campaign.prospect_count.toString()],
-          ["Replied", campaign.replied_count.toString()],
-          ["Booked", campaign.booked_count.toString()],
-          ["Booking rate", `${bookingRate}%`],
-        ].map(([label, value]) => (
-          <Card key={label}><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></CardContent></Card>
+        {stats.map(({ label, value, icon: Icon, detail }) => (
+          <Card key={label} className="overflow-hidden border-border/70 shadow-lg shadow-foreground/5 ring-1 ring-foreground/5">
+            <CardContent className="flex items-start justify-between gap-4 p-5">
+              <div>
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</p>
+                <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+              </div>
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+                <Icon className="size-5" />
+              </span>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <CampaignDetailManager
           campaign={campaign}
+          displayedProspects={displayedProspects}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
           allProspects={prospectsResult.data ?? []}
           teamMembers={members}
           campaignOptions={optionsResult.data ?? []}

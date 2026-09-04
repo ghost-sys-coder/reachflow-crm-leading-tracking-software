@@ -101,7 +101,7 @@ export function ProspectDetailPanel({
       <Sheet open={open} onOpenChange={handleOpenChange}>
         <SheetContent
           side="right"
-          className="flex w-full flex-col gap-0 p-0"
+          className="flex w-full flex-col gap-0 p-0 sm:w-1/2 sm:max-w-none"
         >
           {prospect ? (
             <DetailBody
@@ -185,8 +185,8 @@ function DetailBody({
         </div>
       </SheetHeader>
 
-      <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
-        <section className="space-y-2">
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 sm:p-6 xl:grid xl:grid-cols-2 xl:items-start xl:gap-4 xl:bg-muted/20 xl:[&>section]:rounded-xl xl:[&>section]:border xl:[&>section]:bg-card xl:[&>section]:p-4 xl:[&>section]:shadow-sm xl:[&>[data-slot=separator]]:hidden">
+        <section className="space-y-2 xl:col-span-2">
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Quick actions
           </h3>
@@ -246,7 +246,7 @@ function DetailBody({
 
         <Separator />
 
-        <section className="space-y-2">
+        <section className="space-y-2 xl:col-span-2">
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Contact
           </h3>
@@ -338,7 +338,7 @@ function DetailBody({
 
         <Separator />
 
-        <section>
+        <section className="xl:col-span-2">
           <ProspectNotes prospectId={prospect.id} initialNotes={prospect.notes} />
         </section>
 
@@ -395,7 +395,7 @@ function DetailBody({
 
         <Separator />
 
-        <section className="space-y-3">
+        <section className="space-y-3 xl:col-span-2">
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Outreach history
           </h3>

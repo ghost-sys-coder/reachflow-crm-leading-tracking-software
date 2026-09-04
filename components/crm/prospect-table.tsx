@@ -25,7 +25,7 @@ import { StatusMenu } from "@/components/crm/status-menu"
 import { TagPill } from "@/components/crm/tag-pill"
 import { bulkDeleteProspects } from "@/app/actions/prospects"
 import type { Platform } from "@/db/schema"
-import type { ProspectWithTags, TeamMember } from "@/types/database"
+import type { ProspectWithTags } from "@/types/database"
 
 function formatRelative(date: Date) {
   const diffMs = Date.now() - date.getTime()
@@ -41,12 +41,10 @@ function formatRelative(date: Date) {
 export function ProspectTable({
   prospects,
   agencyReady,
-  teamMembers,
   isAdmin,
 }: {
   prospects: ProspectWithTags[]
   agencyReady: boolean
-  teamMembers: TeamMember[]
   isAdmin: boolean
 }) {
   const router = useRouter()
@@ -130,10 +128,10 @@ export function ProspectTable({
         </div>
       )}
 
-      <div className="block w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-[0_18px_45px_-34px_oklch(0.25_0.04_260/0.5)]">
+      <div className="block w-full min-w-0 max-w-full overflow-x-auto rounded-2xl border border-border/70 bg-card shadow-lg shadow-foreground/5 ring-1 ring-foreground/5">
         <table className="w-full table-fixed text-sm">
-          <thead>
-            <tr className="border-b border-border/70">
+          <thead className="bg-muted/45">
+            <tr className="border-b border-border/80">
               {isAdmin && (
                 <th className="w-9 px-2 py-2.5 sm:w-10 sm:px-3">
                   <input
@@ -171,13 +169,12 @@ export function ProspectTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/60">
             {prospects.map((p) => (
               <ProspectTableRow
                 key={p.id}
                 prospect={p}
                 agencyReady={agencyReady}
-                teamMembers={teamMembers}
                 isAdmin={isAdmin}
                 isSelected={selectedIds.has(p.id)}
                 onToggle={toggleOne}
@@ -220,14 +217,12 @@ export function ProspectTable({
 function ProspectTableRow({
   prospect,
   agencyReady,
-  teamMembers,
   isAdmin,
   isSelected,
   onToggle,
 }: {
   prospect: ProspectWithTags
   agencyReady: boolean
-  teamMembers: TeamMember[]
   isAdmin: boolean
   isSelected: boolean
   onToggle: (id: string) => void
@@ -239,12 +234,12 @@ function ProspectTableRow({
 
   return (
     <tr
-      className="group/row transition-colors data-[selected=true]:bg-primary/5"
+      className="group/row transition-[background-color,box-shadow] hover:bg-muted/35 focus-within:bg-muted/35 data-[selected=true]:bg-primary/5"
       data-selected={isSelected}
     >
       {isAdmin && (
         <td
-          className="w-9 px-2 py-3 sm:w-10 sm:px-3"
+          className="w-9 px-2 py-3.5 sm:w-10 sm:px-3"
           onClick={(e) => e.stopPropagation()}
         >
           <input
@@ -257,7 +252,7 @@ function ProspectTableRow({
         </td>
       )}
 
-      <td className="min-w-0 px-3 py-3 sm:px-4">
+      <td className="min-w-0 px-3 py-3.5 sm:px-4">
         <Link
           href={`/prospects/${prospect.id}`}
           className="flex items-center gap-2.5 focus-visible:outline-none"
@@ -265,30 +260,34 @@ function ProspectTableRow({
           <span className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/10 sm:inline-flex">
             <PlatformIcon platform={platform} className="size-4" />
           </span>
-          <span className="truncate font-medium text-foreground group-hover/row:text-primary">
-            {prospect.business_name}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-medium text-foreground transition-colors group-hover/row:text-primary">
+              {prospect.business_name}
+            </span>
+            {prospect.handle && (
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{prospect.handle}</span>
+            )}
           </span>
           <ExternalLink className="size-3 shrink-0 opacity-0 transition-opacity group-hover/row:opacity-40" />
         </Link>
       </td>
 
-      <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
-        {PLATFORM_LABELS[platform]}
+      <td className="hidden px-4 py-3.5 text-muted-foreground lg:table-cell">
+        <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium">
+          {PLATFORM_LABELS[platform]}
+        </span>
       </td>
 
-      <td className="overflow-hidden px-2 py-3 sm:px-4">
+      <td className="overflow-hidden px-2 py-3.5 sm:px-4">
         <StatusBadge status={prospect.status as Parameters<typeof StatusBadge>[0]["status"]} />
       </td>
 
-      <td className="hidden max-w-40 px-4 py-3 text-muted-foreground xl:table-cell">
-        <p className="truncate text-xs">
-          {[prospect.industry, prospect.location].filter(Boolean).join(" · ") ||
-            prospect.handle ||
-            "—"}
-        </p>
+      <td className="hidden max-w-40 px-4 py-3.5 text-muted-foreground xl:table-cell">
+        <p className="truncate text-xs font-medium text-foreground/80">{prospect.industry || "—"}</p>
+        {prospect.location && <p className="mt-0.5 truncate text-[11px]">{prospect.location}</p>}
       </td>
 
-      <td className="hidden px-4 py-3 2xl:table-cell">
+      <td className="hidden px-4 py-3.5 2xl:table-cell">
         {prospect.tags.length === 0 ? (
           <span className="text-xs text-muted-foreground">—</span>
         ) : (
@@ -305,11 +304,11 @@ function ProspectTableRow({
         )}
       </td>
 
-      <td className="hidden px-4 py-3 text-right text-xs text-muted-foreground 2xl:table-cell">
+      <td className="hidden px-4 py-3.5 text-right text-xs text-muted-foreground 2xl:table-cell">
         {lastContacted ?? "—"}
       </td>
 
-      <td className="overflow-hidden px-2 py-3 text-right sm:px-4">
+      <td className="overflow-hidden px-2 py-3.5 text-right sm:px-4">
         <div
           className="flex min-w-0 items-center justify-end gap-0.5 sm:gap-1"
           onClick={(e) => e.stopPropagation()}

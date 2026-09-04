@@ -13,6 +13,8 @@ import {
 import { CampaignDialog } from "@/components/campaigns/campaign-dialog"
 import { AddProspectDialog } from "@/components/crm/add-prospect-dialog"
 import { StatusBadge } from "@/components/crm/status-badge"
+import { ProspectPagination } from "@/components/crm/prospect-pagination"
+import { quickActionButtonClassName } from "@/components/crm/quick-action-styles"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +45,10 @@ import type { CampaignOption } from "@/components/campaigns/campaign-picker"
 
 export function CampaignDetailManager({
   campaign,
+  displayedProspects,
+  currentPage,
+  totalPages,
+  pageSize,
   allProspects,
   teamMembers,
   campaignOptions,
@@ -52,6 +58,10 @@ export function CampaignDetailManager({
   isAdmin,
 }: {
   campaign: CampaignWithProspects
+  displayedProspects: CampaignWithProspects["prospects"]
+  currentPage: number
+  totalPages: number
+  pageSize: number
   allProspects: Prospect[]
   teamMembers: TeamMember[]
   campaignOptions: CampaignOption[]
@@ -113,11 +123,11 @@ export function CampaignDetailManager({
           <CampaignDialog
             campaign={campaign}
             teamMembers={teamMembers}
-            trigger={<Button variant="outline" size="sm"><Pencil />Edit campaign</Button>}
+            trigger={<Button variant="outline" size="sm" className={quickActionButtonClassName}><Pencil />Edit campaign</Button>}
           />
           <Dialog open={attachOpen} onOpenChange={setAttachOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm"><Plus />Attach existing</Button>
+              <Button variant="outline" size="sm" className={quickActionButtonClassName}><Plus />Attach existing</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -166,11 +176,12 @@ export function CampaignDetailManager({
             initialCampaignIds={[campaign.id]}
             industryOptions={industryOptions}
             customPlatforms={customPlatforms}
+            className={quickActionButtonClassName}
           />
           {isAdmin && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm"><Trash2 />Delete</Button>
+                <Button variant="destructive" size="sm" className={quickActionButtonClassName}><Trash2 />Delete</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -198,7 +209,7 @@ export function CampaignDetailManager({
             No prospects are attached to this campaign yet.
           </p>
         ) : (
-          campaign.prospects.map((prospect) => (
+          displayedProspects.map((prospect) => (
             <div key={prospect.id} className="grid grid-cols-[minmax(0,1fr)_120px_120px_44px] items-center gap-3 border-b px-4 py-3 last:border-b-0">
               <button type="button" onClick={() => router.push(`/prospects/${prospect.id}`)} className="truncate text-left text-sm font-medium hover:underline">
                 {prospect.business_name}
@@ -221,6 +232,16 @@ export function CampaignDetailManager({
           ))
         )}
       </div>
+      {campaign.prospects.length > 0 && (
+        <ProspectPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={campaign.prospects.length}
+          pageSize={pageSize}
+          params={{}}
+          pathname={`/campaigns/${campaign.id}`}
+        />
+      )}
     </div>
   )
 }

@@ -8,10 +8,10 @@ import { EmptyState } from "@/components/crm/empty-state"
 import { FilterBar, type FilterCounts } from "@/components/crm/filter-bar"
 import { ProspectListSkeleton } from "@/components/crm/prospect-list-skeleton"
 import { ProspectTable } from "@/components/crm/prospect-table"
+import { ProspectPagination } from "@/components/crm/prospect-pagination"
 import { StatsRow } from "@/components/crm/stats-row"
 import { getCurrentOrg } from "@/app/actions/profile"
 import { getProspects } from "@/app/actions/prospects"
-import { getTeamMembers } from "@/app/actions/team"
 import { getUserTags } from "@/app/actions/tags"
 import { getOrgIndustries, getOrgCustomPlatforms } from "@/app/actions/custom-fields"
 import { getCampaignOptions } from "@/app/actions/campaigns"
@@ -20,13 +20,14 @@ import { getSavedViews } from "@/app/actions/daily-operations"
 import { SavedViewsBar } from "@/components/crm/saved-views-bar"
 import { PLATFORMS, PROSPECT_STATUSES } from "@/lib/validation/schemas"
 import type { Platform, ProspectStatus } from "@/db/schema"
-import type { Prospect, ProspectWithTags, Tag, TeamMember } from "@/types/database"
+import type { Prospect, ProspectWithTags, Tag } from "@/types/database"
 
 type ProspectsSearchParams = {
   status?: string
   platform?: string
   q?: string
   assigned?: string
+  page?: string
 }
 
 function parseStatus(value: string | undefined): ProspectStatus | null {
@@ -106,12 +107,12 @@ export default async function ProspectsPage({
   const platform = parsePlatform(params.platform)
   const search = params.q ?? ""
   const assignedToMe = params.assigned === "me"
+  const requestedPage = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1)
 
-  const [allResult, tagsResult, orgResult, membersResult, orgCtxResult, industriesResult, platformsResult, campaignsResult, savedViewsResult] = await Promise.all([
+  const [allResult, tagsResult, orgResult, orgCtxResult, industriesResult, platformsResult, campaignsResult, savedViewsResult] = await Promise.all([
     getProspects({}),
     getUserTags(),
     getCurrentOrg(),
-    getTeamMembers(),
     getAuthedOrgClient(),
     getOrgIndustries(),
     getOrgCustomPlatforms(),
@@ -121,7 +122,6 @@ export default async function ProspectsPage({
 
   const all = allResult.data ?? []
   const allTags = tagsResult.data ?? []
-  const teamMembers: TeamMember[] = membersResult.data ?? []
   const agencyReady = Boolean(orgResult.data?.agency_name)
   const currentUserId = orgCtxResult.ctx?.userId ?? ""
   const isAdmin = orgCtxResult.ctx?.role === "admin"
@@ -137,10 +137,12 @@ export default async function ProspectsPage({
     search,
     assignedToUserId: assignedToMe ? currentUserId : null,
   })
-  const prospects = attachTags(filtered, allTags)
+  const pageSize = 10
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const currentPage = Math.min(requestedPage, totalPages)
+  const prospects = attachTags(filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize), allTags)
 
   const hasAnyProspects = all.length > 0
-  const hasFilters = Boolean(status || platform || search || assignedToMe)
 
   return (
     <div className="w-full min-w-0 max-w-full space-y-6 overflow-hidden">
@@ -184,17 +186,21 @@ export default async function ProspectsPage({
               <ProspectTable
                 prospects={prospects}
                 agencyReady={agencyReady}
-                teamMembers={teamMembers}
                 isAdmin={isAdmin}
               />
             )}
           </Suspense>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Showing {prospects.length} of {all.length} prospects
-            {hasFilters ? " (filtered)" : ""}.
-          </p>
+          {prospects.length > 0 && (
+            <ProspectPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              params={{ status: status ?? undefined, platform: platform ?? undefined, q: search || undefined, assigned: assignedToMe ? "me" : undefined }}
+            />
+          )}
         </>
       ) : (
         <EmptyState
