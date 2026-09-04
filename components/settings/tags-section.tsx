@@ -74,7 +74,7 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
           Tags help you categorise and filter prospects across your pipeline.
         </p>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 shadow-sm sm:flex-row sm:items-end">
           <div className="grid flex-1 gap-1.5">
             <Label htmlFor="tag-name">Tag name</Label>
             <Input
@@ -89,12 +89,13 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
               }}
               placeholder="Warm lead, Plumber, Follow-up..."
               maxLength={50}
+              className="h-10 bg-background"
             />
           </div>
           <div className="grid gap-1.5 sm:w-36">
             <Label htmlFor="tag-color">Color</Label>
             <Select value={color} onValueChange={setColor}>
-              <SelectTrigger id="tag-color" className="w-full">
+              <SelectTrigger id="tag-color" className="w-full bg-background data-[size=default]:h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -108,7 +109,7 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
           </div>
           <Button
             type="button"
-            size="sm"
+            className="h-10 w-full shrink-0 gap-2 px-5 shadow-sm shadow-primary/25 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/20 active:translate-y-0 sm:w-auto sm:self-end"
             onClick={handleCreate}
             disabled={!name.trim() || isPending}
           >
@@ -150,7 +151,7 @@ export function TagsSection({ initialTags }: { initialTags: Tag[] }) {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete "{tag.name}"?</AlertDialogTitle>
+                    <AlertDialogTitle>Delete &quot;{tag.name}&quot;?</AlertDialogTitle>
                     <AlertDialogDescription>
                       This removes the tag from all prospects. This cannot be undone.
                     </AlertDialogDescription>

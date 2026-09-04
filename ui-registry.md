@@ -139,3 +139,23 @@ Last updated: 2026-09-04
 
 **Pattern notes:**
 Use full-row cards for information that benefits from horizontal reading space, including Contact, Notes, Quick actions, and Outreach history. Within outreach forms, Channel and Message remain vertically stacked so both controls have an uninterrupted line. Record Reply also stacks Reply Intent, Objection or Reason, and conditional follow-up fields at full width.
+
+### Settings inline creation forms
+
+File: components/settings/tags-section.tsx, components/settings/team-section.tsx, components/settings/custom-fields-section.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | Form surface `bg-muted/20`; controls `bg-background`; primary Button background |
+| Border | Form surface `border-border/70`; shared form-control borders |
+| Border radius | Form surface `rounded-xl`; shared form-control radius |
+| Text — primary | Shared form-control typography |
+| Text — secondary | Supporting copy `text-sm text-muted-foreground` |
+| Spacing | Form surface `p-4`; row `gap-3`; fields `gap-1.5`; actions `px-5 gap-2` |
+| Interactive states | Shared field focus/disabled states; action `hover:-translate-y-0.5 hover:shadow-md active:translate-y-0` |
+| Shadow | Form `shadow-sm`; action `shadow-sm shadow-primary/25` |
+| Accent usage | Primary action Button |
+
+**Pattern notes:**
+Inline Settings creation forms place related controls on a subtle bounded surface. Inputs and actions use `h-10`; Select triggers explicitly override their internal size rule with `data-[size=default]:h-10` so all controls render at the same height. The primary action is full width when stacked on mobile, then content-width and bottom-aligned beside inputs on larger screens.

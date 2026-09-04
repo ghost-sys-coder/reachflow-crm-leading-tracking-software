@@ -83,11 +83,11 @@ function FieldList({
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdd() } }}
           placeholder={placeholder}
           maxLength={maxLength}
-          className="flex-1"
+          className="h-10 flex-1"
         />
         <Button
           type="button"
-          size="sm"
+          className="h-10 shrink-0 gap-2 px-5"
           onClick={handleAdd}
           disabled={!input.trim() || isPending}
         >
