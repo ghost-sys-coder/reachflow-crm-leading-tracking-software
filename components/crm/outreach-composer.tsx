@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import { recordCall, recordReply, recordSentOutreach } from "@/app/actions/messages"
 import { sendGmailOutreach } from "@/app/actions/gmail"
+import { sendWhatsAppOutreach } from "@/app/actions/whatsapp"
 import { MESSAGE_TYPE_LABELS } from "@/components/crm/message-meta"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,12 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import type { CallOutcome, MessageType, ReplyIntent } from "@/db/schema"
 
-const OUTREACH_TYPES: MessageType[] = ["instagram_dm", "cold_email", "facebook_message", "linkedin_message", "x_message", "call_note", "custom"]
+const OUTREACH_TYPES: MessageType[] = ["instagram_dm", "cold_email", "whatsapp_message", "facebook_message", "linkedin_message", "x_message", "call_note", "custom"]
 const CALL_OUTCOMES: CallOutcome[] = ["connected", "no_answer", "voicemail", "callback_requested", "wrong_number", "disqualified"]
 const REPLY_INTENTS: ReplyIntent[] = ["interested", "not_now", "not_interested", "question", "wrong_contact", "disqualified"]
 
 function defaultType(platform: string): MessageType {
-  return ({ instagram: "instagram_dm", email: "cold_email", facebook: "facebook_message", linkedin: "linkedin_message", x: "x_message", call: "call_note" } as Record<string, MessageType>)[platform] ?? "custom"
+  return ({ instagram: "instagram_dm", email: "cold_email", whatsapp: "whatsapp_message", facebook: "facebook_message", linkedin: "linkedin_message", x: "x_message", call: "call_note" } as Record<string, MessageType>)[platform] ?? "custom"
 }
 
 function humanize(value: string) {
@@ -46,6 +47,8 @@ export function OutreachComposer({ prospectId, platform }: { prospectId: string;
         ? await recordReply({ prospect_id: prospectId, message_type: messageType, content, subject: undefined, reply_intent: replyIntent, objection_code: objectionCode || undefined, revisit_at: revisitAt ? new Date(revisitAt) : undefined })
         : messageType === "call_note"
           ? await recordCall({ prospect_id: prospectId, message_type: "call_note", content, subject: undefined, recorded_at: undefined, call_outcome: callOutcome, call_duration_seconds: durationMinutes ? Math.round(Number(durationMinutes) * 60) : undefined, callback_at: callbackAt ? new Date(callbackAt) : undefined, next_action: nextAction || undefined })
+          : messageType === "whatsapp_message"
+            ? await sendWhatsAppOutreach({ prospect_id: prospectId, content })
           : messageType === "cold_email"
             ? await sendGmailOutreach({ prospect_id: prospectId, subject, content })
             : await recordSentOutreach({ prospect_id: prospectId, message_type: messageType, content, subject: undefined })
@@ -58,7 +61,7 @@ export function OutreachComposer({ prospectId, platform }: { prospectId: string;
       setSubject("")
       setCallbackAt("")
       setRevisitAt("")
-      toast.success(mode === "reply" ? "Reply recorded" : messageType === "call_note" ? "Call recorded" : messageType === "cold_email" ? "Email sent through Gmail" : "Outreach recorded")
+      toast.success(mode === "reply" ? "Reply recorded" : messageType === "call_note" ? "Call recorded" : messageType === "cold_email" ? "Email sent through Gmail" : messageType === "whatsapp_message" ? "WhatsApp message sent" : "Outreach recorded")
     })
   }
 

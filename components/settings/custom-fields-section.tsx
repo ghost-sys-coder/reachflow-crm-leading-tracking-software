@@ -32,6 +32,7 @@ import type { CustomFieldDefinition } from "@/types/database"
 const STANDARD_PLATFORM_LABELS: Record<string, string> = {
   instagram: "Instagram",
   email:     "Email",
+  whatsapp:  "WhatsApp",
   facebook:  "Facebook",
   linkedin:  "LinkedIn",
   x:         "X",

@@ -159,3 +159,23 @@ Last updated: 2026-09-04
 
 **Pattern notes:**
 Inline Settings creation forms place related controls on a subtle bounded surface. Inputs and actions use `h-10`; Select triggers explicitly override their internal size rule with `data-[size=default]:h-10` so all controls render at the same height. The primary action is full width when stacked on mobile, then content-width and bottom-aligned beside inputs on larger screens.
+
+### WhatsApp integration card
+
+File: components/settings/whatsapp-integration-section.tsx
+Last updated: 2026-09-04
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-card`; icon tile `bg-primary/10` |
+| Border | `border-border/70`; icon `ring-1 ring-primary/15` |
+| Border radius | Card and icon tile `rounded-xl` |
+| Text — primary | `font-medium` |
+| Text — secondary | `text-sm text-muted-foreground`; metadata `text-xs` |
+| Spacing | Card `p-4`; content groups `gap-3`; connection footer `pt-4` |
+| Interactive states | Shared Button disabled and focus states |
+| Shadow | `shadow-sm` |
+| Accent usage | Primary icon and connected status; destructive text only for connection errors |
+
+**Pattern notes:**
+Integration cards explain the customer benefit before showing operational state. The footer separates account metadata from the primary connection action and surfaces provider errors inline.

@@ -59,6 +59,7 @@ const XMark = makeIcon(
 const PLATFORM_META: Record<string, { label: string; icon: IconComponent }> = {
   instagram: { label: "Instagram", icon: InstagramIcon },
   email: { label: "Email", icon: AtSign as unknown as IconComponent },
+  whatsapp: { label: "WhatsApp", icon: Phone as unknown as IconComponent },
   facebook: { label: "Facebook", icon: FacebookIcon },
   linkedin: { label: "LinkedIn", icon: LinkedInIcon },
   x: { label: "X", icon: XMark },

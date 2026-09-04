@@ -27,6 +27,8 @@ import { getOrgIndustries, getOrgCustomPlatforms, getCustomFieldDefinitions } fr
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { getGmailConnection } from "@/app/actions/gmail"
 import { GmailIntegrationSection } from "@/components/settings/gmail-integration-section"
+import { getWhatsAppConnection } from "@/app/actions/whatsapp"
+import { WhatsAppIntegrationSection } from "@/components/settings/whatsapp-integration-section"
 import type { Theme } from "@/components/shared/theme-provider"
 import type { MemberRole } from "@/types/database"
 
@@ -93,7 +95,7 @@ const NAV_ITEMS = [
 ] as const
 
 export default async function SettingsPage() {
-  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult, definitionsResult, gmailResult] =
+  const [profileResult, orgResult, tagsResult, membersResult, invitesResult, templatesResult, sequencesResult, orgCtx, industriesResult, platformsResult, definitionsResult, gmailResult, whatsappResult] =
     await Promise.all([
       getCurrentProfile(),
       getCurrentOrg(),
@@ -107,6 +109,7 @@ export default async function SettingsPage() {
       getOrgCustomPlatforms(),
       getCustomFieldDefinitions(),
       getGmailConnection(),
+      getWhatsAppConnection(),
     ])
 
   const profile = profileResult.data ?? null
@@ -250,7 +253,7 @@ export default async function SettingsPage() {
           <TabsContent value="integrations">
             <Card>
               <CardHeader className="border-b"><CardTitle>Integrations</CardTitle><CardDescription>Connect the services ReachFlow uses for outreach and workflow automation.</CardDescription></CardHeader>
-              <CardContent className="pt-5"><GmailIntegrationSection connection={gmailResult.data ?? null} canConnect={currentUserRole !== "viewer"} /></CardContent>
+              <CardContent className="space-y-4 pt-5"><GmailIntegrationSection connection={gmailResult.data ?? null} canConnect={currentUserRole !== "viewer"} /><WhatsAppIntegrationSection connection={whatsappResult.data ?? null} canConnect={currentUserRole === "admin"} /></CardContent>
             </Card>
           </TabsContent>
 

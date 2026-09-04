@@ -19,12 +19,13 @@ const authUsers = authSchema.table("users", {
   id: uuid("id").primaryKey(),
 })
 
-export const PLATFORMS = ["instagram", "email", "facebook", "linkedin", "x", "call", "other"] as const
+export const PLATFORMS = ["instagram", "email", "whatsapp", "facebook", "linkedin", "x", "call", "other"] as const
 export const PROSPECT_STATUSES = ["sent", "waiting", "replied", "booked", "closed", "dead"] as const
 export const CAMPAIGN_STATUSES = ["draft", "active", "paused", "completed", "archived"] as const
 export const MESSAGE_TYPES = [
   "instagram_dm",
   "cold_email",
+  "whatsapp_message",
   "facebook_message",
   "linkedin_message",
   "x_message",
@@ -287,7 +288,7 @@ export const messages = pgTable(
     index("messages_org_reply_intent_idx").on(table.org_id, table.reply_intent),
     check(
       "messages_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'whatsapp_message', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -328,7 +329,7 @@ export const messageTemplates = pgTable(
     index("message_templates_org_idx").on(table.org_id),
     check(
       "message_templates_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'whatsapp_message', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -351,7 +352,7 @@ export const generationLogs = pgTable(
     index("generation_logs_org_created_idx").on(table.org_id, table.created_at),
     check(
       "generation_logs_type_valid",
-      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
+      sql`${table.message_type} IN ('instagram_dm', 'cold_email', 'whatsapp_message', 'facebook_message', 'linkedin_message', 'x_message', 'call_note', 'follow_up', 'custom')`,
     ),
   ],
 )
@@ -425,7 +426,7 @@ export const sequenceSteps = pgTable(
   (table) => [
     index("sequence_steps_seq_idx").on(table.sequence_id),
     unique("sequence_steps_seq_step_uq").on(table.sequence_id, table.step_number),
-    check("sequence_steps_type_valid", sql`${table.message_type} IN ('instagram_dm','cold_email','facebook_message','linkedin_message','x_message','call_note','follow_up','custom')`),
+    check("sequence_steps_type_valid", sql`${table.message_type} IN ('instagram_dm','cold_email','whatsapp_message','facebook_message','linkedin_message','x_message','call_note','follow_up','custom')`),
     check("sequence_steps_delay_check", sql`${table.delay_days} >= 0`),
     check("sequence_steps_step_check", sql`${table.step_number} >= 1`),
   ],
@@ -554,6 +555,49 @@ export const gmailConnections = pgTable(
     index("gmail_connections_org_idx").on(table.org_id),
     check("gmail_connections_status_valid", sql`${table.status} IN ('active','error','revoked')`),
     check("gmail_connections_sync_status_valid", sql`${table.sync_status} IN ('idle','syncing','error')`),
+  ],
+)
+
+export const whatsappConnections = pgTable(
+  "whatsapp_connections",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    org_id: uuid().notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    connected_by: uuid().notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    business_account_id: text().notNull(),
+    phone_number_id: text().notNull(),
+    display_phone_number: text(),
+    status: text().notNull().default("active"),
+    last_message_at: timestamp({ withTimezone: true }),
+    last_error: text(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("whatsapp_connections_org_uq").on(table.org_id),
+    unique("whatsapp_connections_phone_number_uq").on(table.phone_number_id),
+    index("whatsapp_connections_org_idx").on(table.org_id),
+    check("whatsapp_connections_status_valid", sql`${table.status} IN ('active','error','revoked')`),
+  ],
+)
+
+export const whatsappWebhookEvents = pgTable(
+  "whatsapp_webhook_events",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    connection_id: uuid().references(() => whatsappConnections.id, { onDelete: "cascade" }),
+    provider_event_id: text().notNull(),
+    event_type: text().notNull(),
+    payload: jsonb().notNull(),
+    status: text().notNull().default("received"),
+    last_error: text(),
+    processed_at: timestamp({ withTimezone: true }),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("whatsapp_webhook_events_provider_uq").on(table.provider_event_id, table.event_type),
+    index("whatsapp_webhook_events_connection_idx").on(table.connection_id),
+    check("whatsapp_webhook_events_status_valid", sql`${table.status} IN ('received','processed','unmatched','failed')`),
   ],
 )
 

@@ -23,6 +23,7 @@ import type {
   sequences,
   sequenceSteps,
   tags,
+  whatsappConnections,
 } from "@/db/schema"
 
 export type { NotificationType, ActivityAction } from "@/db/schema"
@@ -63,6 +64,9 @@ export type NewCampaignProspect = typeof campaignProspects.$inferInsert
 
 export type Message = typeof messages.$inferSelect
 export type NewMessage = typeof messages.$inferInsert
+
+export type WhatsAppConnection = typeof whatsappConnections.$inferSelect
+export type NewWhatsAppConnection = typeof whatsappConnections.$inferInsert
 
 export type MessageTemplate = typeof messageTemplates.$inferSelect
 export type NewMessageTemplate = typeof messageTemplates.$inferInsert

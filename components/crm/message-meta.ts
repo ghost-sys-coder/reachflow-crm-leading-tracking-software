@@ -12,6 +12,7 @@ import type { MessageType } from "@/db/schema"
 export const MESSAGE_TYPE_LABELS: Record<MessageType, string> = {
   instagram_dm: "Instagram DM",
   cold_email: "Cold email",
+  whatsapp_message: "WhatsApp",
   facebook_message: "Facebook message",
   linkedin_message: "LinkedIn message",
   x_message: "X message",
@@ -23,6 +24,7 @@ export const MESSAGE_TYPE_LABELS: Record<MessageType, string> = {
 export const MESSAGE_TYPE_ICONS: Record<MessageType, LucideIcon> = {
   instagram_dm: MessageCircle,
   cold_email: Mail,
+  whatsapp_message: MessageCircle,
   facebook_message: MessageCircle,
   linkedin_message: MessageCircle,
   x_message: MessageCircle,
