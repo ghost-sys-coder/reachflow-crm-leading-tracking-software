@@ -88,7 +88,6 @@ async function resolveProspect(
   connection: SyncConnection,
   message: GmailMessage,
   preferredProspect?: ProspectIdentity,
-  notifyOnReply = true,
 ): Promise<ProspectIdentity | null> {
   if (preferredProspect) return preferredProspect
   const admin = createAdminClient()
@@ -124,6 +123,7 @@ async function persistMessage(
   connection: SyncConnection,
   message: GmailMessage,
   preferredProspect?: ProspectIdentity,
+  notifyOnReply = true,
 ): Promise<"imported" | "updated" | "ignored" | "reply"> {
   const prospect = await resolveProspect(connection, message, preferredProspect)
   if (!prospect) return "ignored"
