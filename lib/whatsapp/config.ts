@@ -31,3 +31,12 @@ export function getWhatsAppCloudConfig() {
     graphApiVersion: process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || "v24.0",
   }
 }
+
+export function getWhatsAppEmbeddedSignupConfig() {
+  return {
+    appId: required("WHATSAPP_APP_ID"),
+    appSecret: getWhatsAppAppSecret(),
+    configurationId: required("NEXT_PUBLIC_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID"),
+    graphApiVersion: process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || "v24.0",
+  }
+}

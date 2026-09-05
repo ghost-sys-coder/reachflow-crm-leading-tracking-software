@@ -567,6 +567,14 @@ export const whatsappConnections = pgTable(
     business_account_id: text().notNull(),
     phone_number_id: text().notNull(),
     display_phone_number: text(),
+    access_token_ciphertext: text(),
+    token_expires_at: timestamp({ withTimezone: true }),
+    token_issued_at: timestamp({ withTimezone: true }),
+    meta_user_id: text(),
+    verified_name: text(),
+    connection_method: text().notNull().default("environment"),
+    granted_scopes: text().array().notNull().default(sql`'{}'::text[]`),
+    deauthorized_at: timestamp({ withTimezone: true }),
     status: text().notNull().default("active"),
     last_message_at: timestamp({ withTimezone: true }),
     last_error: text(),
@@ -578,6 +586,7 @@ export const whatsappConnections = pgTable(
     unique("whatsapp_connections_phone_number_uq").on(table.phone_number_id),
     index("whatsapp_connections_org_idx").on(table.org_id),
     check("whatsapp_connections_status_valid", sql`${table.status} IN ('active','error','revoked')`),
+    check("whatsapp_connections_method_valid", sql`${table.connection_method} IN ('environment','embedded_signup')`),
   ],
 )
 

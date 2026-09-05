@@ -43,7 +43,7 @@ Integration cards expose operational state before configuration detail. Credenti
 ### CRM prospect data table
 
 File: components/crm/prospect-table.tsx
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 
 | Property | Class |
 | --- | --- |
@@ -167,15 +167,15 @@ Last updated: 2026-09-04
 
 | Property | Class |
 | --- | --- |
-| Background | `bg-card`; icon tile `bg-primary/10` |
-| Border | `border-border/70`; icon `ring-1 ring-primary/15` |
+| Background | `bg-card`; status panel `bg-muted/30`; icon tile `bg-emerald-500/10` |
+| Border | `border-border/70`; status panel `border`; icon `ring-1 ring-emerald-500/20` |
 | Border radius | Card and icon tile `rounded-xl` |
 | Text — primary | `font-medium` |
 | Text — secondary | `text-sm text-muted-foreground`; metadata `text-xs` |
-| Spacing | Card `p-4`; content groups `gap-3`; connection footer `pt-4` |
+| Spacing | Card `p-5`; status panel `p-3`; content groups `gap-3`; connection footer `pt-4` |
 | Interactive states | Shared Button disabled and focus states |
 | Shadow | `shadow-sm` |
-| Accent usage | Primary icon and connected status; destructive text only for connection errors |
+| Accent usage | Emerald is reserved for WhatsApp identity and connected status; destructive text only for connection errors |
 
 **Pattern notes:**
 Integration cards explain the customer benefit before showing operational state. The footer separates account metadata from the primary connection action and surfaces provider errors inline.
