@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button"
 
 type MetaLoginResponse = { authResponse?: { code?: string } }
 type SignupSelection = { businessAccountId: string; phoneNumberId: string }
+type FacebookSdk = NonNullable<Window["FB"]>
+let facebookSdkPromise: Promise<FacebookSdk> | null = null
+let initializedFacebookAppId: string | null = null
 
 declare global {
   interface Window {
@@ -22,23 +25,65 @@ declare global {
 }
 
 function loadFacebookSdk(appId: string) {
-  return new Promise<void>((resolve, reject) => {
+  if (initializedFacebookAppId === appId && window.FB) return Promise.resolve(window.FB)
+  if (facebookSdkPromise) return facebookSdkPromise
+
+  facebookSdkPromise = new Promise<FacebookSdk>((resolve, reject) => {
+    let settled = false
+    const timeout = window.setTimeout(() => {
+      if (settled) return
+      settled = true
+      facebookSdkPromise = null
+      reject(new Error("Meta's signup SDK did not finish loading. Refresh and try again."))
+    }, 10_000)
     const initialize = () => {
-      window.FB?.init({ appId, cookie: true, xfbml: false, version: "v24.0" })
-      resolve()
+      const sdk = window.FB
+      if (settled || !sdk) return false
+      try {
+        sdk.init({ appId, cookie: true, xfbml: false, version: "v24.0" })
+        initializedFacebookAppId = appId
+        settled = true
+        window.clearTimeout(timeout)
+        resolve(sdk)
+        return true
+      } catch (cause) {
+        settled = true
+        facebookSdkPromise = null
+        window.clearTimeout(timeout)
+        reject(cause instanceof Error ? cause : new Error("Could not initialize Meta's signup SDK"))
+        return false
+      }
     }
-    if (window.FB) return initialize()
-    window.fbAsyncInit = initialize
-    if (document.getElementById("facebook-jssdk")) return
+
+    const previousAsyncInit = window.fbAsyncInit
+    window.fbAsyncInit = () => {
+      previousAsyncInit?.()
+      initialize()
+    }
+    const existing = document.getElementById("facebook-jssdk") as HTMLScriptElement | null
+    if (existing) {
+      existing.addEventListener("load", initialize, { once: true })
+      if (window.FB) window.setTimeout(initialize, 0)
+      return
+    }
     const script = document.createElement("script")
     script.id = "facebook-jssdk"
     script.async = true
     script.defer = true
     script.crossOrigin = "anonymous"
     script.src = "https://connect.facebook.net/en_US/sdk.js"
-    script.onerror = () => reject(new Error("Could not load Meta's signup window"))
+    script.addEventListener("load", initialize, { once: true })
+    script.onerror = () => {
+      window.clearTimeout(timeout)
+      if (!settled) {
+        settled = true
+        facebookSdkPromise = null
+        reject(new Error("Could not load Meta's signup window"))
+      }
+    }
     document.body.appendChild(script)
   })
+  return facebookSdkPromise
 }
 
 function parseSignupEvent(event: MessageEvent): SignupSelection | null {
@@ -60,6 +105,10 @@ export function WhatsAppIntegrationSection({ connection, canConnect }: { connect
   const [pending, startTransition] = React.useTransition()
 
   function connect() {
+    if (window.location.protocol !== "https:") {
+      toast.error("Meta requires HTTPS. Restart locally with `npm run dev:https`, or connect from crm.veilcode.studio.", { duration: 7000 })
+      return
+    }
     startTransition(async () => {
       const options = await getWhatsAppSignupOptions()
       if (options.error || !options.data) {
@@ -69,7 +118,7 @@ export function WhatsAppIntegrationSection({ connection, canConnect }: { connect
       const signup = options.data
 
       try {
-        await loadFacebookSdk(signup.appId)
+        const facebook = await loadFacebookSdk(signup.appId)
         let code: string | undefined
         let selection: SignupSelection | null = null
         let completing = false
@@ -95,7 +144,7 @@ export function WhatsAppIntegrationSection({ connection, canConnect }: { connect
           void complete().catch((cause) => toast.error(cause instanceof Error ? cause.message : "Could not connect WhatsApp"))
         }
         window.addEventListener("message", onMessage)
-        window.FB?.login((response) => {
+        facebook.login((response) => {
           code = response.authResponse?.code
           if (!code) {
             window.removeEventListener("message", onMessage)
