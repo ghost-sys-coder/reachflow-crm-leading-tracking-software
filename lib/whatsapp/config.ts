@@ -41,6 +41,23 @@ function getEmbeddedSignupConfigurationId() {
   return configured.value
 }
 
+function getWhatsAppOAuthRedirectUri() {
+  const configured = process.env.WHATSAPP_OAUTH_REDIRECT_URI?.trim()
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "")
+  const value = configured || (appUrl ? `${appUrl}/api/integrations/whatsapp/callback` : "")
+  if (!value) throw new Error("WHATSAPP_OAUTH_REDIRECT_URI or NEXT_PUBLIC_APP_URL is not configured")
+
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    throw new Error("WHATSAPP_OAUTH_REDIRECT_URI must be an absolute URL")
+  }
+  if (url.protocol !== "https:") throw new Error("WHATSAPP_OAUTH_REDIRECT_URI must use HTTPS")
+  if (url.search || url.hash) throw new Error("WHATSAPP_OAUTH_REDIRECT_URI must not contain query parameters or a fragment")
+  return url.toString()
+}
+
 export function getWhatsAppWebhookVerifyToken() {
   const configured = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN?.trim()
   if (configured) return configured
@@ -73,6 +90,7 @@ export function getWhatsAppEmbeddedSignupConfig() {
     appId,
     appSecret,
     configurationId: getEmbeddedSignupConfigurationId(),
+    oauthRedirectUri: getWhatsAppOAuthRedirectUri(),
     graphApiVersion: process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || "v24.0",
   }
 }

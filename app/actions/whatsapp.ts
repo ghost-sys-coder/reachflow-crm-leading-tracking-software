@@ -23,7 +23,7 @@ export type WhatsAppConnectionSummary = {
   last_message_at: string | null
   last_error: string | null
 }
-export type WhatsAppSignupOptions = { appId: string; configurationId: string; state: string }
+export type WhatsAppSignupOptions = { appId: string; configurationId: string; state: string; redirectUri: string; graphApiVersion: string }
 
 export async function getWhatsAppConnection(): Promise<ActionResult<WhatsAppConnectionSummary | null>> {
   const { ctx, error } = await getAuthedOrgClient()
@@ -65,8 +65,8 @@ export async function getWhatsAppSignupOptions(): Promise<ActionResult<WhatsAppS
   if (!ctx) return fail(error)
   if (ctx.role !== "admin") return fail("Only workspace admins can connect WhatsApp")
   try {
-    const { appId, configurationId } = getWhatsAppEmbeddedSignupConfig()
-    return ok({ appId, configurationId, state: createWhatsAppSignupState(ctx.orgId, ctx.userId) })
+    const { appId, configurationId, oauthRedirectUri, graphApiVersion } = getWhatsAppEmbeddedSignupConfig()
+    return ok({ appId, configurationId, state: createWhatsAppSignupState(ctx.orgId, ctx.userId), redirectUri: oauthRedirectUri, graphApiVersion })
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "WhatsApp Embedded Signup is not configured"
     console.error("[whatsapp:embedded-signup] configuration_invalid", { message })

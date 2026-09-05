@@ -47,8 +47,19 @@ export async function sendWhatsAppText(to: string, body: string, credentials?: W
 
 export async function exchangeWhatsAppSignupCode(code: string) {
   const config = getWhatsAppEmbeddedSignupConfig()
-  const query = new URLSearchParams({ client_id: config.appId, client_secret: config.appSecret, code })
-  const response = await fetch(`https://graph.facebook.com/${config.graphApiVersion}/oauth/access_token?${query}`, { cache: "no-store" })
+  const body = new URLSearchParams({
+    client_id: config.appId,
+    client_secret: config.appSecret,
+    code,
+    grant_type: "authorization_code",
+    redirect_uri: config.oauthRedirectUri,
+  })
+  const response = await fetch(`https://graph.facebook.com/${config.graphApiVersion}/oauth/access_token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+    cache: "no-store",
+  })
   const payload = await response.json() as { access_token?: string; token_type?: string; expires_in?: number; error?: { message?: string } }
   if (!response.ok || !payload.access_token) throw new Error(payload.error?.message ?? "Meta did not return an access token")
   return {
@@ -61,5 +72,5 @@ export async function exchangeWhatsAppSignupCode(code: string) {
 export async function inspectWhatsAppToken(accessToken: string) {
   const config = getWhatsAppEmbeddedSignupConfig()
   const query = new URLSearchParams({ input_token: accessToken, access_token: `${config.appId}|${config.appSecret}` })
-  return metaRequest<{ data: { app_id?: string; user_id?: string; is_valid?: boolean; expires_at?: number; scopes?: string[] } }>(`debug_token?${query}`, undefined, accessToken)
+  return metaRequest<{ data: { app_id?: string; user_id?: string; is_valid?: boolean; expires_at?: number; scopes?: string[]; granular_scopes?: Array<{ scope: string; target_ids?: string[] }> } }>(`debug_token?${query}`, undefined, accessToken)
 }
