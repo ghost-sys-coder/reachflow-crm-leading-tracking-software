@@ -18,7 +18,7 @@ const bodySchema = z.object({
   code: z.string().min(8).max(4096),
   state: z.string().min(16).max(4096),
   businessAccountId: z.string().regex(/^\d+$/),
-  phoneNumberId: z.string().regex(/^\d+$/),
+  phoneNumberId: z.string().regex(/^\d+$/).optional(),
 })
 
 export async function POST(request: Request) {
@@ -45,11 +45,16 @@ export async function POST(request: Request) {
     const credentials: WhatsAppApiCredentials = {
       accessToken: exchanged.accessToken,
       businessAccountId: parsed.data.businessAccountId,
-      phoneNumberId: parsed.data.phoneNumberId,
+      phoneNumberId: parsed.data.phoneNumberId ?? "",
     }
     const numbers = await getWhatsAppAccountNumbers(credentials)
-    const number = numbers.data?.find((candidate) => candidate.id === credentials.phoneNumberId)
-    if (!number) throw new Error("The selected phone number does not belong to the authorized WhatsApp Business Account")
+    const number = credentials.phoneNumberId
+      ? numbers.data?.find((candidate) => candidate.id === credentials.phoneNumberId)
+      : numbers.data?.length === 1 ? numbers.data[0] : null
+    if (!number) throw new Error(credentials.phoneNumberId
+      ? "The selected phone number does not belong to the authorized WhatsApp Business Account"
+      : "Meta did not identify a single WhatsApp phone number for this account")
+    credentials.phoneNumberId = number.id
     await subscribeWhatsAppAccount(credentials)
 
     const now = new Date()

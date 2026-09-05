@@ -13,7 +13,7 @@ function signature(payload: string) {
 }
 
 export function createWhatsAppSignupState(orgId: string, userId: string) {
-  const payload = Buffer.from(JSON.stringify({ orgId, userId, expiresAt: Date.now() + 10 * 60_000 } satisfies SignupState)).toString("base64url")
+  const payload = Buffer.from(JSON.stringify({ orgId, userId, expiresAt: Date.now() + 60 * 60_000 } satisfies SignupState)).toString("base64url")
   return `${payload}.${signature(payload)}`
 }
 

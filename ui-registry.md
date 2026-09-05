@@ -63,7 +63,7 @@ Use this treatment for dense CRM record tables: pair the primary identity with o
 ### CRM pagination controls
 
 File: components/crm/prospect-pagination.tsx
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 
 | Property | Class |
 | --- | --- |
@@ -178,4 +178,4 @@ Last updated: 2026-09-04
 | Accent usage | Emerald is reserved for WhatsApp identity and connected status; destructive text only for connection errors |
 
 **Pattern notes:**
-Integration cards explain the customer benefit before showing operational state. The footer separates account metadata from the primary connection action and surfaces provider errors inline.
+Integration cards explain the customer benefit before showing operational state. The footer separates account metadata from the primary connection action and surfaces provider errors inline. Signup or provider errors that require user action remain visible with `role="alert"`, `rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive`; toasts supplement this surface but do not replace it.

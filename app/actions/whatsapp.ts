@@ -5,7 +5,7 @@ import { z } from "zod"
 
 import { getAuthedOrgClient } from "@/lib/auth/org"
 import { canContactProspect } from "@/lib/compliance/can-contact"
-import { getWhatsAppCloudConfig } from "@/lib/whatsapp/config"
+import { getWhatsAppCloudConfig, getWhatsAppEmbeddedSignupConfig } from "@/lib/whatsapp/config"
 import { getWhatsAppNumber, sendWhatsAppText, subscribeWhatsAppAccount, type WhatsAppApiCredentials } from "@/lib/whatsapp/client"
 import { decryptWhatsAppToken } from "@/lib/whatsapp/crypto"
 import { createWhatsAppSignupState } from "@/lib/whatsapp/signup-state"
@@ -23,6 +23,7 @@ export type WhatsAppConnectionSummary = {
   last_message_at: string | null
   last_error: string | null
 }
+export type WhatsAppSignupOptions = { appId: string; configurationId: string; state: string }
 
 export async function getWhatsAppConnection(): Promise<ActionResult<WhatsAppConnectionSummary | null>> {
   const { ctx, error } = await getAuthedOrgClient()
@@ -59,14 +60,18 @@ export async function connectConfiguredWhatsApp(): Promise<ActionResult<WhatsApp
   }
 }
 
-export async function getWhatsAppSignupOptions(): Promise<ActionResult<{ appId: string; configurationId: string; state: string }>> {
+export async function getWhatsAppSignupOptions(): Promise<ActionResult<WhatsAppSignupOptions>> {
   const { ctx, error } = await getAuthedOrgClient()
   if (!ctx) return fail(error)
   if (ctx.role !== "admin") return fail("Only workspace admins can connect WhatsApp")
-  const appId = process.env.WHATSAPP_APP_ID?.trim()
-  const configurationId = process.env.NEXT_PUBLIC_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID?.trim()
-  if (!appId || !configurationId) return fail("WhatsApp Embedded Signup is not configured")
-  return ok({ appId, configurationId, state: createWhatsAppSignupState(ctx.orgId, ctx.userId) })
+  try {
+    const { appId, configurationId } = getWhatsAppEmbeddedSignupConfig()
+    return ok({ appId, configurationId, state: createWhatsAppSignupState(ctx.orgId, ctx.userId) })
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "WhatsApp Embedded Signup is not configured"
+    console.error("[whatsapp:embedded-signup] configuration_invalid", { message })
+    return fail(message)
+  }
 }
 
 export async function disconnectWhatsApp(): Promise<ActionResult<{ disconnected: true }>> {
